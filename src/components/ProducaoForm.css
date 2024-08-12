@@ -1,0 +1,71 @@
+.container {
+  display: flex;
+  height: 70%;
+  text-align: center;
+  /* justify-content: center; */
+  /* position: absolute;
+  left: 0;
+  right: 0; */
+  /* top: 50%; */
+  /* transform: translateY(-50%); */
+}
+
+.container strong {
+  font-size: 20px;
+  line-height: 26px;
+}
+
+.container p {
+  font-size: 16px;
+  line-height: 22px;
+  color: #8c8c8c;
+  margin: 0;
+}
+
+.container a {
+  /* text-decoration: none; */
+}
+
+.produto-grande {
+  width: 150px;
+  /* height: 120px; */
+
+  ion-button {
+    width: 150px;
+    height: 45px;
+  }
+}
+
+.produto-unidade {
+  width: 60px;
+  ion-button {
+    width: 60px;
+  }
+}
+
+.mockButton {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--ion-color-primary);
+  border-radius: 18px;
+  color: white; 
+  height: 40px;
+  font-weight: 700;
+  font-size: small;
+  text-align: center;
+  padding: 6px;
+}
+
+
+.white {
+  background: #fff;
+  color: #000;
+}
+
+.test{
+  text-align: center;
+  color: #fff;
+  background-color: var(--background);
+  padding-top: var(--padding-top);
+}

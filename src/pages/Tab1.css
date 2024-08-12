@@ -1,0 +1,31 @@
+ion-title {
+    text-align: center !important;
+}
+
+/* ion-grid { */
+    /* top: 32px; */
+    /* text-align: center; */
+/* } */
+
+/* ion-row {
+    margin: 24px;
+} */
+
+ion-col {
+    /* background-color: #135d54; */
+    /* border: solid 1px #fff; */
+    /* color: #fff;
+     */
+     text-align: center;
+}
+
+.botao {
+    margin: 24px;
+    width: 108px;
+    height: 108px;
+}
+
+ion-button {
+    color: #fff;
+    font-weight: 700;
+}
