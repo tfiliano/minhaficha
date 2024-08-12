@@ -1,4 +1,3 @@
-import { Redirect, Route } from 'react-router-dom';
 import {
   IonApp,
   IonIcon,
@@ -11,9 +10,10 @@ import {
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { ellipse, square, triangle } from 'ionicons/icons';
-import Tab1 from './pages/Tab1';
+import { Redirect, Route } from 'react-router-dom';
 import Operador from './pages/Operador';
 import Producao from './pages/Producao';
+import Tab1 from './pages/Tab1';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -24,12 +24,12 @@ import '@ionic/react/css/structure.css';
 import '@ionic/react/css/typography.css';
 
 /* Optional CSS utils that can be commented out */
-import '@ionic/react/css/padding.css';
+import '@ionic/react/css/display.css';
+import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/float-elements.css';
+import '@ionic/react/css/padding.css';
 import '@ionic/react/css/text-alignment.css';
 import '@ionic/react/css/text-transformation.css';
-import '@ionic/react/css/flex-utils.css';
-import '@ionic/react/css/display.css';
 
 /*
 
@@ -44,15 +44,14 @@ import '@ionic/react/css/display.css';
 import '@ionic/react/css/palettes/dark.system.css';
 
 /* Theme variables */
-import './theme/variables.css';
-import { useState } from 'react';
-import Setor from './pages/Setor';
 import Produto from './pages/Produto';
+import Setor from './pages/Setor';
+import './theme/variables.css';
 
 setupIonicReact();
 
 const App: React.FC = () => {
-  const [state, setState] = useState<any | null>(null);
+ 
 
   
   return (
@@ -61,19 +60,19 @@ const App: React.FC = () => {
         <IonTabs>
           <IonRouterOutlet>
             <Route exact path="/tab1">
-              <Tab1 state={state} setState={setState}/>
+              <Tab1 />
             </Route>
             <Route exact path="/selecionar-operador">
-              <Operador state={state} setState={setState}/>
+              <Operador />
             </Route>
             <Route exact path="/selecionar-setor">
-              <Setor state={state} setState={setState}/>
+              <Setor />
             </Route>
             <Route exact path="/selecionar-produto">
-              <Produto state={state} setState={setState}/>
+              <Produto />
             </Route>
             <Route path="/producao">
-              <Producao state={state} setState={setState}/>
+              <Producao />
             </Route>
             <Route exact path="/">
               <Redirect to="/tab1" />

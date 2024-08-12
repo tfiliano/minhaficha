@@ -1,17 +1,17 @@
 import { IonButton, IonCol, IonContent, IonGrid, IonHeader, IonPage, IonRow, IonTitle, IonToolbar } from '@ionic/react';
-import ExploreContainer from '../components/ExploreContainer';
-import './Operador.css';
 import { useEffect, useState } from 'react';
-import { supabase } from '../supabaseClient';
 import { useHistory } from 'react-router';
+import { useDescomplica } from '../context/desconplica-context';
+import { supabase } from '../supabaseClient';
+import './Operador.css';
 
 interface OperadorProps {
-  state: any;
-  setState: Function;
+
 }
 
 
-const Operador: React.FC<OperadorProps> = ({state, setState}) => {
+const Operador: React.FC<OperadorProps> = () => {
+  const {state,setState} =useDescomplica()
   const [operadores, setOperadores] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any | null>(null);
@@ -38,7 +38,7 @@ const Operador: React.FC<OperadorProps> = ({state, setState}) => {
 
   const handleClick = (nome: String) => {
     
-    setState(st => ({
+    setState((st:any) => ({
       ...st, 
       operador: nome
     }))

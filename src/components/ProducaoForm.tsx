@@ -1,16 +1,16 @@
-import { IonButton, IonCol, IonGrid, IonInput, IonRow } from '@ionic/react';
-import React, { useEffect, useState } from 'react';
+import { IonCol, IonGrid, IonInput, IonRow } from '@ionic/react';
+import React, { useCallback, useEffect, useState } from 'react';
 
-import './ProducaoForm.css';
+import { useDescomplica } from '../context/desconplica-context';
 import { supabase } from '../supabaseClient';
+import './ProducaoForm.css';
 
 
 interface ContainerProps {
   name?: string;
-  produtos: any[];
-  onSetProduto: Function;
-  state: any;
-  setState: Function;
+
+
+
 }
 
 interface IProducao {
@@ -27,45 +27,48 @@ const DECIMAL_SEPARATOR=".";
 const GROUP_SEPARATOR=",";
 const budget=0;
 
-const ProducaoForm: React.FC<ContainerProps> = ({ name, produtos, onSetProduto, state, setState }) => {
+const ProducaoForm: React.FC<ContainerProps> = ({  }) => {
+
+  const {state,produtos,setProdutos,setState} = useDescomplica()
+
   const [data, setData] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any | null>(null);
   const [producao, setProducao] = useState<IProducao|null>(null);
   const [decimalSeparator, setDecimalSeparator] = useState('.');
 
-  useEffect(() => {
-    const testNumber = 1.1;
-    const formattedNumber = testNumber.toLocaleString();
-    if (formattedNumber.indexOf(',') !== -1) {
-      setDecimalSeparator(',');
-    } else {
-      setDecimalSeparator('.');
-    }
 
-    const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    if (state) {
       try {
         setLoading(true);
         // Suponha que estamos buscando dados de uma API
-        const { data } = await supabase.from("produtos").select();
-        console.log(data)
-        setData(data);
+        console.log("codigo produto" , state?.produto?.codigo)
+        const { data } = await supabase.from("produtos").select().eq("originado", state?.produto?.codigo);
+        console.log("subprodutos...:" ,data)
+        setProdutos(data || [])
       } catch (error) {
+        console.log(error)
         setError(error);
       } finally {
         setLoading(false);
       }
-    };
+    }
+  },[]);
 
+
+  useEffect(() => {
+    console.log("dentro do useEffect ", state)
     fetchData();
   }, []);  
-  
+
+
   useEffect( () => {
     console.log(producao)
     const pesoLiquido = producao?.items.reduce( (prev, curr) => prev.pesoLiquido += curr.pesoLiquido )
     const pesoPerda = producao?.pesoBruto || 0 - pesoLiquido;
     console.log(pesoLiquido, pesoPerda)
-    setState( st => {
+    setState( (st:any) => {
       return {
         ...st,
         produto: { 
@@ -78,36 +81,43 @@ const ProducaoForm: React.FC<ContainerProps> = ({ name, produtos, onSetProduto, 
   
   }, [producao])
 
-  const handleItemProducao = (produto: any, propriedade: string, valor: string) => {
-    setProducao( oldState => {
-      if (!oldState) {
-        oldState = {
-          pesoBruto: 0,
-          pesoLiquido: 0,
-          pesoPerda: 0,
-          fatorCorrecao: 0,
-          insumo: state?.produto,
-          items: []
-        }
-      }
+const handleItemProducao = (produto: any, propriedade: string, valor: string) => {
+  let newProducao: IProducao | null = null;
 
-      const item = oldState?.items.find( i => i.codigo === produto.codigo)
-      if (item) {
-        item[propriedade] = valor
-        item.test = "opa"
-      } else {
-        oldState.items.push({
+  if (producao) {
+    newProducao = { ...producao };
+
+    const item = newProducao.items.find(i => i.codigo === produto.codigo);
+    if (item) {
+      item[propriedade] = valor;
+      item.test = "opa";
+    } else {
+      newProducao.items.push({
+        codigo: produto.codigo,
+        nome: produto.nome,
+        [propriedade]: valor,
+      });
+    }
+  } else {
+    newProducao = {
+      pesoBruto: 0,
+      pesoLiquido: 0,
+      pesoPerda: 0,
+      fatorCorrecao: 0,
+      insumo: state?.produto,
+      items: [
+        {
           codigo: produto.codigo,
           nome: produto.nome,
           [propriedade]: valor,
-        })
-      }
-
-      console.log("oldState => ", oldState)
-      
-      return oldState
-    })
+        },
+      ],
+    };
   }
+
+  console.log("producaoOld => ", newProducao);
+  setProducao(newProducao);
+};
 
 
   const onValidarQuantidade = (ev: Event, produto: any) => {
@@ -120,20 +130,13 @@ const ProducaoForm: React.FC<ContainerProps> = ({ name, produtos, onSetProduto, 
     value = value.replace(/[^\d.]/g, '');
     value = value.replace('.', decimalSeparator);
 
-    onSetProduto( (list: any[]) => {
-      return list.map( (prod: any) => {
-        if (prod.codigo === produto.codigo) {
-          prod.quantidade = value
-        }
-
-        handleItemProducao(produto, 'quantidade', value)
-
-        return prod
-      })
-
-    })
+    const prod = produtos.find(prod => prod.codigo === produto.codigo)
+    if(prod) prod.quantidade = value;
+    setProdutos([...produtos])
+    handleItemProducao(produto, 'quantidade', value)
 
   };
+
   const onValidarPeso = (ev: Event, produto: any, prop: string) => {
     console.log("opa....")
     let value = (ev.target as HTMLIonInputElement).value as string;
@@ -151,18 +154,12 @@ const ProducaoForm: React.FC<ContainerProps> = ({ name, produtos, onSetProduto, 
       const [kg, g] = value.split('.');
       const formattedWeight = `${kg ? parseInt(kg, 10) : 0}.${g ? g.padEnd(3, '0') : '000'}`;
 
-      onSetProduto( (list: any[]) => {
-        return list.map( (prod: any) => {
-          if (prod.codigo === produto.codigo) {
-            prod[prop] = formattedWeight.replace('.', decimalSeparator);
-          }
-  
-          handleItemProducao(produto, 'peso', value)
+      const prod = produtos.find(prod => prod.codigo === produto.codigo)
+      if(prod) prod[prop] =  formattedWeight.replace('.', decimalSeparator);
+      setProdutos([...produtos])
+      handleItemProducao(produto, 'peso', value)
 
-          return prod
-        })
-  
-      })
+   
     }
   };
 
@@ -214,7 +211,7 @@ function unFormat(val: any) {
         </IonRow>
         
         {
-          produtos && produtos.map( (produto) => (                
+          produtos.length > 0 && produtos.map( (produto) => (                
             <IonRow key={produto.id}>
               <IonCol size="4"><div className='mockButton'>{produto.nome}</div> </IonCol>
               <IonCol size="2"><div className='mockButton'>{produto.unidade}</div> </IonCol>
@@ -224,7 +221,7 @@ function unFormat(val: any) {
                   inputmode="decimal" 
                   value={produto.quantidade}
                   pattern="^[$\-\s]*[\d\,]*?([\.]\d{0,10})?\s*$"
-                  onIonChange={(ev: Event) => { return onValidarQuantidade(ev, produto, 'quantidade') }}
+                  onIonChange={(ev: Event) => { return onValidarQuantidade(ev, produto) }}
                   >
                 </IonInput>
               </IonCol>

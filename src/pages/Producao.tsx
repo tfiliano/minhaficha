@@ -1,17 +1,16 @@
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
-import './Producao.css';
-import ProducaoForm from '../components/ProducaoForm';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useHistory } from 'react-router';
-import { supabase } from '../supabaseClient';
+import ProducaoForm from '../components/ProducaoForm';
+import { useDescomplica } from '../context/desconplica-context';
+import './Producao.css';
 
 interface ProducaoProps {
-  state: any;
-  setState: Function;
+
 }
 
-const Producao: React.FC<ProducaoProps> = ({state, setState}) => {
-  const [produtos, setProdutos] = useState<any[] | null>(null);
+const Producao: React.FC<ProducaoProps> = () => {
+  const {state, produtos, setProdutos, setState} = useDescomplica()
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any | null>(null);
 
@@ -19,28 +18,7 @@ console.log("producao state", state)
 
   const history = useHistory();
 
-  useEffect(() => {
-    console.log("dentro do useEffect ", state)
-    const fetchData = async () => {
-      if (state) {
-        try {
-          setLoading(true);
-          // Suponha que estamos buscando dados de uma API
-          console.log("codigo produto" , state?.produto?.codigo)
-          const { data } = await supabase.from("produtos").select().eq("originado", state?.produto?.codigo);
-          console.log("subprodutos...:" ,data)
-          setProdutos(data);
-        } catch (error) {
-          console.log(error)
-          setError(error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
 
-    fetchData();
-  }, [state]);  
 
 
 
@@ -58,9 +36,8 @@ console.log("producao state", state)
           </IonToolbar>
         </IonHeader>
 
-        { produtos && produtos.length && 
-          <ProducaoForm produtos={produtos} onSetProduto={setProdutos}  state={state} setState={setState}/> 
-        }
+          <ProducaoForm    /> 
+        
 
       </IonContent>
     </IonPage>

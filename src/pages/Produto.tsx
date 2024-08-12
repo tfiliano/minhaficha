@@ -1,17 +1,17 @@
 import { IonButton, IonCol, IonContent, IonGrid, IonHeader, IonPage, IonRow, IonTitle, IonToolbar } from '@ionic/react';
-import ExploreContainer from '../components/ExploreContainer';
-import './Produto.css';
 import { useEffect, useState } from 'react';
-import { supabase } from '../supabaseClient';
 import { useHistory } from 'react-router';
+import { useDescomplica } from '../context/desconplica-context';
+import { supabase } from '../supabaseClient';
+import './Produto.css';
 
 interface ProdutoProps {
-  state: any;
-  setState: Function;
+
 }
 
 
-const Produto: React.FC<ProdutoProps> = ({state, setState}) => {
+const Produto: React.FC<ProdutoProps> = () => {
+  const {state, setState} = useDescomplica()
   const [produtos, setProdutos] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any | null>(null);
@@ -42,7 +42,7 @@ console.log(state)
 
   const handleClick = (produto: any) => {
     
-    setState(st => ({
+    setState((st:any) => ({
       ...st, 
       produto: produto
     }))

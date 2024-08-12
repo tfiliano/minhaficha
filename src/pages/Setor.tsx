@@ -1,17 +1,17 @@
 import { IonButton, IonCol, IonContent, IonGrid, IonHeader, IonPage, IonRow, IonTitle, IonToolbar } from '@ionic/react';
-import ExploreContainer from '../components/ExploreContainer';
-import './Setor.css';
 import { useEffect, useState } from 'react';
-import { supabase } from '../supabaseClient';
 import { useHistory } from 'react-router';
+import { useDescomplica } from '../context/desconplica-context';
+import { supabase } from '../supabaseClient';
+import './Setor.css';
 
 interface SetorProps {
-  state: any;
-  setState: Function;
+
 }
 
 
-const Setor: React.FC<SetorProps> = ({state, setState}) => {
+const Setor: React.FC<SetorProps> = () => {
+  const {state,setState} = useDescomplica()
   const [setores, setSetores] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any | null>(null);
@@ -41,7 +41,7 @@ console.log(state)
 
   const handleClick = (nome: String) => {
     
-    setState(st => ({
+    setState((st:any) => ({
       ...st, 
       setor: nome
     }))
