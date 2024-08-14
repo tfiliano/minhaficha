@@ -71,7 +71,7 @@ const App: React.FC = () => {
             <Route exact path="/selecionar-produto">
               <Produto />
             </Route>
-            <Route path="/producao">
+            <Route path="/producao/:product">
               <Producao />
             </Route>
             <Route exact path="/">
@@ -87,7 +87,7 @@ const App: React.FC = () => {
               <IonIcon aria-hidden="true" icon={ellipse} />
               <IonLabel>OPERADOR</IonLabel>
             </IonTabButton>
-            <IonTabButton tab="producao" href="/producao">
+            <IonTabButton tab="producao" href="/producao/:product">
               <IonIcon aria-hidden="true" icon={square} />
               <IonLabel>PRODUÇÃO</IonLabel>
             </IonTabButton>

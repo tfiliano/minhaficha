@@ -46,7 +46,7 @@ console.log(state)
       ...st, 
       produto: produto
     }))
-    history.push('/producao') 
+    history.push(`/producao/${produto.codigo}`) 
   }
 
 

@@ -1,6 +1,7 @@
-import { IonCol, IonGrid, IonInput, IonRow } from '@ionic/react';
-import React, { useCallback, useEffect, useState } from 'react';
+import { IonButton, IonCol, IonGrid, IonInput, IonRow } from '@ionic/react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 
+import { useParams } from 'react-router';
 import { useDescomplica } from '../context/desconplica-context';
 import { supabase } from '../supabaseClient';
 import './ProducaoForm.css';
@@ -29,22 +30,23 @@ const budget=0;
 
 const ProducaoForm: React.FC<ContainerProps> = ({  }) => {
 
+  const {product:codigoDoProduto} = useParams() as {product:string}
+ 
   const {state,produtos,setProdutos,setState} = useDescomplica()
 
-  const [data, setData] = useState<any[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<any | null>(null);
   const [producao, setProducao] = useState<IProducao|null>(null);
   const [decimalSeparator, setDecimalSeparator] = useState('.');
 
 
-  const fetchData = useCallback(async () => {
+  const fetchData = async () => {
     if (state) {
       try {
         setLoading(true);
         // Suponha que estamos buscando dados de uma API
-        console.log("codigo produto" , state?.produto?.codigo)
-        const { data } = await supabase.from("produtos").select().eq("originado", state?.produto?.codigo);
+        console.log("codigo produto" , codigoDoProduto)
+        const { data } = await supabase.from("produtos").select().eq("originado", codigoDoProduto);
         console.log("subprodutos...:" ,data)
         setProdutos(data || [])
       } catch (error) {
@@ -54,37 +56,27 @@ const ProducaoForm: React.FC<ContainerProps> = ({  }) => {
         setLoading(false);
       }
     }
-  },[]);
+  };  
 
 
-  useEffect(() => {
-    console.log("dentro do useEffect ", state)
-    fetchData();
-  }, []);  
+  useLayoutEffect(() => {
+    setProdutos([])
+  },[])
 
 
-  useEffect( () => {
-    console.log(producao)
-    const pesoLiquido = producao?.items.reduce( (prev, curr) => prev.pesoLiquido += curr.pesoLiquido )
-    const pesoPerda = producao?.pesoBruto || 0 - pesoLiquido;
-    console.log(pesoLiquido, pesoPerda)
-    setState( (st:any) => {
-      return {
-        ...st,
-        produto: { 
-          ...st.produto,
-          pesoLiquido,
-          pesoPerda
-        }
-      }
-    });
+  useEffect(() =>  {
+   
+    fetchData()
+  },[codigoDoProduto])
+
   
-  }, [producao])
+
+
 
 const handleItemProducao = (produto: any, propriedade: string, valor: string) => {
   let newProducao: IProducao | null = null;
 
-  if (producao) {
+  if (producao && producao.items) {
     newProducao = { ...producao };
 
     const item = newProducao.items.find(i => i.codigo === produto.codigo);
@@ -105,6 +97,7 @@ const handleItemProducao = (produto: any, propriedade: string, valor: string) =>
       pesoPerda: 0,
       fatorCorrecao: 0,
       insumo: state?.produto,
+      ...producao,
       items: [
         {
           codigo: produto.codigo,
@@ -114,6 +107,12 @@ const handleItemProducao = (produto: any, propriedade: string, valor: string) =>
       ],
     };
   }
+
+  const pesoLiquido = newProducao?.items.reduce( (prev, curr) => prev += Number(curr.peso||0) ,0)
+  const pesoPerda = newProducao?.pesoBruto || 0 - pesoLiquido;
+  newProducao.pesoLiquido = pesoLiquido;
+  newProducao.pesoPerda = pesoPerda;
+  newProducao.fatorCorrecao = newProducao.pesoBruto! / newProducao.pesoLiquido!;
 
   console.log("producaoOld => ", newProducao);
   setProducao(newProducao);
@@ -188,19 +187,21 @@ function unFormat(val: any) {
 
 
   return (
+    <>
+          
     <div className="container">
       <IonGrid>
         <IonRow>
           <IonCol size="4"><div className='mockButton'>CARNE FILE MIGNON</div> </IonCol>
           <IonCol size="2"><div className='mockButton'>KG</div> </IonCol>
           <IonCol size="6" >
-            <IonInput className='mockButton white' inputmode="decimal" value={null} ></IonInput>
+            <IonInput className='mockButton white' inputmode="decimal" onIonInput={e => setProducao((st:any) => ({...st, pesoBruto: Number(e.detail.value)}))} ></IonInput>
           </IonCol>
         </IonRow>
         <IonRow>
           <IonCol size="4"><IonInput type='text' className='mockButton' value={'LÍQUIDO'} disabled={false}></IonInput></IonCol>
           <IonCol size="2"><IonInput type='text' className='mockButton' value={'KG'} disabled={false}></IonInput></IonCol>
-          <IonCol size="6"><IonInput className='mockButton white' inputmode="decimal" value={null} disabled={true}></IonInput></IonCol>
+          <IonCol size="6"><IonInput className='mockButton white' inputmode="decimal" value={producao?.pesoLiquido} disabled={true}></IonInput></IonCol>
         </IonRow>
         
         <IonRow>
@@ -238,6 +239,12 @@ function unFormat(val: any) {
             </IonRow>
           )) 
         }
+
+        <IonRow>
+          <IonCol size="12">
+            <IonButton className='mockButton' expand="block"  >SALVAR</IonButton>
+          </IonCol>
+        </IonRow>
         
         
         
@@ -245,6 +252,7 @@ function unFormat(val: any) {
       {/* <strong>{name}</strong>
       <p>Explore <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p> */}
     </div>
+    </>
   );
 };
 
