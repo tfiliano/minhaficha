@@ -1,7 +1,0 @@
-{
-  "name": "minhaficha",
-  "integrations": {
-    "capacitor": {}
-  },
-  "type": "react-vite"
-}
