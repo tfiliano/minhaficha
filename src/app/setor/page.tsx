@@ -6,34 +6,34 @@ import { redirect } from "next/navigation";
 type Props = {
   params?: {};
   searchParams?: {
-    operator?: string;
+    operador?: string;
   };
 };
 
-export default async function Setors({ searchParams }: Props) {
+export default async function Setores({ searchParams }: Props) {
   const params = new URLSearchParams(searchParams);
 
-  if (!params.get("operator")) {
+  if (!params.get("operador")) {
     return redirect("/");
   }
   const supabase = createClient();
-  const { data: sectors } = await supabase.rpc("listar_setores");
+  const { data: setors } = await supabase.rpc("listar_setores");
   return (
     <AnimationTransitionPage>
       <Title>
-        {params.get("operator")} <br /> SELECIONE UM SETOR
+        {params.get("operador")} <br /> SELECIONE UM SETOR
       </Title>
       <ContentGrid>
-        {sectors?.map((sector: any, index: number) => {
+        {setors?.map((setor: any, index: number) => {
           return (
             <CardButton
               key={index}
-              title={sector.nome}
+              title={setor.nome}
               url={{
-                pathname: "/product",
+                pathname: "/produto",
                 query: {
                   ...Object.fromEntries(params.entries()),
-                  sector: sector.nome,
+                  setor: setor.nome,
                 },
               }}
             />

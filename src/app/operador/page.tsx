@@ -6,36 +6,36 @@ import { redirect } from "next/navigation";
 type Props = {
   params?: {};
   searchParams?: {
-    operation?: string;
+    operacao?: string;
   };
 };
 
-export default async function Operators({ searchParams }: Props) {
+export default async function Operadores({ searchParams }: Props) {
   const params = new URLSearchParams(searchParams);
 
-  if (!params.get("operation")) {
+  if (!params.get("operacao")) {
     return redirect("/");
   }
   const supabase = createClient();
-  const { data: operators } = await supabase.from("operadores").select("*");
+  const { data: operadores } = await supabase.from("operadores").select("*");
 
   return (
     <AnimationTransitionPage>
       <Title>
-        {params.get("operation")} <br /> SELECIONE UM OPERADOR
+        {params.get("operacao")} <br /> SELECIONE UM OPERADOR
       </Title>
       <ContentGrid>
-        {operators?.map((operator) => {
+        {operadores?.map((operador) => {
           return (
-            <div key={operator.id}>
+            <div key={operador.id}>
               <CardButton
-                title={operator.nome}
+                title={operador.nome}
                 url={{
-                  pathname: "/sector",
+                  pathname: "/setor",
                   query: {
                     ...Object.fromEntries(params.entries()),
-                    operator: operator.nome,
-                    operatorId: operator.id,
+                    operador: operador.nome,
+                    operadorId: operador.id,
                   },
                 }}
               />

@@ -1,5 +1,5 @@
 import { Title } from "@/components/layout";
-import { ProductionForm } from "@/components/pages";
+import { ProducaoForm } from "@/components/pages";
 import { createClient } from "@/utils/supabase";
 import { redirect } from "next/navigation";
 import { AnimationTransitionPage } from "../../components/animation";
@@ -7,36 +7,36 @@ import { AnimationTransitionPage } from "../../components/animation";
 type Props = {
   params?: {};
   searchParams?: {
-    operator?: string;
-    operation?: string;
-    sector?: string;
-    product?: string;
+    operador?: string;
+    operacao?: string;
+    setor?: string;
+    produto?: string;
   };
 };
 
-export default async function Production({ searchParams }: Props) {
+export default async function Producao({ searchParams }: Props) {
   const params = new URLSearchParams(searchParams);
 
-  if (!params.get("product")) {
+  if (!params.get("produto")) {
     return redirect("/");
   }
   const supabase = createClient();
   const { data: items } = await supabase
     .from("produtos")
     .select()
-    .eq("originado", params.get("product"));
+    .eq("originado", params.get("produto"));
 
-  const { data: product } = await supabase
+  const { data: produto } = await supabase
     .from("produtos")
     .select()
-    .eq("id", params.get("productId"))
+    .eq("id", params.get("produtoId"))
     .maybeSingle();
 
   return (
     <AnimationTransitionPage>
       <div className="pb-8">
-        <Title>PRODUÇÃO</Title>
-        <ProductionForm product={product} items={items || []} />
+        {/* <Title>PRODUÇÃO</Title> */}
+        <ProducaoForm produto={produto} items={items || []} />
       </div>
     </AnimationTransitionPage>
   );

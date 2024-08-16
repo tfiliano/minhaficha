@@ -1,5 +1,5 @@
-import { Operation } from "@/components/pages";
+import { Operacao } from "@/components/pages";
 
 export default function Home() {
-  return <Operation />;
+  return <Operacao />;
 }

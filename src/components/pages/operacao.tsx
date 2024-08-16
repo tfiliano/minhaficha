@@ -1,8 +1,8 @@
 import { AnimationTransitionPage } from "../animation";
 import { CardButton, ContentGrid, Title } from "../layout";
 
-export function Operation() {
-  const operations = [
+export function Operacao() {
+  const operacaos = [
     {
       title: "Ficha Técnica",
     },
@@ -21,13 +21,13 @@ export function Operation() {
     <AnimationTransitionPage>
       <Title>SELECIONE UMA OPERAÇÃO</Title>
       <ContentGrid>
-        {operations.map((operation) => (
+        {operacaos.map((operacao) => (
           <CardButton
-            key={operation.title}
-            title={operation.title}
+            key={operacao.title}
+            title={operacao.title}
             url={{
-              pathname: "/operators",
-              query: { operation: operation.title },
+              pathname: "/operador",
+              query: { operacao: operacao.title },
             }}
           />
         ))}

@@ -6,39 +6,40 @@ import { redirect } from "next/navigation";
 type Props = {
   params?: {};
   searchParams?: {
-    operator?: string;
-    operation?: string;
-    sector?: string;
+    operador?: string;
+    operacao?: string;
+    setor?: string;
   };
 };
 
-export default async function Products({ searchParams }: Props) {
+export default async function Produtos({ searchParams }: Props) {
   const params = new URLSearchParams(searchParams);
 
-  if (!params.get("operator")) {
+  if (!params.get("operador")) {
     return redirect("/");
   }
   const supabase = createClient();
-  const { data: products } = await supabase
+  const { data: produtos } = await supabase
     .from("produtos")
     .select()
     .is("originado", null)
-    .eq("setor", params.get("sector")!);
+    .eq("setor", params.get("setor")!);
   return (
     <AnimationTransitionPage>
       <Title>SELECIONE UM PRODUTO</Title>
       <ContentGrid>
-        {products?.map((product: any, index: number) => {
+        {produtos?.map((produto: any, index: number) => {
           return (
             <CardButton
               key={index}
-              title={product.nome}
+              title={produto.nome}
               url={{
-                pathname: "/production",
+                pathname: "/producao",
                 query: {
                   ...Object.fromEntries(params.entries()),
-                  product: product.codigo,
-                  productId: product.id,
+                  produto: produto.codigo,
+                  produtoId: produto.id,
+                  produtoDesc: produto.nome
                 },
               }}
             />
