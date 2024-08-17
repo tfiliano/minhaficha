@@ -23,11 +23,12 @@ type Inputs = {
   pesoPerda: number;
   fatorCorrecao: number;
   
-  produto_nome?: string;
-  produto_id?: string;
-  setor?: string;
-  operador?: string;
-  operador_id?: string;
+  produto_nome?: string | null;
+  produto_id?: string | null;
+  produto?: string | null;
+  setor?: string | null;
+  operador?: string | null;
+  operador_id?: string | null;
 
 };
 
@@ -83,7 +84,7 @@ export function ProducaoForm({
   }, [watch]);
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    const producao = {
+    const producao: Inputs = {
       ...data,
       operador_id: params.get("operadorId"),
       operador: params.get("operador"),
