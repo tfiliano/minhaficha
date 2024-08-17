@@ -56,7 +56,9 @@ export function ProducaoForm({
     if (!num) return 0;
     var re = new RegExp('^-?\\d+(?:\.\\d{0,' + (fixed || -1) + '})?');
     // console.log(num, re, num.toString().match(re))
-    return parseFloat(((num || 0).toString().match(re) || [0])[0]);
+    const value = num || 0
+    const default_return = ["0"]
+    return parseFloat(((value).toString().match(re) || default_return)[0]);
 }
 
   useEffect(() => {
