@@ -32,11 +32,7 @@ type Inputs = {
 
 };
 
-function getParam(property: string) {
-  const searchParams = useSearchParams()
- 
-  return searchParams.get(property)
-}
+
 
 export function ProducaoForm({
   items,
@@ -46,6 +42,12 @@ export function ProducaoForm({
   produto: any;
 }) {
   // const params = new URLSearchParams(searchParams);
+
+  function getParam(property: string) {
+    const searchParams = useSearchParams()
+   
+    return searchParams.get(property)
+  }
 
   const params = useSearchParams();
   const [visualizarConfirmacao, setVisualizarConfirmacao] = useState<boolean>(false);
