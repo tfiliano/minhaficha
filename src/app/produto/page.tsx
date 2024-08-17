@@ -39,7 +39,7 @@ export default async function Produtos({ searchParams }: Props) {
                   ...Object.fromEntries(params.entries()),
                   produto: produto.codigo,
                   produtoId: produto.id,
-                  produtoDesc: produto.nome
+                  produtoDesc: produto.nome,
                 },
               }}
             />
