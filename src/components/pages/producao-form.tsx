@@ -24,13 +24,14 @@ import {
 } from "@/components/ui/table";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { createClient } from "@/utils/supabase";
 
 type Inputs = {
   items: any[];
-  pesoBruto: number;
-  pesoLiquido: number;
-  pesoPerda: number;
-  fatorCorrecao: number;
+  peso_bruto: number | null;
+  peso_liquido: number;
+  peso_perda: number;
+  fator_correcao: number;
 
   produto_nome?: string | null;
   produto_id?: string | null;
@@ -59,12 +60,17 @@ export function ProducaoForm({
   const { register, handleSubmit, watch, setValue } = useForm<Inputs>({
     defaultValues: {
       items,
-      pesoLiquido: 0,
-      pesoBruto: 0,
-      pesoPerda: 0,
-      fatorCorrecao: 0,
+      peso_liquido: 0,
+      peso_bruto: null,
+      peso_perda: 0,
+      fator_correcao: 0,
     },
   });
+
+  function round(value: number) {
+    const roundedValue = Math.round((value + Number.EPSILON) * 100) / 100;
+    return roundedValue
+  }
 
   function toFixed(num: number, fixed: number = 2) {
     if (!num) return 0;
@@ -78,13 +84,15 @@ export function ProducaoForm({
     watch((value, { name, type }) => {
       if (type === "change" && name?.includes("items.")) {
         setValue(
-          "pesoLiquido",
+          "peso_liquido",
           value.items!.reduce((acc, item) => (acc += item.peso || 0), 0)
         );
-        setValue("pesoPerda", toFixed(value.pesoBruto! - value.pesoLiquido!));
-        const fatorCorrecao =
-          (value.pesoBruto || 0) / (value.pesoLiquido || 0.1);
-        setValue("fatorCorrecao", toFixed(fatorCorrecao));
+        const bruto = value.peso_bruto || 0;
+        const liquido = value.peso_liquido || 0.01;
+        const fator_correcao = bruto / liquido;
+
+        setValue("peso_perda", toFixed( bruto - liquido ));
+        setValue("fator_correcao", toFixed(fator_correcao));
       }
     });
   }, [watch]);
@@ -98,17 +106,35 @@ export function ProducaoForm({
       produto: getParam("produto"),
       produto_nome: getParam("produtoDesc"),
     };
-    producao.items = producao.items.filter((i) => i.quantidade);
+    producao.items = producao.items
+      .filter((i) => i.quantidade)
+      .map( i => {
+        return {
+          id: i.id,
+          codigo: i.codigo,
+          nome: i.nome,
+          quantidade: i.quantidade,
+          peso: i.peso,
+          peso_medio: round(i.peso / i.quantidade)
+        }
+      });
     console.log(producao);
 
     setProducao(producao);
   };
 
   const onSubmitFormAfterConfirmation = async () => {
-    const data = producao;
     console.log("ACAO PARA SER DISPARADA PARA O SUPABASE OU API");
-    console.log(JSON.stringify(data, null, 2));
+    console.log(JSON.stringify(producao, null, 2));
+    
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("producao")
+      .insert(producao);
+
+      console.log(data, error)
   };
+  
 
   return (
     <>
@@ -120,26 +146,27 @@ export function ProducaoForm({
           <TableBody>
             <TableRow>
               <TableCell className="font-medium">{produto.nome}</TableCell>
-              <TableCell>{produto.unidade}</TableCell>
               <TableCell>
                 <Input
                   type="number"
                   placeholder={""}
-                  {...register("pesoBruto", { valueAsNumber: true })}
-                />
+                  {...register("peso_bruto", { valueAsNumber: true })}
+                  />
               </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-medium">LÍQUIDO</TableCell>
               <TableCell>{produto.unidade}</TableCell>
+            </TableRow>
+      
+            <TableRow>
+              <TableCell className="font-small">LÍQUIDO</TableCell>
               <TableCell>
                 <Input
                   type="number"
                   placeholder=""
                   readOnly
-                  {...register("pesoLiquido")}
-                />
+                  {...register("peso_liquido")}
+                  />
               </TableCell>
+              <TableCell>{produto.unidade}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -192,7 +219,7 @@ export function ProducaoForm({
                   type="number"
                   placeholder=""
                   readOnly
-                  {...register("fatorCorrecao", { valueAsNumber: true })}
+                  {...register("fator_correcao", { valueAsNumber: true })}
                 />
               </TableCell>
             </TableRow>
@@ -219,30 +246,35 @@ export function ProducaoForm({
           </DrawerHeader>
           <div>
             {producao && (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>PRODUTO</TableHead>
-                    <TableHead>UN</TableHead>
-                    <TableHead>PESO</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>{producao!.produto_nome}</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell>{producao!.pesoBruto}</TableCell>
-                  </TableRow>
-
-                  {producao!.items.map((item, index) => (
-                    <TableRow key={item.id}>
-                      <TableCell>{item.nome}</TableCell>
-                      <TableCell>{item.quantidade}</TableCell>
-                      <TableCell>{item.peso}</TableCell>
+              <>
+                <Table> 
+                  <TableBody>
+                    <TableRow>
+                      <TableCell>{producao!.produto_nome}</TableCell>
+                      <TableCell>-</TableCell>
+                      <TableCell>{producao!.peso_bruto} Kg</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableBody>
+                </Table>
+                <Table> 
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>PRODUTO</TableHead>
+                      <TableHead>UN</TableHead>
+                      <TableHead>PESO</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {producao!.items.map((item, index) => (
+                      <TableRow key={item.id}>
+                        <TableCell>{item.nome}</TableCell>
+                        <TableCell>{item.quantidade}</TableCell>
+                        <TableCell>{item.peso}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </>
             )}
           </div>
           <DrawerFooter>
