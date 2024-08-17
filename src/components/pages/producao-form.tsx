@@ -32,6 +32,12 @@ type Inputs = {
 
 };
 
+function getParam(property: string) {
+  const searchParams = useSearchParams()
+ 
+  return searchParams.get(property)
+}
+
 export function ProducaoForm({
   items,
   produto,
@@ -40,6 +46,7 @@ export function ProducaoForm({
   produto: any;
 }) {
   // const params = new URLSearchParams(searchParams);
+
   const params = useSearchParams();
   const [visualizarConfirmacao, setVisualizarConfirmacao] = useState<boolean>(false);
   const [producao, setProducao] = useState<Inputs|null>(null);
@@ -86,11 +93,11 @@ export function ProducaoForm({
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     const producao: Inputs = {
       ...data,
-      operador_id: params.get("operadorId"),
-      operador: params.get("operador"),
-      setor: params.get("setor"),
-      produto: params.get("produto"),
-      produto_nome: params.get("produtoDesc"),
+      operador_id: getParam("operadorId"),
+      operador: getParam("operador"),
+      setor: getParam("setor"),
+      produto: getParam("produto"),
+      produto_nome: getParam("produtoDesc"),
     }
     producao.items = producao.items.filter(i => i.quantidade)
     console.log(producao)
