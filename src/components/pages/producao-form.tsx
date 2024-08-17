@@ -22,6 +22,13 @@ type Inputs = {
   pesoLiquido: number;
   pesoPerda: number;
   fatorCorrecao: number;
+  
+  produto_nome?: string;
+  produto_id?: string;
+  setor?: string;
+  operador?: string;
+  operador_id?: string;
+
 };
 
 export function ProducaoForm({
