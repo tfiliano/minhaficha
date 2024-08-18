@@ -14,6 +14,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 
+import { Inputs, saveProducao } from "@/app/producao/actions";
 import {
   Table,
   TableBody,
@@ -24,22 +25,6 @@ import {
 } from "@/components/ui/table";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { createClient } from "@/utils/supabase";
-
-type Inputs = {
-  items: any[];
-  peso_bruto: number | null;
-  peso_liquido: number;
-  peso_perda: number;
-  fator_correcao: number;
-
-  produto_nome?: string | null;
-  produto_id?: string | null;
-  produto?: string | null;
-  setor?: string | null;
-  operador?: string | null;
-  operador_id?: string | null;
-};
 
 export function ProducaoForm({
   items,
@@ -69,7 +54,7 @@ export function ProducaoForm({
 
   function round(value: number) {
     const roundedValue = Math.round((value + Number.EPSILON) * 100) / 100;
-    return roundedValue
+    return roundedValue;
   }
 
   function toFixed(num: number, fixed: number = 2) {
@@ -91,7 +76,7 @@ export function ProducaoForm({
         const liquido = value.peso_liquido || 0.01;
         const fator_correcao = bruto / liquido;
 
-        setValue("peso_perda", toFixed( bruto - liquido ));
+        setValue("peso_perda", toFixed(bruto - liquido));
         setValue("fator_correcao", toFixed(fator_correcao));
       }
     });
@@ -108,15 +93,15 @@ export function ProducaoForm({
     };
     producao.items = producao.items
       .filter((i) => i.quantidade)
-      .map( i => {
+      .map((i) => {
         return {
           id: i.id,
           codigo: i.codigo,
           nome: i.nome,
           quantidade: i.quantidade,
           peso: i.peso,
-          peso_medio: round(i.peso / i.quantidade)
-        }
+          peso_medio: round(i.peso / i.quantidade),
+        };
       });
     console.log(producao);
 
@@ -126,15 +111,8 @@ export function ProducaoForm({
   const onSubmitFormAfterConfirmation = async () => {
     console.log("ACAO PARA SER DISPARADA PARA O SUPABASE OU API");
     console.log(JSON.stringify(producao, null, 2));
-    
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("producao")
-      .insert(producao);
-
-      console.log(data, error)
+    await saveProducao(producao!);
   };
-  
 
   return (
     <>
@@ -151,11 +129,11 @@ export function ProducaoForm({
                   type="number"
                   placeholder={""}
                   {...register("peso_bruto", { valueAsNumber: true })}
-                  />
+                />
               </TableCell>
               <TableCell>{produto.unidade}</TableCell>
             </TableRow>
-      
+
             <TableRow>
               <TableCell className="font-small">LÍQUIDO</TableCell>
               <TableCell>
@@ -164,7 +142,7 @@ export function ProducaoForm({
                   placeholder=""
                   readOnly
                   {...register("peso_liquido")}
-                  />
+                />
               </TableCell>
               <TableCell>{produto.unidade}</TableCell>
             </TableRow>
@@ -247,7 +225,7 @@ export function ProducaoForm({
           <div>
             {producao && (
               <>
-                <Table> 
+                <Table>
                   <TableBody>
                     <TableRow>
                       <TableCell>{producao!.produto_nome}</TableCell>
@@ -256,7 +234,7 @@ export function ProducaoForm({
                     </TableRow>
                   </TableBody>
                 </Table>
-                <Table> 
+                <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>PRODUTO</TableHead>
