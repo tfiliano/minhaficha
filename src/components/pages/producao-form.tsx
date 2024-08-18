@@ -23,8 +23,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useSearchParams } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+
+const INIT_PRODUCAO = {
+  items:[],
+  peso_liquido: 0,
+  peso_bruto: null,
+  peso_perda: 0,
+  fator_correcao: 0,
+  produto_nome: "",
+  operador: "",
+};
 
 export function ProducaoForm({
   items,
@@ -44,12 +54,9 @@ export function ProducaoForm({
 
   const { register, handleSubmit, watch, setValue } = useForm<Inputs>({
     defaultValues: {
+      ...INIT_PRODUCAO,
       items,
-      peso_liquido: 0,
-      peso_bruto: null,
-      peso_perda: 0,
-      fator_correcao: 0,
-    },
+    }
   });
 
   function round(value: number) {
@@ -110,8 +117,13 @@ export function ProducaoForm({
 
   const onSubmitFormAfterConfirmation = async () => {
     console.log("ACAO PARA SER DISPARADA PARA O SUPABASE OU API");
-    console.log(JSON.stringify(producao, null, 2));
-    await saveProducao(producao!);
+    const {produto_nome, operador, ...toSave} = producao || INIT_PRODUCAO;
+    console.log(JSON.stringify(toSave, null, 2));
+    const resulado = await saveProducao(toSave!);
+    console.log("resulado ", resulado)
+
+    //redirect nao funciona :(
+    // return redirect("/")
   };
 
   return (

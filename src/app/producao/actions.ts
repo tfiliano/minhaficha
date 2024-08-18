@@ -22,10 +22,17 @@ export async function saveProducao(producao: Inputs) {
     const supabase = createClient();
     const { data, error } = await supabase.from("producao").insert(producao);
     if (error) {
+      console.error(1, error)
       return { error: error };
     }
+    
+    //preciso colocar um Loading, com feedback pro usuario saber se salvou ou nao, e retornando pra pagina inicial.
+
+    //esse console log nao foi executado!!!
+    console.log(2, data)
     return data;
   } catch (error) {
+    console.error(3, error)
     return { error: error };
   }
 }
