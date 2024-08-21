@@ -14,6 +14,10 @@ type Props = {
 
 export default async function Produtos({ searchParams }: Props) {
   const params = new URLSearchParams(searchParams);
+  let route = ""
+
+  if (params.get("operacao") == "Produção") route = "/producao"
+  else if (params.get("operacao") == "Entrada de Insumos") route = "/entrada-insumo";
 
   if (!params.get("operador")) {
     return redirect("/");
@@ -34,7 +38,7 @@ export default async function Produtos({ searchParams }: Props) {
               key={index}
               title={produto.nome}
               url={{
-                pathname: "/producao",
+                pathname: route,
                 query: {
                   ...Object.fromEntries(params.entries()),
                   produto: produto.codigo,

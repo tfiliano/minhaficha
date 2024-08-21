@@ -3,17 +3,22 @@ import { CardButton, ContentGrid, Title } from "../layout";
 
 export function Operacao() {
   const operacaos = [
+//     1 entra insumos 
+// 2 produção 
+// 3 ficha técnica 
+// 4 etiqueta
+
     {
-      title: "Ficha Técnica",
-    },
-    {
-      title: "Etiquetas",
+      title: "Entrada de Insumos",
     },
     {
       title: "Produção",
     },
     {
-      title: "Validades",
+      title: "Ficha Técnica",
+    },
+    {
+      title: "Etiquetas",
     },
   ];
 

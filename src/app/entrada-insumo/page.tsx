@@ -1,7 +1,7 @@
-import { ProducaoForm } from "@/components/pages";
 import { createClient } from "@/utils/supabase";
 import { redirect } from "next/navigation";
 import { AnimationTransitionPage } from "../../components/animation";
+import { EntradaInsumoForm } from "@/components/pages/entrada-insumo-form";
 import { Title } from "@/components/layout";
 
 type Props = {
@@ -21,10 +21,10 @@ export default async function Producao({ searchParams }: Props) {
     return redirect("/");
   }
   const supabase = createClient();
-  const { data: items } = await supabase
-    .from("produtos")
-    .select()
-    .eq("originado", params.get("produto"));
+  // const { data: items } = await supabase
+  //   .from("produtos")
+  //   .select()
+  //   .eq("originado", params.get("produto"));
 
   const { data: produto } = await supabase
     .from("produtos")
@@ -35,8 +35,8 @@ export default async function Producao({ searchParams }: Props) {
   return (
     <AnimationTransitionPage>
       <div className="pb-8">
-        <Title>PRODUÇÃO</Title>
-        <ProducaoForm produto={produto} items={items || []} />
+        <Title>RECEBIMENTO</Title>
+        <EntradaInsumoForm produto={produto} />
       </div>
     </AnimationTransitionPage>
   );
