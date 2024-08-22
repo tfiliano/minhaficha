@@ -40,6 +40,7 @@ const INIT_RECEBIMENTO = {
   conformidade_embalagem: "",
   conformidade_produtos: "",
   observacoes: "",
+  produto_nome: ""
 };
 
 export function EntradaInsumoForm({
@@ -241,13 +242,13 @@ export function EntradaInsumoForm({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {producao!.items.map((item, index) => (
+                    {/* {producao!.items.map((item, index) => (
                       <TableRow key={item.id}>
                         <TableCell>{item.nome}</TableCell>
                         <TableCell>{item.quantidade}</TableCell>
                         <TableCell>{item.peso}</TableCell>
                       </TableRow>
-                    ))}
+                    ))} */}
                   </TableBody>
                 </Table>
               </>
