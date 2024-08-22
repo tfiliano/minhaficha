@@ -27,8 +27,8 @@ export async function saveRecebimento(insertObject: IEntradaInsumo) {
   try {
     const supabase = createClient();
     console.log("objeto to save: ", insertObject)
-    insertObject.data_recebimento = new Date(insertObject.data_recebimento);
-    insertObject.validade = new Date(insertObject.validade);
+    insertObject.data_recebimento = new Date(insertObject.data_recebimento as Date);
+    insertObject.validade = new Date(insertObject.validade as Date);
     
     const { data, error } = await supabase.from("recebimentos").insert(insertObject);
     if (error) {

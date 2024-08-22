@@ -25,17 +25,17 @@ import {
 } from "@/components/ui/table";
 import { redirect, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn, wait } from "@/lib/utils";
 
 const INIT_RECEBIMENTO = {
   peso_bruto: 2.5,
-  data_recebimento: Date.now(),
+  data_recebimento: new Date(),
   fornecedor: "ZEH",
   nota_fiscal: "001",
   sif: "SIF 01",
   temperatura: "28.5",
   lote: "LOTE 01",
-  validade: Date.now()+30,
+  validade: new Date(),
   operador: "MARIA",
   conformidade_transporte: "C",
   conformidade_embalagem: "N",
@@ -125,14 +125,12 @@ export function EntradaInsumoForm({
     setLoading(true);
     await onSubmitFormAfterConfirmation();
   };
-
-  async function wait ( ms: number ) { return new Promise(resolve => setTimeout(resolve, ms)); }
   
   const onSubmitFormAfterConfirmation = async () => {
     console.log("ACAO PARA SER DISPARADA PARA O SUPABASE OU API");
     const {produto_nome, operador, ...toSave} = recebimento || INIT_RECEBIMENTO;
     
-    const { error } = await saveRecebimento(toSave!);
+    const { error }: any = await saveRecebimento(toSave!);
 
     if (error) {
       setLoadingText(`Erro: ${error.message}`)
