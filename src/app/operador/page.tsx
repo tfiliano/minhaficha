@@ -12,10 +12,15 @@ type Props = {
 
 export default async function Operadores({ searchParams }: Props) {
   const params = new URLSearchParams(searchParams);
+  let route = ""
 
   if (!params.get("operacao")) {
     return redirect("/");
   }
+
+  if (params.get("operacao") == "Produção") route = "/setor"
+  else if (params.get("operacao") == "Entrada de Insumos") route = "/selecionar-insumo";
+
   const supabase = createClient();
   const { data: operadores } = await supabase.from("operadores").select("*");
 
@@ -31,7 +36,7 @@ export default async function Operadores({ searchParams }: Props) {
               <CardButton
                 title={operador.nome}
                 url={{
-                  pathname: "/setor",
+                  pathname: route,
                   query: {
                     ...Object.fromEntries(params.entries()),
                     operador: operador.nome,

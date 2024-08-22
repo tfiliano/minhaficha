@@ -20,7 +20,7 @@ export type Inputs = {
 export async function saveProducao(producao: Inputs) {
   try {
     const supabase = createClient();
-    const { data, error } = await supabase.from("producao").insert(producao);
+    const { data, error } = await supabase.from("producoes").insert(producao);
     if (error) {
       console.error(1, error)
       return { error: error };

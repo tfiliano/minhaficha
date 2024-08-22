@@ -14,7 +14,7 @@ type Props = {
   };
 };
 
-export default async function Producao({ searchParams }: Props) {
+export default async function Recebimento({ searchParams }: Props) {
   const params = new URLSearchParams(searchParams);
 
   if (!params.get("produto")) {

@@ -4,18 +4,17 @@ import { createClient } from "@/utils/supabase";
 
 export type IEntradaInsumo = {
   peso_bruto: number | null,
-  data_recebimento: Date | null,
+  data_recebimento: Date | string | null,
   fornecedor: string | null;
   nota_fiscal: string | null;
   sif: string | null;
   temperatura: string | null;
   lote: string | null;
-  validade: string | null;
+  validade: Date | string | null;
   conformidade_transporte: string | null;
   conformidade_embalagem: string | null;
   conformidade_produtos: string | null;
   observacoes: string | null;
-
   produto_nome?: string | null;
   produto_id?: string | null;
   produto?: string | null;
@@ -24,10 +23,14 @@ export type IEntradaInsumo = {
   operador_id?: string | null;
 };
 
-export async function saveProducao(producao: IEntradaInsumo) {
+export async function saveRecebimento(insertObject: IEntradaInsumo) {
   try {
     const supabase = createClient();
-    const { data, error } = await supabase.from("producao").insert(producao);
+    console.log("objeto to save: ", insertObject)
+    insertObject.data_recebimento = new Date(insertObject.data_recebimento);
+    insertObject.validade = new Date(insertObject.validade);
+    
+    const { data, error } = await supabase.from("recebimentos").insert(insertObject);
     if (error) {
       console.error(1, error)
       return { error: error };

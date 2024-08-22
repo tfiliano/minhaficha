@@ -14,7 +14,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 
-import { IEntradaInsumo, saveProducao } from "@/app/entrada-insumo/actions";
+import { IEntradaInsumo, saveRecebimento } from "@/app/entrada-insumo/actions";
 import {
   Table,
   TableBody,
@@ -25,22 +25,37 @@ import {
 } from "@/components/ui/table";
 import { redirect, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 const INIT_RECEBIMENTO = {
-  peso_bruto: null,
-  data_recebimento: null,
-  fornecedor: "",
-  nota_fiscal: "",
-  sif: "",
-  temperatura: "",
-  lote: "",
-  validade: "",
-  operador: "",
-  conformidade_transporte: "",
-  conformidade_embalagem: "",
-  conformidade_produtos: "",
-  observacoes: "",
-  produto_nome: ""
+  peso_bruto: 2.5,
+  data_recebimento: Date.now(),
+  fornecedor: "ZEH",
+  nota_fiscal: "001",
+  sif: "SIF 01",
+  temperatura: "28.5",
+  lote: "LOTE 01",
+  validade: Date.now()+30,
+  operador: "MARIA",
+  conformidade_transporte: "C",
+  conformidade_embalagem: "N",
+  conformidade_produtos: "C",
+  observacoes: "OBSERVACAO",
+  produto_nome: "CONTRA"
+  // peso_bruto: null,
+  // data_recebimento: null,
+  // fornecedor: "",
+  // nota_fiscal: "",
+  // sif: "",
+  // temperatura: "",
+  // lote: "",
+  // validade: "",
+  // operador: "",
+  // conformidade_transporte: "",
+  // conformidade_embalagem: "",
+  // conformidade_produtos: "",
+  // observacoes: "",
+  // produto_nome: ""
 };
 
 export function EntradaInsumoForm({
@@ -49,13 +64,15 @@ export function EntradaInsumoForm({
   produto: any;
 }) {
   const searchParams = useSearchParams();
+  const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState("");
   // const params = new URLSearchParams(searchParams);
 
   function getParam(property: string) {
     return searchParams.get(property);
   }
 
-  const [producao, setProducao] = useState<IEntradaInsumo | null>(null);
+  const [recebimento, setRecebimento] = useState<IEntradaInsumo | null>(null);
 
   const { register, handleSubmit, watch, setValue } = useForm<IEntradaInsumo>({
     defaultValues: {
@@ -87,34 +104,54 @@ export function EntradaInsumoForm({
   //   });
   // }, [watch]);
 
-  const onSubmit: SubmitHandler<IEntradaInsumo> = (data) => {
-    const producao: IEntradaInsumo = {
-      ...data,
+  const onSubmit: SubmitHandler<IEntradaInsumo> = async (formValue) => {
+    const data: IEntradaInsumo = {
+      ...formValue,
       operador_id: getParam("operadorId"),
       operador: getParam("operador"),
-      setor: getParam("setor"),
       produto: getParam("produto"),
+      produto_id: getParam("produtoId"),
       produto_nome: getParam("produtoDesc"),
+      // data_recebimento: new Date(data.data_recebimento)
     };
-    
-    console.log(producao);
 
-    setProducao(producao);
+    console.log(data)
+    //porque nao esta setando o objeto no estado?!!
+    setRecebimento( st => { 
+      console.log({st, data, recebimento})
+      return data 
+    });
+    setLoadingText("Salvando...")
+    setLoading(true);
+    await onSubmitFormAfterConfirmation();
   };
 
+  async function wait ( ms: number ) { return new Promise(resolve => setTimeout(resolve, ms)); }
+  
   const onSubmitFormAfterConfirmation = async () => {
     console.log("ACAO PARA SER DISPARADA PARA O SUPABASE OU API");
-    const {produto_nome, operador, ...toSave} = producao || INIT_RECEBIMENTO;
-    console.log(JSON.stringify(toSave, null, 2));
-    const resulado = await saveProducao(toSave!);
-    console.log("resulado ", resulado)
+    const {produto_nome, operador, ...toSave} = recebimento || INIT_RECEBIMENTO;
+    
+    const { error } = await saveRecebimento(toSave!);
 
-    //redirect nao funciona :(
-    // return redirect("/")
+    if (error) {
+      setLoadingText(`Erro: ${error.message}`)
+      console.error(error)
+      await wait(3e3);
+      setLoading(false)
+
+      return;
+    }
+    setLoading(false);
+    // redirect nao funciona :(
+    redirect("/")
   };
 
   return (
     <>
+      <div className={cn("fixed top-0 w-screen h-screen z-50 bg-background/90 text-center flex-1 content-center",{
+          hidden: !loading
+        })}>{loadingText}</div>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col max-w-3xl w-full mx-auto"
@@ -127,6 +164,7 @@ export function EntradaInsumoForm({
                 <Input
                   type="number"
                   placeholder={""}
+                  step={0.001}
                   {...register("peso_bruto", { valueAsNumber: true })}
                 />
               </TableCell>
@@ -139,7 +177,7 @@ export function EntradaInsumoForm({
           <TableBody>
             <TableRow>
               <TableCell className="font-small">Data</TableCell>
-              <TableCell> <Input type="Date" {...register("data_recebimento")} /> </TableCell>
+              <TableCell> <Input type="datetime-local" {...register("data_recebimento")} /> </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">Fornecedor</TableCell>
@@ -208,7 +246,7 @@ export function EntradaInsumoForm({
         </Button>
       </form>
 
-      <Drawer
+      {/* <Drawer
         open={!!producao}
         onOpenChange={(e) => {
           if (e === false) setProducao(null);
@@ -242,13 +280,13 @@ export function EntradaInsumoForm({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {/* {producao!.items.map((item, index) => (
+                    {producao!.items.map((item, index) => (
                       <TableRow key={item.id}>
                         <TableCell>{item.nome}</TableCell>
                         <TableCell>{item.quantidade}</TableCell>
                         <TableCell>{item.peso}</TableCell>
                       </TableRow>
-                    ))} */}
+                    ))}
                   </TableBody>
                 </Table>
               </>
@@ -263,7 +301,7 @@ export function EntradaInsumoForm({
             </DrawerClose>
           </DrawerFooter>
         </DrawerContent>
-      </Drawer>
+      </Drawer> */}
     </>
   );
 }
