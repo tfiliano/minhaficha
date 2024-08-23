@@ -4,6 +4,8 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 
+import { toast } from "sonner";
+
 import {
   Drawer,
   DrawerClose,
@@ -23,9 +25,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { redirect, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { cn, wait } from "@/lib/utils";
+import { useRouter } from "@/hooks/use-router";
+import { cn } from "@/lib/utils";
 
 const INIT_PRODUCAO = {
   items:[],
@@ -45,7 +48,7 @@ export function ProducaoForm({
   produto: any;
 }) {
   const searchParams = useSearchParams();
-  // const params = new URLSearchParams(searchParams);
+  const router = useRouter();
 
   function getParam(property: string) {
     return searchParams.get(property);
@@ -59,6 +62,11 @@ export function ProducaoForm({
     defaultValues: {
       ...INIT_PRODUCAO,
       items,
+      operador_id: getParam("operadorId"),
+      operador: getParam("operador"),
+      setor: getParam("setor"),
+      produto: getParam("produto"),
+      produto_nome: getParam("produtoDesc"),
     }
   });
 
@@ -95,12 +103,7 @@ export function ProducaoForm({
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     const producao: Inputs = {
-      ...data,
-      operador_id: getParam("operadorId"),
-      operador: getParam("operador"),
-      setor: getParam("setor"),
-      produto: getParam("produto"),
-      produto_nome: getParam("produtoDesc"),
+      ...data
     };
     producao.items = producao.items
       .filter((i) => i.quantidade)
@@ -120,23 +123,32 @@ export function ProducaoForm({
   };
 
   const onSubmitFormAfterConfirmation = async () => {
-    setLoadingText("Salvando...")
-    setLoading(true);
-    console.log("ACAO PARA SER DISPARADA PARA O SUPABASE OU API");
-    const {produto_nome, operador, ...toSave} = producao || INIT_PRODUCAO;
-    console.log(JSON.stringify(toSave, null, 2));
-    
-    const { error }: any = await saveProducao(toSave!);
-    if (error) {
-      setLoadingText(`Erro: ${error.message}`)
-      console.error(error)
-      await wait(3e3);
-      setLoading(false)
+    try { 
+      setLoadingText("Salvando...")
+      setLoading(true);
+      console.log("ACAO PARA SER DISPARADA PARA O SUPABASE OU API");
+      const {produto_nome, operador, ...toSave} = producao || INIT_PRODUCAO;
+      console.log(JSON.stringify(toSave, null, 2));
+      
+      const response = await saveProducao(toSave!);
+      if (response.error) throw response.error;
 
-      return;
-    }
-    setLoading(false);
+      router.replace("/");
+    } catch (error: any) {
+      toast.error(error?.message);
+    } finally {
+      setLoading(false);
+    }  
+      // if (error) {
+      //   setLoadingText(`Erro: ${error.message}`)
+      //   console.error(error)
+      //   await wait(3e3);
+      //   setLoading(false)
 
+      //   return;
+      // }
+      // setLoading(false);
+      
     //redirect nao funciona :(
     // return redirect("/")
   };
@@ -145,7 +157,9 @@ export function ProducaoForm({
     <>
         <div className={cn("fixed top-0 w-screen h-screen z-50 bg-background/90 text-center flex-1 content-center",{
           hidden: !loading
-        })}>{loadingText}</div>
+        })}>
+          {loadingText || "Processando..."}
+        </div>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col max-w-3xl w-full mx-auto"
@@ -158,6 +172,7 @@ export function ProducaoForm({
                 <Input
                   type="number"
                   placeholder={""}
+                  step={0.001}
                   {...register("peso_bruto", { valueAsNumber: true })}
                 />
               </TableCell>

@@ -17,10 +17,10 @@ export type Inputs = {
   operador_id?: string | null;
 };
 
-export async function saveProducao(producao: Inputs) {
+export async function saveProducao(producao: Inputs): Promise<{ error?: any; data?: any[] }> {
   try {
     const supabase = createClient();
-    const { data, error } = await supabase.from("producoes").insert(producao);
+    const { data, error } = await supabase.from("producoes").insert(producao).select();
     if (error) {
       console.error(1, error)
       return { error: error };
@@ -30,7 +30,7 @@ export async function saveProducao(producao: Inputs) {
 
     //esse console log nao foi executado!!!
     console.log(2, data)
-    return data;
+    return { data };
   } catch (error) {
     console.error(3, error)
     return { error: error };
