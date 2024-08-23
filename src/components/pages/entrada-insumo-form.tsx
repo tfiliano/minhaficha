@@ -4,15 +4,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { toast } from "sonner";
 
 import { IEntradaInsumo, saveRecebimento } from "@/app/entrada-insumo/actions";
 import {
@@ -23,9 +15,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { redirect, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { cn, wait } from "@/lib/utils";
+import { useRouter } from "@/hooks/use-router";
+import { cn } from "@/lib/utils";
+import { LoaderCircle } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { useState } from "react";
 
 const INIT_RECEBIMENTO = {
   peso_bruto: 2.5,
@@ -36,12 +30,12 @@ const INIT_RECEBIMENTO = {
   temperatura: "28.5",
   lote: "LOTE 01",
   validade: new Date(),
-  operador: "MARIA",
+  //operador: "MARIA",
   conformidade_transporte: "C",
   conformidade_embalagem: "N",
   conformidade_produtos: "C",
   observacoes: "OBSERVACAO",
-  produto_nome: "CONTRA"
+  //produto_nome: "CONTRA",
   // peso_bruto: null,
   // data_recebimento: null,
   // fornecedor: "",
@@ -58,14 +52,11 @@ const INIT_RECEBIMENTO = {
   // produto_nome: ""
 };
 
-export function EntradaInsumoForm({
-  produto,
-}: {
-  produto: any;
-}) {
+export function EntradaInsumoForm({ produto }: { produto: any }) {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
+  const router = useRouter();
   // const params = new URLSearchParams(searchParams);
 
   function getParam(property: string) {
@@ -77,7 +68,10 @@ export function EntradaInsumoForm({
   const { register, handleSubmit, watch, setValue } = useForm<IEntradaInsumo>({
     defaultValues: {
       ...INIT_RECEBIMENTO,
-    }
+      operador_id: getParam("operadorId"),
+      produto: getParam("produto"),
+      produto_id: getParam("produtoId"),
+    },
   });
 
   function round(value: number) {
@@ -93,63 +87,37 @@ export function EntradaInsumoForm({
     return parseFloat((value.toString().match(re) || default_return)[0]);
   }
 
-  // useEffect(() => {
-  //   watch((value, { name, type }) => {
-  //     if (type === "change" && name?.includes("items.")) {
-  //       setValue(
-  //         "peso_liquido",
-  //         value.items!.reduce((acc, item) => (acc += item.peso || 0), 0)
-  //       );
-  //     }
-  //   });
-  // }, [watch]);
-
   const onSubmit: SubmitHandler<IEntradaInsumo> = async (formValue) => {
-    const data: IEntradaInsumo = {
-      ...formValue,
-      operador_id: getParam("operadorId"),
-      operador: getParam("operador"),
-      produto: getParam("produto"),
-      produto_id: getParam("produtoId"),
-      produto_nome: getParam("produtoDesc"),
-      // data_recebimento: new Date(data.data_recebimento)
-    };
+    try {
+      //PRECISEI REALIZAR UM DELETE EM ALGUMS CAMPOS QUE NÃO ESTAO NA TABLE DO SUPABASE;
+      // OPERADOR
+      // PRODUTO_NAME
+      setLoading(true);
+      const response = await saveRecebimento({ ...formValue });
 
-    console.log(data)
-    //porque nao esta setando o objeto no estado?!!
-    setRecebimento( st => { 
-      console.log({st, data, recebimento})
-      return data 
-    });
-    setLoadingText("Salvando...")
-    setLoading(true);
-    await onSubmitFormAfterConfirmation();
-  };
-  
-  const onSubmitFormAfterConfirmation = async () => {
-    console.log("ACAO PARA SER DISPARADA PARA O SUPABASE OU API");
-    const {produto_nome, operador, ...toSave} = recebimento || INIT_RECEBIMENTO;
-    
-    const { error }: any = await saveRecebimento(toSave!);
+      if (response.error) throw response.error;
 
-    if (error) {
-      setLoadingText(`Erro: ${error.message}`)
-      console.error(error)
-      await wait(3e3);
-      setLoading(false)
-
-      return;
+      router.replace("/");
+    } catch (error: any) {
+      toast.error(error?.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-    // redirect nao funciona :(
-    redirect("/")
   };
 
   return (
     <>
-      <div className={cn("fixed top-0 w-screen h-screen z-50 bg-background/90 text-center flex-1 content-center",{
-          hidden: !loading
-        })}>{loadingText}</div>
+      <div
+        className={cn(
+          "fixed top-0 w-screen h-screen z-50 bg-background/90 text-center flex flex-col items-center justify-center",
+          {
+            hidden: !loading,
+          }
+        )}
+      >
+        <LoaderCircle className="animate-spin" />
+        {loadingText || "Processando..."}
+      </div>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col max-w-3xl w-full mx-auto"
@@ -175,31 +143,51 @@ export function EntradaInsumoForm({
           <TableBody>
             <TableRow>
               <TableCell className="font-small">Data</TableCell>
-              <TableCell> <Input type="datetime-local" {...register("data_recebimento")} /> </TableCell>
+              <TableCell>
+                <Input
+                  type="datetime-local"
+                  {...register("data_recebimento")}
+                />
+              </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">Fornecedor</TableCell>
-              <TableCell> <Input type="string" {...register("fornecedor")} /> </TableCell>
+              <TableCell>
+                <Input type="string" {...register("fornecedor")} />
+              </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">NF</TableCell>
-              <TableCell> <Input type="string" {...register("nota_fiscal")} /> </TableCell>
+              <TableCell>
+                <Input type="string" {...register("nota_fiscal")} />
+              </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">SIF</TableCell>
-              <TableCell> <Input type="string" {...register("sif")} /> </TableCell>
+              <TableCell>
+                <Input type="string" {...register("sif")} />
+              </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">Temp Cº</TableCell>
-              <TableCell> <Input type="string" {...register("temperatura")} /> </TableCell>
+              <TableCell>
+                <Input
+                  type="string"
+                  {...register("temperatura", { valueAsNumber: true })}
+                />
+              </TableCell>
             </TableRow>
-            <TableRow>  
+            <TableRow>
               <TableCell className="font-medium">Lote</TableCell>
-              <TableCell> <Input type="string" {...register("lote")} /> </TableCell>
+              <TableCell>
+                <Input type="string" {...register("lote")} />
+              </TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">Validade</TableCell>
-              <TableCell> <Input type="Date" {...register("validade")} /> </TableCell>
+              <TableCell>
+                <Input type="Date" {...register("validade")} />
+              </TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -213,19 +201,55 @@ export function EntradaInsumoForm({
           </TableHeader>
           <TableBody>
             <TableRow>
-                <TableCell className="font-medium">Transporte</TableCell>
-                <TableCell className="font-small"> <Input type="radio" value="C" {...register("conformidade_transporte")} /> </TableCell>
-                <TableCell className="font-small"> <Input type="radio" value="N" {...register("conformidade_transporte")} /> </TableCell>
+              <TableCell className="font-medium">Transporte</TableCell>
+              <TableCell className="font-small">
+                <Input
+                  type="radio"
+                  value="C"
+                  {...register("conformidade_transporte")}
+                />
+              </TableCell>
+              <TableCell className="font-small">
+                <Input
+                  type="radio"
+                  value="N"
+                  {...register("conformidade_transporte")}
+                />
+              </TableCell>
             </TableRow>
             <TableRow>
-                <TableCell className="font-medium">Embalagem</TableCell>
-                <TableCell className="font-small"> <Input type="radio" value="C" {...register("conformidade_embalagem")} /> </TableCell>
-                <TableCell className="font-small"> <Input type="radio" value="N" {...register("conformidade_embalagem")} /> </TableCell>
+              <TableCell className="font-medium">Embalagem</TableCell>
+              <TableCell className="font-small">
+                <Input
+                  type="radio"
+                  value="C"
+                  {...register("conformidade_embalagem")}
+                />
+              </TableCell>
+              <TableCell className="font-small">
+                <Input
+                  type="radio"
+                  value="N"
+                  {...register("conformidade_embalagem")}
+                />
+              </TableCell>
             </TableRow>
             <TableRow>
-                <TableCell className="font-medium">Produtos</TableCell>
-                <TableCell className="font-small"> <Input type="radio" value="C" {...register("conformidade_produtos")} /> </TableCell>
-                <TableCell className="font-small"> <Input type="radio" value="N" {...register("conformidade_produtos")} /> </TableCell>
+              <TableCell className="font-medium">Produtos</TableCell>
+              <TableCell className="font-small">
+                <Input
+                  type="radio"
+                  value="C"
+                  {...register("conformidade_produtos")}
+                />
+              </TableCell>
+              <TableCell className="font-small">
+                <Input
+                  type="radio"
+                  value="N"
+                  {...register("conformidade_produtos")}
+                />
+              </TableCell>
             </TableRow>
           </TableBody>
         </Table>
@@ -234,7 +258,9 @@ export function EntradaInsumoForm({
           <TableBody>
             <TableRow>
               <TableCell className="font-medium">Observações</TableCell>
-              <TableCell> <Input type="string" {...register("observacoes")} /> </TableCell>
+              <TableCell>
+                <Input type="string" {...register("observacoes")} />
+              </TableCell>
             </TableRow>
           </TableBody>
         </Table>

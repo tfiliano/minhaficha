@@ -1,9 +1,12 @@
 import { Header } from "@/components/layout/header";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+
 import { cn } from "@/lib/utils";
 import type { Metadata, Viewport } from "next";
 import { Inter as FontSans } from "next/font/google";
 import NextTopLoader from "nextjs-toploader";
+
 import "./globals.css";
 
 const fontSans = FontSans({
@@ -41,6 +44,7 @@ export default function RootLayout({
           <NextTopLoader showSpinner={true} color="hsl(var(--primary))" />
           <Header />
           <main className=" h-[calc(100%-80px)]">{children}</main>
+          <Toaster richColors closeButton position="top-center" />
         </ThemeProvider>
       </body>
     </html>
