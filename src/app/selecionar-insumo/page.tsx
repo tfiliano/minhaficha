@@ -14,15 +14,32 @@ type Props = {
 
 export default async function Produtos({ searchParams }: Props) {
   const params = new URLSearchParams(searchParams);
+  let route = "";
 
   if (!params.get("operador")) {
     return redirect("/");
   }
   const supabase = createClient();
-  const { data: produtos } = await supabase
-    .from("produtos")
-    .select()
-    .is("originado", null);
+  let produtos:  any[] | null;
+
+  if (params.get("operacao") == "Etiquetas") {
+    route = "/gerar-etiqueta"
+
+    const { data } = await supabase
+      .from("produtos")
+      .select();
+
+    produtos = data;
+  } else {
+    route = "/entrada-insumo"
+    const { data } = await supabase
+      .from("produtos")
+      .select()
+      .is("originado", null);
+
+    produtos = data;
+  }
+
   return (
     <AnimationTransitionPage>
       <Title>SELECIONE UM PRODUTO</Title>
@@ -33,7 +50,7 @@ export default async function Produtos({ searchParams }: Props) {
               key={index}
               title={produto.nome}
               url={{
-                pathname: "/entrada-insumo",
+                pathname: route,
                 query: {
                   ...Object.fromEntries(params.entries()),
                   produto: produto.codigo,

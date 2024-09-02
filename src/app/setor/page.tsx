@@ -12,10 +12,14 @@ type Props = {
 
 export default async function Setores({ searchParams }: Props) {
   const params = new URLSearchParams(searchParams);
-
+  let route = "/produto"
+  
   if (!params.get("operador")) {
     return redirect("/");
   }
+
+  if (params.get("operacao") == "Etiquetas") route = "/selecionar-insumo"
+
   const supabase = createClient();
   const { data: setors } = await supabase.rpc("listar_setores");
   return (
@@ -30,7 +34,7 @@ export default async function Setores({ searchParams }: Props) {
               key={index}
               title={setor.nome}
               url={{
-                pathname: "/produto",
+                pathname: route,
                 query: {
                   ...Object.fromEntries(params.entries()),
                   setor: setor.nome,
