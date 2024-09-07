@@ -1,8 +1,9 @@
 import { createClient } from "@/utils/supabase";
 import { redirect } from "next/navigation";
 import { AnimationTransitionPage } from "../../components/animation";
-import { EntradaInsumoForm } from "@/components/pages/entrada-insumo-form";
+
 import { Title } from "@/components/layout";
+import { GerarEtiquetaForm } from "@/components/pages";
 
 type Props = {
   params?: {};
@@ -36,7 +37,7 @@ export default async function GerarEtiqueta({ searchParams }: Props) {
     <AnimationTransitionPage>
       <div className="pb-8">
         <Title>Gerar Etiqueta</Title>
-        <EntradaInsumoForm produto={produto} />
+        <GerarEtiquetaForm produto={produto} />
       </div>
     </AnimationTransitionPage>
   );
