@@ -33,7 +33,7 @@ export default function Admin() {
     },
     {
       title: "Configuraçõe da Loja",
-      route: "/adm-configuraçõe da Loja",
+      route: "/adm-configuracoes",
     },
   ];
 
@@ -46,7 +46,7 @@ export default function Admin() {
             key={item.title}
             title={item.title}
             url={{
-            pathname: item.route ,
+            pathname: `/admin/${item.route}` ,
               query: { item: item.title },
             }}
           />
