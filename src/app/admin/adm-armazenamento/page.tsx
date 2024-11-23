@@ -35,31 +35,28 @@ export default async function LocalArmazenamento({ searchParams }: Props) {
 
   return (
     <AnimationTransitionPage>
-      <div>
+      <div className="mb-4">
         <Title>
           {params.get("operacao")} <br /> Locais de Armazenamento 
         </Title>
         <CardButton
-            title="+ add"
-            url="/admin/adm-armazenamento/add"
-          />
+          title="+ add"
+          url="/admin/adm-armazenamento/add"
+        />
       </div>
 
-      <Table>
+      <Table className="bg-white shadow-md rounded-md">
         <TableBody>
           {armazenamentoList?.map((item) => {
             return (
               <TableRow key={item.id}>
-                {/* <TableCell className="font-medium">Nome</TableCell> */}
-                <TableCell>
-                  {item.armazenamento}
-                </TableCell>
+                <TableCell className="font-medium">{item.armazenamento}</TableCell>
+                <TableCell>{item.armazenamento}</TableCell>
               </TableRow>
             );
           })}            
         </TableBody>
       </Table>
-
     </AnimationTransitionPage>
   );
 }
