@@ -25,13 +25,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
 import { useRouter } from "@/hooks/use-router";
 import { cn } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const INIT_PRODUCAO = {
-  items:[],
+  items: [],
   peso_liquido: 0,
   peso_bruto: null,
   peso_perda: 0,
@@ -67,7 +67,7 @@ export function ProducaoForm({
       setor: getParam("setor"),
       produto: getParam("produto"),
       produto_nome: getParam("produtoDesc"),
-    }
+    },
   });
 
   function round(value: number) {
@@ -93,7 +93,7 @@ export function ProducaoForm({
         const bruto = value.peso_bruto || 0;
         const liquido = value.peso_liquido || 0.01;
         const fator_correcao = bruto > 0 && liquido > 0 ? bruto / liquido : 0;
-        console.log("oi", bruto, liquido, fator_correcao)
+        console.log("oi", bruto, liquido, fator_correcao);
 
         setValue("peso_perda", toFixed(bruto - liquido));
         setValue("fator_correcao", toFixed(fator_correcao));
@@ -103,7 +103,7 @@ export function ProducaoForm({
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     const producao: Inputs = {
-      ...data
+      ...data,
     };
     producao.items = producao.items
       .filter((i) => i.quantidade)
@@ -123,13 +123,13 @@ export function ProducaoForm({
   };
 
   const onSubmitFormAfterConfirmation = async () => {
-    try { 
-      setLoadingText("Salvando...")
+    try {
+      setLoadingText("Salvando...");
       setLoading(true);
       console.log("ACAO PARA SER DISPARADA PARA O SUPABASE OU API");
-      const {produto_nome, operador, ...toSave} = producao || INIT_PRODUCAO;
+      const { produto_nome, operador, ...toSave } = producao || INIT_PRODUCAO;
       console.log(JSON.stringify(toSave, null, 2));
-      
+
       const response = await saveProducao(toSave!);
       if (response.error) throw response.error;
 
@@ -138,28 +138,33 @@ export function ProducaoForm({
       toast.error(error?.message);
     } finally {
       setLoading(false);
-    }  
-      // if (error) {
-      //   setLoadingText(`Erro: ${error.message}`)
-      //   console.error(error)
-      //   await wait(3e3);
-      //   setLoading(false)
+    }
+    // if (error) {
+    //   setLoadingText(`Erro: ${error.message}`)
+    //   console.error(error)
+    //   await wait(3e3);
+    //   setLoading(false)
 
-      //   return;
-      // }
-      // setLoading(false);
-      
+    //   return;
+    // }
+    // setLoading(false);
+
     //redirect nao funciona :(
     // return redirect("/")
   };
 
   return (
     <>
-        <div className={cn("fixed top-0 w-screen h-screen z-50 bg-background/90 text-center flex-1 content-center",{
-          hidden: !loading
-        })}>
-          {loadingText || "Processando..."}
-        </div>
+      <div
+        className={cn(
+          "fixed top-0 w-screen h-screen z-50 bg-background/90 text-center flex-1 content-center",
+          {
+            hidden: !loading,
+          }
+        )}
+      >
+        {loadingText || "Processando..."}
+      </div>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col max-w-3xl w-full mx-auto"

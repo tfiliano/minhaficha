@@ -2,7 +2,12 @@
 
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PropsWithChildren, useImperativeHandle, useState } from "react";
+import {
+  Fragment,
+  PropsWithChildren,
+  useImperativeHandle,
+  useState,
+} from "react";
 import {
   Controller,
   FieldValues,
@@ -26,7 +31,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../ui/tooltip";
-import { renderField } from "./render-field";
+import { RenderField } from "./render-field";
 import { isSelectField } from "./select-form";
 import { generateSchema } from "./validators";
 
@@ -122,14 +127,16 @@ export const FormBuilder2: React.ForwardRefRenderFunction<
             builderCol.rows
               .filter((row) => row.fields.length)
               .map((row, rowIndex) => (
-                <RenderRows
-                  rowIndex={rowIndex}
-                  row={row}
-                  methods={methods}
-                  builderCol={builderCol}
-                  builder={builder}
-                  setBuilder={setBuilder}
-                />
+                <Fragment key={rowIndex}>
+                  <RenderRows
+                    rowIndex={rowIndex}
+                    row={row}
+                    methods={methods}
+                    builderCol={builderCol}
+                    builder={builder}
+                    setBuilder={setBuilder}
+                  />
+                </Fragment>
               ))}
           {builderCol.columns && renderColumns(builderCol.columns, inline)}
         </div>
@@ -303,8 +310,8 @@ function RenderRows({ ...props }: any) {
                     </TooltipProvider>
                   )}
                   {isSelectField(field)
-                    ? renderField(field, formField, builder, setBuilder)
-                    : renderField(field, formField)}
+                    ? RenderField(field, formField, builder, setBuilder)
+                    : RenderField(field, formField)}
                   <FormMessageError name={field.name} />
                 </FormItem>
               );

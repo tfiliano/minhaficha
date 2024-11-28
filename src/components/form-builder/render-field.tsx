@@ -9,7 +9,7 @@ import { Textarea } from "../ui/textarea";
 import { RadioGroupForm } from "./radio-group";
 import { SelectForm, isSelectField } from "./select-form";
 
-export function renderField(
+export function RenderField(
   field: Field,
   formField: ControllerRenderProps<any, string>,
   builder?: Builder,
