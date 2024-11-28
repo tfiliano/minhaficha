@@ -1,11 +1,11 @@
 import { AnimationTransitionPage } from "@/components/animation";
-import { CardButton, ContentGrid, Title } from "@/components/layout";
+import { CardButton, ContentGrid } from "@/components/layout";
 
 export default function Admin() {
   const menu = [
     {
       title: "Produtos",
-      route: "/admin/produtos",
+      route: "produtos",
     },
     {
       title: "Etiquetas",
@@ -39,15 +39,13 @@ export default function Admin() {
 
   return (
     <AnimationTransitionPage>
-      {/* <Title>SELECIONE UMA OPERAÇÃO</Title> */}
       <ContentGrid>
         {menu.map((item) => (
           <CardButton
             key={item.title}
             title={item.title}
             url={{
-            pathname: `/admin/${item.route}` ,
-              query: { item: item.title },
+              pathname: `admin/${item.route}`,
             }}
           />
         ))}
