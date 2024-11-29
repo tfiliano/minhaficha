@@ -13,69 +13,67 @@ import { Tables } from "@/types/database.types";
 import { Plus, Search } from "lucide-react";
 import { PropsWithChildren, useRef, useState } from "react";
 
-type Produto = Tables<`produtos`>;
+type Grupo = Tables<`grupos`>;
 
-type ProdutosPage = {
-  produtos: Produto[] | null;
+type GruposPage = {
+  grupos: Grupo[] | null;
 };
 
-export function ProdutosPageClient({
-  produtos,
-}: PropsWithChildren<ProdutosPage>) {
-  const [produto, setProduto] = useState<Produto | null>(null);
+export function GruposPageClient({ grupos }: PropsWithChildren<GruposPage>) {
+  const [grupo, setGrupo] = useState<Grupo | null>(null);
   const [busca, setBusca] = useState("");
 
-  const produtosFiltrados = (produtos || []).filter((produto) => {
+  const gruposFiltrados = (grupos || []).filter((grupo) => {
     const normalizar = (texto: string) =>
       texto
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
     return (
-      normalizar(produto.nome).includes(normalizar(busca)) ||
-      normalizar(produto.nome).includes(normalizar(busca))
+      normalizar(grupo.nome!).includes(normalizar(busca)) ||
+      normalizar(grupo.nome!).includes(normalizar(busca))
     );
   });
 
-  useScrollBehavior(!!produto?.id);
+  useScrollBehavior(!!grupo?.id);
 
-  const bottomSheetControllerUpdateProduto =
+  const bottomSheetControllerUpdateGrupo =
     useRef<BottomSheetImperativeHandle>();
-  const bottomSheetControllerCreateProduto =
+  const bottomSheetControllerCreateGrupo =
     useRef<BottomSheetImperativeHandle>();
 
-  const onSelectProduto = (produto: Produto) => {
-    bottomSheetControllerUpdateProduto.current?.onOpen();
-    setProduto(produto);
+  const onSelectGrupo = (grupo: Grupo) => {
+    bottomSheetControllerUpdateGrupo.current?.onOpen();
+    setGrupo(grupo);
   };
 
   return (
     <>
       <BottomSheet
-        ref={bottomSheetControllerUpdateProduto}
+        ref={bottomSheetControllerUpdateGrupo}
         title="Atualizar"
         description=""
       >
-        <Forms.Produto.Update
-          produto={produto!}
-          bottomSheetController={bottomSheetControllerUpdateProduto}
+        <Forms.Grupos.Update
+          grupo={grupo!}
+          bottomSheetController={bottomSheetControllerUpdateGrupo}
         />
       </BottomSheet>
 
       <BottomSheet
-        ref={bottomSheetControllerCreateProduto}
+        ref={bottomSheetControllerCreateGrupo}
         title="Adicionar"
         description=""
       >
-        <Forms.Produto.Create
-          bottomSheetController={bottomSheetControllerCreateProduto}
+        <Forms.Grupos.Create
+          bottomSheetController={bottomSheetControllerCreateGrupo}
         />
       </BottomSheet>
 
       <div className=" mb-4 w-full sticky z-20 top-[19.3px]">
         <Input
           type="text"
-          placeholder="Buscar produtos..."
+          placeholder="Buscar grupos..."
           className="pl-10"
           onChange={(event) => setBusca(event.target.value)}
         />
@@ -87,22 +85,22 @@ export function ProdutosPageClient({
       <div className="flex items-center justify-end mb-4 w-full">
         <Button
           className="w-full sm:w-fit"
-          onClick={() => bottomSheetControllerCreateProduto.current?.onOpen()}
+          onClick={() => bottomSheetControllerCreateGrupo.current?.onOpen()}
         >
           <Plus />
           Novo
         </Button>
       </div>
       <GridItems>
-        {(produtosFiltrados || [])?.map((produto) => {
+        {(gruposFiltrados || [])?.map((grupo) => {
           return (
             <GridItem
-              title={produto.nome}
-              key={produto.id}
-              onClick={() => onSelectProduto(produto)}
+              title={grupo.nome!}
+              key={grupo.id}
+              onClick={() => onSelectGrupo(grupo)}
             >
-              <p className="text-gray-600 mb-2">{produto.codigo}</p>
-              <p className="font-bold">{produto.unidade}</p>
+              <p className="text-gray-600 mb-2">{grupo.cor_botao}</p>
+              <p className="font-bold">{grupo.cor_fonte}</p>
             </GridItem>
           );
         })}

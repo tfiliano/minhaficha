@@ -345,7 +345,10 @@ export function FooterFormBuilder({
           <div
             className={cn(
               "flex items-center justify-center ",
-              extraButtonsContainerClass
+              extraButtonsContainerClass,
+              {
+                hidden: !!formState.isSubmitting,
+              }
             )}
           >
             {extraButtons}
