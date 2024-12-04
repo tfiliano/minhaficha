@@ -3,10 +3,10 @@ import { CardButton, ContentGrid, Title } from "../layout";
 
 export function Operacao() {
   const operacaos = [
-//     1 entra insumos 
-// 2 produção 
-// 3 ficha técnica 
-// 4 etiqueta
+    //     1 entra insumos
+    // 2 produção
+    // 3 ficha técnica
+    // 4 etiqueta
 
     {
       title: "Entrada de Insumos",
@@ -36,6 +36,7 @@ export function Operacao() {
             }}
           />
         ))}
+        <CardButton title="Admin" url="admin" />
       </ContentGrid>
     </AnimationTransitionPage>
   );

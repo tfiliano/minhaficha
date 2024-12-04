@@ -2,14 +2,17 @@
 
 import { useRouter } from "@/hooks/use-router";
 import { ChevronLeft } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Button } from "../ui/button";
 
 export function BackButton() {
   const params = useSearchParams();
+  const pathname = usePathname();
   const router = useRouter();
 
-  if (params.size === 0) return <></>;
+  if (params.size === 0 && !pathname.includes("/admin")) return <></>;
+
+  if (pathname === "/admin") return <></>;
 
   return (
     <Button

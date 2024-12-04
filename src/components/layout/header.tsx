@@ -1,4 +1,4 @@
-import { Lightbulb } from "lucide-react";
+import { ListChecks } from "lucide-react";
 import { Suspense } from "react";
 import { ModeToggle } from "../mode-toggle";
 import { BackButton } from "./back-button";
@@ -10,9 +10,9 @@ export function Header() {
         <BackButton />
       </Suspense>
       <div className="p-2 bg-primary rounded-xl ">
-        <Lightbulb className="text-sm rotate-45 text-white" />
+        <ListChecks className="text-sm text-white" />
       </div>
-      <h1 className="font-bold">DESCOMPLICA</h1>
+      <h1 className="font-bold">MinhaFicha</h1>
       <ModeToggle />
     </header>
   );

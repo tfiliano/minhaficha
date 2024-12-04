@@ -24,7 +24,7 @@ export type IEntradaInsumo = {
 };
 
 export async function saveRecebimento(
-  insertObject: IEntradaInsumo
+  insertObject: any
 ): Promise<{ error?: any; data?: any[] }> {
   try {
     const supabase = createClient();
