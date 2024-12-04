@@ -13,79 +13,69 @@ import { Tables } from "@/types/database.types";
 import { Plus, Search } from "lucide-react";
 import { PropsWithChildren, useRef, useState } from "react";
 
-type Produto = Tables<`produtos`>;
-type Grupo = Tables<`grupos`>;
-type LocalArmazenamento = Tables<"locais_armazenamento">;
+type Operador = Tables<`fabricantes`>;
 
-type ProdutosPage = {
-  produtos: Produto[] | null;
-  grupos: Grupo[] | null;
-  armazenamentos: LocalArmazenamento[] | null;
+type Fabricantes = {
+  fabricantes: Operador[] | null;
 };
 
-export function ProdutosPageClient({
-  produtos,
-  grupos,
-  armazenamentos,
-}: PropsWithChildren<ProdutosPage>) {
-  const [produto, setProduto] = useState<Produto | null>(null);
+export function FabricantesClient({
+  fabricantes,
+}: PropsWithChildren<Fabricantes>) {
+  const [fabricante, setOperador] = useState<Operador | null>(null);
   const [busca, setBusca] = useState("");
 
-  const produtosFiltrados = (produtos || []).filter((produto) => {
+  const fabricantesFiltrados = (fabricantes || []).filter((fabricante) => {
     const normalizar = (texto: string) =>
       texto
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
     return (
-      normalizar(produto.nome).includes(normalizar(busca)) ||
-      normalizar(produto.nome).includes(normalizar(busca))
+      normalizar(fabricante.nome!).includes(normalizar(busca)) ||
+      normalizar(fabricante.nome!).includes(normalizar(busca))
     );
   });
 
-  useScrollBehavior(!!produto?.id);
+  useScrollBehavior(!!fabricante?.id);
 
-  const bottomSheetControllerUpdateProduto =
+  const bottomSheetControllerUpdateOperador =
     useRef<BottomSheetImperativeHandle>();
-  const bottomSheetControllerCreateProduto =
+  const bottomSheetControllerCreateOperador =
     useRef<BottomSheetImperativeHandle>();
 
-  const onSelectProduto = (produto: Produto) => {
-    bottomSheetControllerUpdateProduto.current?.onOpen();
-    setProduto(produto);
+  const onSelectOperador = (fabricante: Operador) => {
+    bottomSheetControllerUpdateOperador.current?.onOpen();
+    setOperador(fabricante);
   };
 
   return (
     <>
       <BottomSheet
-        ref={bottomSheetControllerUpdateProduto}
+        ref={bottomSheetControllerUpdateOperador}
         title="Atualizar"
         description=""
       >
-        <Forms.Produto.Update
-          produto={produto!}
-          grupos={grupos!}
-          armazenamentos={armazenamentos!}
-          bottomSheetController={bottomSheetControllerUpdateProduto}
+        <Forms.Fabricantes.Update
+          fabricante={fabricante!}
+          bottomSheetController={bottomSheetControllerUpdateOperador}
         />
       </BottomSheet>
 
       <BottomSheet
-        ref={bottomSheetControllerCreateProduto}
+        ref={bottomSheetControllerCreateOperador}
         title="Adicionar"
         description=""
       >
-        <Forms.Produto.Create
-          grupos={grupos!}
-          armazenamentos={armazenamentos!}
-          bottomSheetController={bottomSheetControllerCreateProduto}
+        <Forms.Fabricantes.Create
+          bottomSheetController={bottomSheetControllerCreateOperador}
         />
       </BottomSheet>
 
       <div className=" mb-4 w-full sticky z-20 top-[19.3px]">
         <Input
           type="text"
-          placeholder="Buscar produtos..."
+          placeholder="Buscar fabricantes..."
           className="pl-10"
           onChange={(event) => setBusca(event.target.value)}
         />
@@ -97,22 +87,21 @@ export function ProdutosPageClient({
       <div className="flex items-center justify-end mb-4 w-full">
         <Button
           className="w-full sm:w-fit"
-          onClick={() => bottomSheetControllerCreateProduto.current?.onOpen()}
+          onClick={() => bottomSheetControllerCreateOperador.current?.onOpen()}
         >
           <Plus />
           Novo
         </Button>
       </div>
       <GridItems>
-        {(produtosFiltrados || [])?.map((produto) => {
+        {(fabricantesFiltrados || [])?.map((fabricante) => {
           return (
             <GridItem
-              title={produto.nome}
-              key={produto.id}
-              onClick={() => onSelectProduto(produto)}
+              title={fabricante.nome!}
+              key={fabricante.id}
+              onClick={() => onSelectOperador(fabricante)}
             >
-              <p className="text-gray-600 mb-2">{produto.codigo}</p>
-              <p className="font-bold">{produto.unidade}</p>
+              <p className="text-gray-600 mb-2">{fabricante.cnpj}</p>
             </GridItem>
           );
         })}

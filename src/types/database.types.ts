@@ -39,7 +39,7 @@ export type Database = {
           cor_fonte: string | null;
           created_at: string;
           icone: string | null;
-          id: number;
+          id: string;
           loja_id: string | null;
           nome: string | null;
         };
@@ -48,7 +48,7 @@ export type Database = {
           cor_fonte?: string | null;
           created_at?: string;
           icone?: string | null;
-          id?: number;
+          id?: string;
           loja_id?: string | null;
           nome?: string | null;
         };
@@ -57,7 +57,7 @@ export type Database = {
           cor_fonte?: string | null;
           created_at?: string;
           icone?: string | null;
-          id?: number;
+          id?: string;
           loja_id?: string | null;
           nome?: string | null;
         };
@@ -67,21 +67,21 @@ export type Database = {
         Row: {
           armazenamento: string | null;
           created_at: string;
-          id: number;
+          id: string;
           loja_id: string | null;
           metodo: string | null;
         };
         Insert: {
           armazenamento?: string | null;
           created_at?: string;
-          id?: number;
+          id?: string;
           loja_id?: string | null;
           metodo?: string | null;
         };
         Update: {
           armazenamento?: string | null;
           created_at?: string;
-          id?: number;
+          id?: string;
           loja_id?: string | null;
           metodo?: string | null;
         };

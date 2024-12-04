@@ -1,8 +1,8 @@
+import { Title } from "@/components/layout";
 import { ProducaoForm } from "@/components/pages";
 import { createClient } from "@/utils/supabase";
 import { redirect } from "next/navigation";
 import { AnimationTransitionPage } from "../../components/animation";
-import { Title } from "@/components/layout";
 
 type Props = {
   params?: {};
@@ -24,12 +24,12 @@ export default async function Producao({ searchParams }: Props) {
   const { data: items } = await supabase
     .from("produtos")
     .select()
-    .eq("originado", params.get("produto"));
+    .eq("originado", params.get("produto")!);
 
   const { data: produto } = await supabase
     .from("produtos")
     .select()
-    .eq("id", params.get("produtoId"))
+    .eq("id", params.get("produtoId")!)
     .maybeSingle();
 
   return (

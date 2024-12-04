@@ -13,79 +13,69 @@ import { Tables } from "@/types/database.types";
 import { Plus, Search } from "lucide-react";
 import { PropsWithChildren, useRef, useState } from "react";
 
-type Produto = Tables<`produtos`>;
-type Grupo = Tables<`grupos`>;
-type LocalArmazenamento = Tables<"locais_armazenamento">;
+type Operador = Tables<`operadores`>;
 
-type ProdutosPage = {
-  produtos: Produto[] | null;
-  grupos: Grupo[] | null;
-  armazenamentos: LocalArmazenamento[] | null;
+type Operadores = {
+  operadores: Operador[] | null;
 };
 
-export function ProdutosPageClient({
-  produtos,
-  grupos,
-  armazenamentos,
-}: PropsWithChildren<ProdutosPage>) {
-  const [produto, setProduto] = useState<Produto | null>(null);
+export function OperadoresClient({
+  operadores,
+}: PropsWithChildren<Operadores>) {
+  const [operador, setOperador] = useState<Operador | null>(null);
   const [busca, setBusca] = useState("");
 
-  const produtosFiltrados = (produtos || []).filter((produto) => {
+  const operadoresFiltrados = (operadores || []).filter((operador) => {
     const normalizar = (texto: string) =>
       texto
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
     return (
-      normalizar(produto.nome).includes(normalizar(busca)) ||
-      normalizar(produto.nome).includes(normalizar(busca))
+      normalizar(operador.nome!).includes(normalizar(busca)) ||
+      normalizar(operador.nome!).includes(normalizar(busca))
     );
   });
 
-  useScrollBehavior(!!produto?.id);
+  useScrollBehavior(!!operador?.id);
 
-  const bottomSheetControllerUpdateProduto =
+  const bottomSheetControllerUpdateOperador =
     useRef<BottomSheetImperativeHandle>();
-  const bottomSheetControllerCreateProduto =
+  const bottomSheetControllerCreateOperador =
     useRef<BottomSheetImperativeHandle>();
 
-  const onSelectProduto = (produto: Produto) => {
-    bottomSheetControllerUpdateProduto.current?.onOpen();
-    setProduto(produto);
+  const onSelectOperador = (operador: Operador) => {
+    bottomSheetControllerUpdateOperador.current?.onOpen();
+    setOperador(operador);
   };
 
   return (
     <>
       <BottomSheet
-        ref={bottomSheetControllerUpdateProduto}
+        ref={bottomSheetControllerUpdateOperador}
         title="Atualizar"
         description=""
       >
-        <Forms.Produto.Update
-          produto={produto!}
-          grupos={grupos!}
-          armazenamentos={armazenamentos!}
-          bottomSheetController={bottomSheetControllerUpdateProduto}
+        <Forms.Operadores.Update
+          operador={operador!}
+          bottomSheetController={bottomSheetControllerUpdateOperador}
         />
       </BottomSheet>
 
       <BottomSheet
-        ref={bottomSheetControllerCreateProduto}
+        ref={bottomSheetControllerCreateOperador}
         title="Adicionar"
         description=""
       >
-        <Forms.Produto.Create
-          grupos={grupos!}
-          armazenamentos={armazenamentos!}
-          bottomSheetController={bottomSheetControllerCreateProduto}
+        <Forms.Operadores.Create
+          bottomSheetController={bottomSheetControllerCreateOperador}
         />
       </BottomSheet>
 
       <div className=" mb-4 w-full sticky z-20 top-[19.3px]">
         <Input
           type="text"
-          placeholder="Buscar produtos..."
+          placeholder="Buscar operadores..."
           className="pl-10"
           onChange={(event) => setBusca(event.target.value)}
         />
@@ -97,22 +87,21 @@ export function ProdutosPageClient({
       <div className="flex items-center justify-end mb-4 w-full">
         <Button
           className="w-full sm:w-fit"
-          onClick={() => bottomSheetControllerCreateProduto.current?.onOpen()}
+          onClick={() => bottomSheetControllerCreateOperador.current?.onOpen()}
         >
           <Plus />
           Novo
         </Button>
       </div>
       <GridItems>
-        {(produtosFiltrados || [])?.map((produto) => {
+        {(operadoresFiltrados || [])?.map((operador) => {
           return (
             <GridItem
-              title={produto.nome}
-              key={produto.id}
-              onClick={() => onSelectProduto(produto)}
+              title={operador.nome!}
+              key={operador.id}
+              onClick={() => onSelectOperador(operador)}
             >
-              <p className="text-gray-600 mb-2">{produto.codigo}</p>
-              <p className="font-bold">{produto.unidade}</p>
+              <p className="text-gray-600 mb-2">{operador.cor_fonte}</p>
             </GridItem>
           );
         })}

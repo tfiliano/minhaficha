@@ -8,8 +8,12 @@ import { cn } from "@/lib/utils";
 import { Tables } from "@/types/database.types";
 import { createBrowserClient } from "@/utils/supabase-client";
 import { toast } from "sonner";
+import { FormContent } from "..";
 
-const formBuilder = {
+const formBuilder = (
+  grupos: Grupo[],
+  armazenamentos: LocalArmazenamento[]
+) => ({
   columns: [
     {
       rows: [
@@ -52,15 +56,15 @@ const formBuilder = {
         {
           fields: [
             {
-              name: "grupo",
+              name: "grupo_id",
               label: "Grupo",
               placeholder: "Selecione o grupo",
               type: "select",
-              options: [
-                { value: "alimentos", label: "Alimentos" },
-                { value: "bebidas", label: "Bebidas" },
-                { value: "limpeza", label: "Limpeza" },
-              ],
+              options: grupos.map((grupo) => ({
+                value: grupo.id,
+                label: grupo.nome,
+              })),
+
               required: true,
             },
             {
@@ -75,11 +79,15 @@ const formBuilder = {
         {
           fields: [
             {
-              name: "armazenamento",
+              name: "armazenamento_id",
               label: "Armazenamento",
               placeholder: "Local de armazenamento",
-              type: "text",
-              required: false,
+              type: "select",
+              options: armazenamentos.map((armazenamento) => ({
+                value: armazenamento.id,
+                label: armazenamento.armazenamento,
+              })),
+              required: true,
             },
             {
               name: "dias_validade",
@@ -93,22 +101,39 @@ const formBuilder = {
       ],
     },
   ],
-};
+});
 
 type Produto = Tables<"produtos">;
+type Grupo = Tables<`grupos`>;
+type LocalArmazenamento = Tables<`locais_armazenamento`>;
 
 type ProdutoProps = {
   produto: Produto;
+  grupos: Grupo[];
+  armazenamentos: LocalArmazenamento[];
   bottomSheetController?: BottomSheetSheetController;
 };
 
 function Update({
   produto,
+  grupos,
+  armazenamentos,
   bottomSheetController,
-}: Pick<ProdutoProps, "produto" | "bottomSheetController">) {
+}: Pick<
+  ProdutoProps,
+  "produto" | "bottomSheetController" | "grupos" | "armazenamentos"
+>) {
   const supabase = createBrowserClient();
 
   const onSubmit = async ({ id, ...data }: Produto) => {
+    const grupo = grupos.find((grupo) => grupo.id === data.grupo_id);
+    data.grupo = grupo!.nome!;
+
+    const armazenamento = armazenamentos.find(
+      (armazenamento) => armazenamento.id === data.armazenamento_id
+    );
+    data.armazenamento = armazenamento!.armazenamento;
+
     const query = supabase
       .from("produtos")
       .update({ ...data })
@@ -125,9 +150,9 @@ function Update({
   };
 
   return (
-    <div className="max-w-lg mx-auto px-4">
+    <FormContent>
       <FormBuilder2
-        builder={formBuilder}
+        builder={formBuilder(grupos, armazenamentos)}
         onSubmit={onSubmit}
         submitLabel="Atualizar"
         buttonsContainerClass={cn({
@@ -145,16 +170,20 @@ function Update({
           </Button>
         }
       />
-    </div>
+    </FormContent>
   );
 }
 
 function Create({
   bottomSheetController,
-}: Pick<ProdutoProps, "bottomSheetController">) {
+  grupos,
+  armazenamentos,
+}: Pick<ProdutoProps, "bottomSheetController" | "grupos" | "armazenamentos">) {
   const supabase = createBrowserClient();
 
   const onSubmit = async ({ ...data }: Produto) => {
+    const grupo = grupos.find((grupo) => grupo.id === data.grupo_id);
+    data.grupo = grupo!.nome!;
     const query = supabase.from("produtos").insert({ ...data });
 
     const { success, message } = await executeQuery<typeof query>(() => query);
@@ -168,9 +197,9 @@ function Create({
   };
 
   return (
-    <div className="max-w-lg mx-auto px-4">
+    <FormContent>
       <FormBuilder2
-        builder={formBuilder}
+        builder={formBuilder(grupos, armazenamentos)}
         onSubmit={onSubmit}
         submitLabel="Adicionar"
         buttonsContainerClass={cn({
@@ -188,7 +217,7 @@ function Create({
           </Button>
         }
       />
-    </div>
+    </FormContent>
   );
 }
 

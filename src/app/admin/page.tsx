@@ -9,31 +9,31 @@ export default function Admin() {
     },
     {
       title: "Etiquetas",
-      route: "/adm-etiquetas",
+      route: "etiquetas",
     },
     {
       title: "Grupos",
-      route: "/adm-grupos",
+      route: "grupos",
     },
     {
       title: "Armazenamento",
-      route: "/adm-armazenamento",
+      route: "armazenamentos",
     },
     {
       title: "Operadores",
-      route: "/adm-operadores",
+      route: "operadores",
     },
     {
       title: "Fabricantes",
-      route: "/adm-fabricantes",
+      route: "fabricantes",
     },
     {
       title: "Impressoras",
-      route: "/adm-impressoras",
+      route: "impressoras",
     },
     {
       title: "Configuraçõe da Loja",
-      route: "/adm-configuracoes",
+      route: "configuracoes",
     },
   ];
 

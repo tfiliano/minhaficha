@@ -32,6 +32,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
+  ...rest
 }: Readonly<{
   children: React.ReactNode;
 }>) {

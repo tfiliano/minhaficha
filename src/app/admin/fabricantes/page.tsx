@@ -1,7 +1,7 @@
 import { AnimationTransitionPage } from "@/components/animation";
 import { ContentGrid } from "@/components/layout";
 import { createClient } from "@/utils/supabase";
-import { ProdutosPageClient } from "./page-client";
+import { FabricantesClient } from "./page-client";
 
 type Props = {
   params?: {};
@@ -10,7 +10,7 @@ type Props = {
   };
 };
 
-export default async function Produtos({ searchParams }: Props) {
+export default async function Fabricantes({ searchParams }: Props) {
   const params = new URLSearchParams(searchParams);
   let route = "";
 
@@ -20,20 +20,12 @@ export default async function Produtos({ searchParams }: Props) {
   //     return redirect("/");
   //   }
   const supabase = createClient();
-  const { data: produtos } = await supabase.from("produtos").select("*");
-  const { data: grupos } = await supabase.from("grupos").select("*");
-  const { data: armazenamentos } = await supabase
-    .from("locais_armazenamento")
-    .select("*");
+  const { data: fabricantes } = await supabase.from("fabricantes").select("*");
 
   return (
     <AnimationTransitionPage>
       <ContentGrid>
-        <ProdutosPageClient
-          produtos={produtos}
-          grupos={grupos}
-          armazenamentos={armazenamentos}
-        />
+        <FabricantesClient fabricantes={fabricantes} />
       </ContentGrid>
     </AnimationTransitionPage>
   );

@@ -109,7 +109,6 @@ export function LocaisArmazenamentoClient({
               onClick={() => onSelectLocalArmazanamento(local)}
             >
               <p className="text-gray-600 mb-2">{local.metodo}</p>
-              <p className="font-bold">{local.created_at}</p>
             </GridItem>
           );
         })}

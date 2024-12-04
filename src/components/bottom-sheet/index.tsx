@@ -56,7 +56,7 @@ const BottomSheetForward: React.ForwardRefRenderFunction<
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerContent className="z-50">
+      <DrawerContent className="z-50 mb-9">
         <DrawerHeader>
           <DrawerTitle>{title}</DrawerTitle>
           <DrawerDescription>{description}</DrawerDescription>

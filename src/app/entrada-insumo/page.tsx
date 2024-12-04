@@ -1,8 +1,8 @@
+import { Title } from "@/components/layout";
+import { EntradaInsumoForm } from "@/components/pages/entrada-insumo-form";
 import { createClient } from "@/utils/supabase";
 import { redirect } from "next/navigation";
 import { AnimationTransitionPage } from "../../components/animation";
-import { EntradaInsumoForm } from "@/components/pages/entrada-insumo-form";
-import { Title } from "@/components/layout";
 
 type Props = {
   params?: {};
@@ -29,7 +29,7 @@ export default async function Recebimento({ searchParams }: Props) {
   const { data: produto } = await supabase
     .from("produtos")
     .select()
-    .eq("id", params.get("produtoId"))
+    .eq("id", params.get("produtoId")!)
     .maybeSingle();
 
   return (

@@ -17,9 +17,9 @@ const formBuilder = {
         {
           fields: [
             {
-              name: "armazenamento",
-              label: "Local Armazanamento",
-              placeholder: "Digite o código do Local Armazanamento",
+              name: "nome",
+              label: "Nome",
+              placeholder: "Digite o nome Fabricante",
               type: "text",
               required: true,
             },
@@ -28,9 +28,9 @@ const formBuilder = {
         {
           fields: [
             {
-              name: "metodo",
-              label: "Metodo",
-              placeholder: "Digite o metodo",
+              name: "cnpj",
+              label: "CNPJ",
+              placeholder: "Digite o CNPJ",
               type: "text",
               required: true,
             },
@@ -41,33 +41,30 @@ const formBuilder = {
   ],
 };
 
-type LocalArmazenamento = Tables<"locais_armazenamento">;
+type Fabricante = Tables<"fabricantes">;
 
-type LocalArmazenamentoProps = {
-  localArmazenamento: LocalArmazenamento;
+type FabricanteProps = {
+  fabricante: Fabricante;
   bottomSheetController?: BottomSheetSheetController;
 };
 
 function Update({
-  localArmazenamento,
+  fabricante,
   bottomSheetController,
-}: Pick<
-  LocalArmazenamentoProps,
-  "localArmazenamento" | "bottomSheetController"
->) {
+}: Pick<FabricanteProps, "fabricante" | "bottomSheetController">) {
   const supabase = createBrowserClient();
 
-  const onSubmit = async ({ id, ...data }: LocalArmazenamento) => {
+  const onSubmit = async ({ id, ...data }: Fabricante) => {
     const query = supabase
-      .from("locais_armazenamento")
+      .from("fabricantes")
       .update({ ...data })
-      .eq("id", localArmazenamento.id);
+      .eq("id", fabricante.id);
 
     const { success, message } = await executeQuery<typeof query>(() => query);
 
     if (success) {
       toast.success(message);
-      executeRevalidationPath("/admin/armazenamentos");
+      executeRevalidationPath("/admin/fabricantes");
     } else if (!success) {
       toast.error(message);
     }
@@ -82,7 +79,7 @@ function Update({
         buttonsContainerClass={cn({
           "mb-8": useDeviceType() === "PC",
         })}
-        form={{ defaultValues: { ...(localArmazenamento || {}) } }}
+        form={{ defaultValues: { ...(fabricante || {}) } }}
         extraButtons={
           <Button
             variant="destructive"
@@ -100,18 +97,18 @@ function Update({
 
 function Create({
   bottomSheetController,
-}: Pick<LocalArmazenamentoProps, "bottomSheetController">) {
+}: Pick<FabricanteProps, "bottomSheetController">) {
   const supabase = createBrowserClient();
 
-  const onSubmit = async ({ ...data }: LocalArmazenamento) => {
-    const query = supabase.from("locais_armazenamento").insert({ ...data });
+  const onSubmit = async ({ ...data }: Fabricante) => {
+    const query = supabase.from("fabricantes").insert({ ...data });
 
     const { success, message } = await executeQuery<typeof query>(() => query);
 
     if (success) {
       toast.success(message);
       bottomSheetController?.current?.onClose();
-      executeRevalidationPath("/admin/armazenamentos");
+      executeRevalidationPath("/admin/fabricantes");
     } else if (!success) {
       toast.error(message);
     }
@@ -142,7 +139,7 @@ function Create({
   );
 }
 
-export const LocalArmazenamento = {
+export const Fabricantes = {
   Update,
   Create,
 };

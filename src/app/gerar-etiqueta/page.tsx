@@ -30,7 +30,7 @@ export default async function GerarEtiqueta({ searchParams }: Props) {
   const { data: produto } = await supabase
     .from("produtos")
     .select()
-    .eq("id", params.get("produtoId"))
+    .eq("id", params.get("produtoId")!)
     .maybeSingle();
 
   return (

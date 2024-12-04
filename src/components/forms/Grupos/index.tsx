@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { Tables } from "@/types/database.types";
 import { createBrowserClient } from "@/utils/supabase-client";
 import { toast } from "sonner";
+import { FormContent } from "..";
 
 const formBuilder = {
   columns: [
@@ -30,7 +31,7 @@ const formBuilder = {
               name: "cor_botao",
               label: "Cor do Botao",
               placeholder: "Digite a Cor do Botão",
-              type: "text",
+              type: "color",
               required: true,
             },
           ],
@@ -136,7 +137,7 @@ function Create({
   };
 
   return (
-    <div className="max-w-lg mx-auto px-4">
+    <FormContent>
       <FormBuilder2
         builder={formBuilder}
         onSubmit={onSubmit}
@@ -156,7 +157,7 @@ function Create({
           </Button>
         }
       />
-    </div>
+    </FormContent>
   );
 }
 
