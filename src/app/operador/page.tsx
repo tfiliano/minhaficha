@@ -4,13 +4,14 @@ import { createClient } from "@/utils/supabase";
 import { redirect } from "next/navigation";
 
 type Props = {
-  params?: {};
-  searchParams?: {
+  params?: Promise<{}>;
+  searchParams?: Promise<{
     operacao?: string;
-  };
+  }>;
 };
 
-export default async function Operadores({ searchParams }: Props) {
+export default async function Operadores(props: Props) {
+  const searchParams = await props.searchParams;
   const params = new URLSearchParams(searchParams);
   let route = ""
 

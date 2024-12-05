@@ -4,16 +4,17 @@ import { createClient } from "@/utils/supabase";
 import { redirect } from "next/navigation";
 
 type Props = {
-  params?: {};
-  searchParams?: {
+  params?: Promise<{}>;
+  searchParams?: Promise<{
     operador?: string;
-  };
+  }>;
 };
 
-export default async function Setores({ searchParams }: Props) {
+export default async function Setores(props: Props) {
+  const searchParams = await props.searchParams;
   const params = new URLSearchParams(searchParams);
   let route = "/produto"
-  
+
   if (!params.get("operador")) {
     return redirect("/");
   }

@@ -40,9 +40,9 @@ export function FabricantesClient({
   useScrollBehavior(!!fabricante?.id);
 
   const bottomSheetControllerUpdateOperador =
-    useRef<BottomSheetImperativeHandle>();
+    useRef<BottomSheetImperativeHandle>(undefined);
   const bottomSheetControllerCreateOperador =
-    useRef<BottomSheetImperativeHandle>();
+    useRef<BottomSheetImperativeHandle>(undefined);
 
   const onSelectOperador = (fabricante: Operador) => {
     bottomSheetControllerUpdateOperador.current?.onOpen();

@@ -39,7 +39,7 @@ import { cn } from "@/lib/utils";
 import { PublicSchema } from "@/types/database.types";
 import { get } from "lodash";
 import { Loader2 } from "lucide-react";
-import React, { FocusEvent, forwardRef } from "react";
+import React, { FocusEvent, forwardRef, type JSX } from "react";
 import { UseFormReturn, useFormContext } from "react-hook-form";
 import { Button } from "../ui/button";
 import { AddOptionComponentType } from "./add-option-component-list";

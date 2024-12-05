@@ -6,16 +6,17 @@ import { Title } from "@/components/layout";
 import { GerarEtiquetaForm } from "@/components/pages";
 
 type Props = {
-  params?: {};
-  searchParams?: {
+  params?: Promise<{}>;
+  searchParams?: Promise<{
     operador?: string;
     operacao?: string;
     setor?: string;
     produto?: string;
-  };
+  }>;
 };
 
-export default async function GerarEtiqueta({ searchParams }: Props) {
+export default async function GerarEtiqueta(props: Props) {
+  const searchParams = await props.searchParams;
   const params = new URLSearchParams(searchParams);
 
   if (!params.get("produto")) {

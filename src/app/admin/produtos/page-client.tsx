@@ -46,9 +46,9 @@ export function ProdutosPageClient({
   useScrollBehavior(!!produto?.id);
 
   const bottomSheetControllerUpdateProduto =
-    useRef<BottomSheetImperativeHandle>();
+    useRef<BottomSheetImperativeHandle>(undefined);
   const bottomSheetControllerCreateProduto =
-    useRef<BottomSheetImperativeHandle>();
+    useRef<BottomSheetImperativeHandle>(undefined);
 
   const onSelectProduto = (produto: Produto) => {
     bottomSheetControllerUpdateProduto.current?.onOpen();

@@ -5,16 +5,17 @@ import { redirect } from "next/navigation";
 import { AnimationTransitionPage } from "../../components/animation";
 
 type Props = {
-  params?: {};
-  searchParams?: {
+  params?: Promise<{}>;
+  searchParams?: Promise<{
     operador?: string;
     operacao?: string;
     setor?: string;
     produto?: string;
-  };
+  }>;
 };
 
-export default async function Recebimento({ searchParams }: Props) {
+export default async function Recebimento(props: Props) {
+  const searchParams = await props.searchParams;
   const params = new URLSearchParams(searchParams);
 
   if (!params.get("produto")) {

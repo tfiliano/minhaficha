@@ -43,9 +43,9 @@ export function LocaisArmazenamentoClient({
   useScrollBehavior(!!localArmazenamento?.id);
 
   const bottomSheetControllerUpdateLocalArmazanamento =
-    useRef<BottomSheetImperativeHandle>();
+    useRef<BottomSheetImperativeHandle>(undefined);
   const bottomSheetControllerCreateLocalArmazanamento =
-    useRef<BottomSheetImperativeHandle>();
+    useRef<BottomSheetImperativeHandle>(undefined);
 
   const onSelectLocalArmazanamento = (
     localArmazenamento: LocalArmazanamento

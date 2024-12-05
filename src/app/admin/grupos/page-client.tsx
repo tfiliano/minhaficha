@@ -38,9 +38,9 @@ export function GruposPageClient({ grupos }: PropsWithChildren<GruposPage>) {
   useScrollBehavior(!!grupo?.id);
 
   const bottomSheetControllerUpdateGrupo =
-    useRef<BottomSheetImperativeHandle>();
+    useRef<BottomSheetImperativeHandle>(undefined);
   const bottomSheetControllerCreateGrupo =
-    useRef<BottomSheetImperativeHandle>();
+    useRef<BottomSheetImperativeHandle>(undefined);
 
   const onSelectGrupo = (grupo: Grupo) => {
     bottomSheetControllerUpdateGrupo.current?.onOpen();
