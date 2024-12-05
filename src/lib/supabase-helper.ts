@@ -9,8 +9,8 @@ type QueryResult<T> = {
  * @param supabaseQuery - Callback que executa a query do Supabase
  * @returns {QueryResult<T>} - Resultado da requisição
  */
-export async function executeQuery<T>(
-  supabaseQuery: () => T
+export async function executeQuery<K, T>(
+  supabaseQuery: () => K
 ): Promise<QueryResult<T>> {
   try {
     const { data, error, status } = (await supabaseQuery()) as {

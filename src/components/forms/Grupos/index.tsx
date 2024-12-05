@@ -1,4 +1,5 @@
-import { BottomSheetSheetController } from "@/components/bottom-sheet";
+import { Builder } from "@/components/form-builder";
+import { useRouter } from "@/hooks/use-router";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
 import { executeQuery } from "@/lib/supabase-helper";
 import { Tables } from "@/types/database.types";
@@ -6,7 +7,7 @@ import { createBrowserClient } from "@/utils/supabase-client";
 import { toast } from "sonner";
 import { EntityFormHandler, ModeFormHandlerProp } from "..";
 
-const formBuilder = {
+const formBuilder: Builder = {
   columns: [
     {
       rows: [
@@ -61,28 +62,28 @@ const formBuilder = {
 
 type Grupo = Tables<"grupos">;
 
-type GrupoProps = {
-  grupo: Grupo;
-  bottomSheetController?: BottomSheetSheetController;
+export type GrupoProps = {
+  grupo?: Grupo;
 };
 
-function GrupoForm({
-  mode,
-  grupo,
-  bottomSheetController,
-}: GrupoProps & ModeFormHandlerProp) {
+function GrupoForm({ mode, grupo }: GrupoProps & ModeFormHandlerProp) {
   const supabase = createBrowserClient();
-
+  const router = useRouter();
   const handleSubmit = async (data: Grupo) => {
     const query =
       mode === "update"
         ? supabase.from("grupos").update(data).eq("id", grupo!.id)
-        : supabase.from("grupos").insert(data);
+        : supabase.from("grupos").insert(data).select().maybeSingle();
 
-    const { success, message } = await executeQuery(() => query);
+    const {
+      success,
+      message,
+      data: result,
+    } = await executeQuery<typeof query, Grupo>(() => query);
 
     if (success) {
       toast.success(message);
+      if (mode === "create") router.push("/admin/grupos" + `/${result!.id}`);
       executeRevalidationPath("/admin/grupos");
     } else {
       toast.error(message);
@@ -96,7 +97,6 @@ function GrupoForm({
       builder={formBuilder}
       onSubmit={handleSubmit}
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
-      bottomSheetController={bottomSheetController}
     />
   );
 }

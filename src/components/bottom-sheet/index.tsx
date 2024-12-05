@@ -1,7 +1,8 @@
+import { useScrollBehavior } from "@/hooks/use-scroll-behavior";
 import {
   forwardRef,
-  MutableRefObject,
   PropsWithChildren,
+  RefObject,
   useEffect,
   useImperativeHandle,
   useState,
@@ -14,7 +15,7 @@ import {
   DrawerTitle,
 } from "../ui/drawer";
 
-export type BottomSheetSheetController = MutableRefObject<
+export type BottomSheetSheetController = RefObject<
   BottomSheetImperativeHandle | undefined
 >;
 
@@ -53,6 +54,8 @@ const BottomSheetForward: React.ForwardRefRenderFunction<
   useEffect(() => {
     if (!open && payload) setPayload(null);
   }, [open]);
+
+  useScrollBehavior(open);
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>

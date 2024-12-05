@@ -32,7 +32,7 @@ export default function Admin() {
       route: "impressoras",
     },
     {
-      title: "Configuraçõe da Loja",
+      title: "Config. da Loja",
       route: "configuracoes",
     },
   ];

@@ -1,17 +1,13 @@
 "use client";
 
 import { GridItem, GridItems } from "@/components/admin/grid-items";
-import {
-  BottomSheet,
-  BottomSheetImperativeHandle,
-} from "@/components/bottom-sheet";
-import { Forms } from "@/components/forms";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useScrollBehavior } from "@/hooks/use-scroll-behavior";
 import { Tables } from "@/types/database.types";
-import { Plus, Search } from "lucide-react";
-import { PropsWithChildren, useRef, useState } from "react";
+import { Search } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { PropsWithChildren, useState } from "react";
+import { ButtonAdd } from "../button-new";
 
 type LocalArmazanamento = Tables<`locais_armazenamento`>;
 
@@ -22,8 +18,8 @@ type LocaisArmazenamento = {
 export function LocaisArmazenamentoClient({
   locais_armazenamento,
 }: PropsWithChildren<LocaisArmazenamento>) {
-  const [localArmazenamento, setLocalArmazenamento] =
-    useState<LocalArmazanamento | null>(null);
+  const pathname = usePathname();
+
   const [busca, setBusca] = useState("");
 
   const locais_armazenamentoFiltrados = (locais_armazenamento || []).filter(
@@ -40,43 +36,8 @@ export function LocaisArmazenamentoClient({
     }
   );
 
-  useScrollBehavior(!!localArmazenamento?.id);
-
-  const bottomSheetControllerUpdateLocalArmazanamento =
-    useRef<BottomSheetImperativeHandle>(undefined);
-  const bottomSheetControllerCreateLocalArmazanamento =
-    useRef<BottomSheetImperativeHandle>(undefined);
-
-  const onSelectLocalArmazanamento = (
-    localArmazenamento: LocalArmazanamento
-  ) => {
-    bottomSheetControllerUpdateLocalArmazanamento.current?.onOpen();
-    setLocalArmazenamento(localArmazenamento);
-  };
-
   return (
     <>
-      <BottomSheet
-        ref={bottomSheetControllerUpdateLocalArmazanamento}
-        title="Atualizar"
-        description=""
-      >
-        <Forms.LocalArmazenamento.Update
-          localArmazenamento={localArmazenamento!}
-          bottomSheetController={bottomSheetControllerUpdateLocalArmazanamento}
-        />
-      </BottomSheet>
-
-      <BottomSheet
-        ref={bottomSheetControllerCreateLocalArmazanamento}
-        title="Adicionar"
-        description=""
-      >
-        <Forms.LocalArmazenamento.Create
-          bottomSheetController={bottomSheetControllerCreateLocalArmazanamento}
-        />
-      </BottomSheet>
-
       <div className=" mb-4 w-full sticky z-20 top-[19.3px]">
         <Input
           type="text"
@@ -89,27 +50,15 @@ export function LocaisArmazenamentoClient({
           size={20}
         />
       </div>
-      <div className="flex items-center justify-end mb-4 w-full">
-        <Button
-          className="w-full sm:w-fit"
-          onClick={() =>
-            bottomSheetControllerCreateLocalArmazanamento.current?.onOpen()
-          }
-        >
-          <Plus />
-          Novo
-        </Button>
-      </div>
+      <ButtonAdd />
       <GridItems>
         {(locais_armazenamentoFiltrados || [])?.map((local) => {
           return (
-            <GridItem
-              title={local.armazenamento!}
-              key={local.id}
-              onClick={() => onSelectLocalArmazanamento(local)}
-            >
-              <p className="text-gray-600 mb-2">{local.metodo}</p>
-            </GridItem>
+            <Link href={pathname + `/${local.id}`} key={local.id}>
+              <GridItem title={local.armazenamento!}>
+                <p className="text-gray-600 mb-2">{local.metodo}</p>
+              </GridItem>
+            </Link>
           );
         })}
       </GridItems>

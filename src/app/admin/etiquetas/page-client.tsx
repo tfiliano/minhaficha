@@ -9,25 +9,28 @@ import { usePathname } from "next/navigation";
 import { PropsWithChildren, useState } from "react";
 import { ButtonAdd } from "../button-new";
 
-type Grupo = Tables<`grupos`>;
+type Etiqueta = Tables<`etiquetas`>;
 
-type GruposPage = {
-  grupos: Grupo[] | null;
+type EtiquetasPage = {
+  etiquetas: Etiqueta[] | null;
 };
 
-export function GruposPageClient({ grupos }: PropsWithChildren<GruposPage>) {
+export function EtiquetasPageClient({
+  etiquetas,
+}: PropsWithChildren<EtiquetasPage>) {
   const pathname = usePathname();
+
   const [busca, setBusca] = useState("");
 
-  const gruposFiltrados = (grupos || []).filter((grupo) => {
+  const etiquetasFiltrados = (etiquetas || []).filter((etiqueta) => {
     const normalizar = (texto: string) =>
       texto
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
     return (
-      normalizar(grupo.nome!).includes(normalizar(busca)) ||
-      normalizar(grupo.nome!).includes(normalizar(busca))
+      normalizar(etiqueta.SIF!).includes(normalizar(busca)) ||
+      normalizar(etiqueta.SIF!).includes(normalizar(busca))
     );
   });
 
@@ -36,7 +39,7 @@ export function GruposPageClient({ grupos }: PropsWithChildren<GruposPage>) {
       <div className=" mb-4 w-full sticky z-20 top-[19.3px]">
         <Input
           type="text"
-          placeholder="Buscar grupos..."
+          placeholder="Buscar etiquetas..."
           className="pl-10"
           onChange={(event) => setBusca(event.target.value)}
         />
@@ -47,12 +50,11 @@ export function GruposPageClient({ grupos }: PropsWithChildren<GruposPage>) {
       </div>
       <ButtonAdd />
       <GridItems>
-        {(gruposFiltrados || [])?.map((grupo) => {
+        {(etiquetasFiltrados || [])?.map((etiqueta) => {
           return (
-            <Link href={pathname + `/${grupo.id}`} key={grupo.id}>
-              <GridItem title={grupo.nome!} key={grupo.id}>
-                <p className="text-gray-600 mb-2">{grupo.cor_botao}</p>
-                <p className="font-bold">{grupo.cor_fonte}</p>
+            <Link href={pathname + `/${etiqueta.id}`} key={etiqueta.id}>
+              <GridItem title={etiqueta.SIF!}>
+                <p className="text-gray-600 mb-2">{etiqueta.SIF}</p>
               </GridItem>
             </Link>
           );

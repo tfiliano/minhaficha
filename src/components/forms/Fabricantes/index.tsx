@@ -1,5 +1,6 @@
-import { BottomSheetSheetController } from "@/components/bottom-sheet";
+import { Builder } from "@/components/form-builder";
 import { cleanDocument } from "@/components/form-builder/@masks/clean";
+import { useRouter } from "@/hooks/use-router";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
 import { executeQuery } from "@/lib/supabase-helper";
 import { Tables } from "@/types/database.types";
@@ -7,7 +8,7 @@ import { createBrowserClient } from "@/utils/supabase-client";
 import { toast } from "sonner";
 import { EntityFormHandler, ModeFormHandlerProp } from "..";
 
-const formBuilder = {
+const formBuilder: Builder = {
   columns: [
     {
       rows: [
@@ -41,30 +42,34 @@ const formBuilder = {
 
 type Fabricante = Tables<"fabricantes">;
 
-type FabricanteProps = {
+export type FabricanteProps = {
   fabricante?: Fabricante;
-  bottomSheetController?: BottomSheetSheetController;
 };
 
 function FabricanteForm({
   mode,
   fabricante,
-  bottomSheetController,
 }: FabricanteProps & ModeFormHandlerProp) {
   const supabase = createBrowserClient();
-
+  const router = useRouter();
   const handleSubmit = async (data: Fabricante) => {
     data.cnpj = cleanDocument(data.cnpj!);
 
     const query =
       mode === "update"
         ? supabase.from("fabricantes").update(data).eq("id", fabricante!.id)
-        : supabase.from("fabricantes").insert(data);
+        : supabase.from("fabricantes").insert(data).select().maybeSingle();
 
-    const { success, message } = await executeQuery(() => query);
+    const {
+      success,
+      message,
+      data: result,
+    } = await executeQuery<typeof query, Fabricante>(() => query);
 
     if (success) {
       toast.success(message);
+      if (mode === "create")
+        router.push("/admin/fabricantes" + `/${result!.id}`);
       executeRevalidationPath("/admin/fabricantes");
     } else {
       toast.error(message);
@@ -78,7 +83,6 @@ function FabricanteForm({
       builder={formBuilder}
       onSubmit={handleSubmit}
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
-      bottomSheetController={bottomSheetController}
     />
   );
 }

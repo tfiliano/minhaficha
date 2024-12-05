@@ -1,7 +1,7 @@
 import { AnimationTransitionPage } from "@/components/animation";
 import { ContentGrid } from "@/components/layout";
 import { createClient } from "@/utils/supabase";
-import { ProdutosPageClient } from "./page-client";
+import { EtiquetasPageClient } from "./page-client";
 
 type Props = {
   params?: Promise<{}>;
@@ -21,12 +21,12 @@ export default async function Produtos(props: Props) {
   //     return redirect("/");
   //   }
   const supabase = createClient();
-  const { data: produtos } = await supabase.from("produtos").select("*");
+  const { data: etiquetas } = await supabase.from("etiquetas").select("*");
 
   return (
     <AnimationTransitionPage>
       <ContentGrid>
-        <ProdutosPageClient produtos={produtos} />
+        <EtiquetasPageClient etiquetas={etiquetas} />
       </ContentGrid>
     </AnimationTransitionPage>
   );

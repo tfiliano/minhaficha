@@ -1,4 +1,5 @@
-import { BottomSheetSheetController } from "@/components/bottom-sheet";
+import { Builder } from "@/components/form-builder";
+import { useRouter } from "@/hooks/use-router";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
 import { executeQuery } from "@/lib/supabase-helper";
 import { Tables } from "@/types/database.types";
@@ -6,7 +7,7 @@ import { createBrowserClient } from "@/utils/supabase-client";
 import { toast } from "sonner";
 import { EntityFormHandler, ModeFormHandlerProp } from "..";
 
-const formBuilder = {
+const formBuilder: Builder = {
   columns: [
     {
       rows: [
@@ -50,27 +51,29 @@ const formBuilder = {
 
 type Operador = Tables<"operadores">;
 
-type OperadorProps = {
-  operador: Operador;
-  bottomSheetController?: BottomSheetSheetController;
+export type OperadorProps = {
+  operador?: Operador;
 };
 
-function OperadorForm({
-  mode,
-  operador,
-  bottomSheetController,
-}: OperadorProps & ModeFormHandlerProp) {
+function OperadorForm({ mode, operador }: OperadorProps & ModeFormHandlerProp) {
   const supabase = createBrowserClient();
+  const router = useRouter();
   const handleSubmit = async (data: Operador) => {
     const query =
       mode === "update"
         ? supabase.from("operadores").update(data).eq("id", operador!.id)
-        : supabase.from("operadores").insert(data);
+        : supabase.from("operadores").insert(data).select().maybeSingle();
 
-    const { success, message } = await executeQuery(() => query);
+    const {
+      success,
+      message,
+      data: result,
+    } = await executeQuery<typeof query, Operador>(() => query);
 
     if (success) {
       toast.success(message);
+      if (mode === "create")
+        router.push("/admin/operadores" + `/${result!.id}`);
       executeRevalidationPath("/admin/operadores");
     } else {
       toast.error(message);
@@ -83,7 +86,6 @@ function OperadorForm({
       builder={formBuilder}
       onSubmit={handleSubmit}
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
-      bottomSheetController={bottomSheetController}
     />
   );
 }

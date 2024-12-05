@@ -1,3 +1,4 @@
+"use client";
 import { PropsWithChildren } from "react";
 import { Fabricantes } from "./Fabricantes";
 import { Grupos } from "./Grupos";
@@ -5,11 +6,10 @@ import { LocalArmazenamento } from "./LocalArmazenamento";
 import { Operadores } from "./Operadores";
 import { Produto } from "./produtos";
 
-import { BottomSheetSheetController } from "@/components/bottom-sheet";
 import { FormBuilder2 } from "@/components/form-builder";
 import { Button } from "@/components/ui/button";
-import { useDeviceType } from "@/hooks/use-device-type";
-import { cn } from "@/lib/utils";
+import { useRouter } from "@/hooks/use-router";
+import { Etiquetas } from "./Etiquetas";
 
 export const Forms = {
   Produto,
@@ -17,6 +17,7 @@ export const Forms = {
   Grupos,
   Operadores,
   Fabricantes,
+  Etiquetas,
 };
 
 export function FormContent({ children }: PropsWithChildren) {
@@ -32,7 +33,6 @@ type EntityFormHandlerProps<T> = {
   builder: any;
   onSubmit: (data: T) => Promise<void>;
   submitLabel: string;
-  bottomSheetController?: BottomSheetSheetController;
 };
 
 export function EntityFormHandler<T>({
@@ -41,24 +41,22 @@ export function EntityFormHandler<T>({
   builder,
   onSubmit,
   submitLabel,
-  bottomSheetController,
 }: EntityFormHandlerProps<T>) {
+  const router = useRouter();
+
   return (
     <FormContent>
       <FormBuilder2
         builder={builder}
         onSubmit={onSubmit}
         submitLabel={submitLabel}
-        buttonsContainerClass={cn({
-          "mb-8": useDeviceType() === "PC",
-        })}
         form={{ defaultValues: entity }}
         extraButtons={
           <Button
             variant="destructive"
             className="w-full"
             type="button"
-            onClick={() => bottomSheetController?.current?.onClose()}
+            onClick={() => router.back()}
           >
             Cancelar
           </Button>

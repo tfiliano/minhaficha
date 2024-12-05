@@ -1,5 +1,5 @@
-import { BottomSheetSheetController } from "@/components/bottom-sheet";
 import { Builder } from "@/components/form-builder";
+import { useRouter } from "@/hooks/use-router";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
 import { executeQuery } from "@/lib/supabase-helper";
 import { Tables } from "@/types/database.types";
@@ -11,12 +11,11 @@ type Produto = Tables<"produtos">;
 type Grupo = Tables<"grupos">;
 type LocalArmazenamento = Tables<"locais_armazenamento">;
 
-type ProdutoProps = {
+export type ProdutoProps = {
   produto?: Produto;
   grupos: Grupo[];
   armazenamentos: LocalArmazenamento[];
   produtos: Produto[];
-  bottomSheetController?: BottomSheetSheetController;
 };
 
 const formBuilder = (
@@ -136,10 +135,9 @@ function ProdutoForm({
   grupos,
   armazenamentos,
   produtos,
-  bottomSheetController,
 }: ProdutoProps & ModeFormHandlerProp) {
   const supabase = createBrowserClient();
-
+  const router = useRouter();
   const handleSubmit = async (data: Produto) => {
     const grupo = grupos.find((g) => g.id === data.grupo_id);
     if (grupo) Object.assign(data, { grupo: grupo.nome });
@@ -152,12 +150,17 @@ function ProdutoForm({
     const query =
       mode === "update"
         ? supabase.from("produtos").update(data).eq("id", produto!.id)
-        : supabase.from("produtos").insert(data);
+        : supabase.from("produtos").insert(data).select().maybeSingle();
 
-    const { success, message } = await executeQuery(() => query);
+    const {
+      success,
+      message,
+      data: result,
+    } = await executeQuery<typeof query, Produto>(() => query);
 
     if (success) {
       toast.success(message);
+      if (mode === "create") router.push("/admin/produtos" + `/${result!.id}`);
       executeRevalidationPath("/admin/produtos");
     } else {
       toast.error(message);
@@ -171,7 +174,6 @@ function ProdutoForm({
       builder={formBuilder(grupos, armazenamentos, produtos)}
       onSubmit={handleSubmit}
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
-      bottomSheetController={bottomSheetController}
     />
   );
 }

@@ -10,7 +10,8 @@ export function AnimationTransitionPage({ children }: PropsWithChildren) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95 }}
       transition={{ duration: 0.4, ease: "easeInOut" }}
-      className=" h-[calc(100%-80px)]"
+      //@ts-ignore
+      className="h-[calc(100%-80px)]"
     >
       {children}
     </motion.div>
