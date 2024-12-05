@@ -118,6 +118,7 @@ export function ComboBoxSearch({
   if (loading) return <>Carregando...</>;
 
   if (isComboBoxField(field)) {
+    if (field.addNew === undefined) field.addNew = true;
     if (!field.useProp) field.useProp = "value";
 
     const label = () => {
@@ -168,7 +169,7 @@ export function ComboBoxSearch({
                   onChangeCapture={(e) => setInputValueSearch(e.target.value)}
                   placeholder="Buscar..."
                 />
-                {inputValueSearch ? (
+                {field.addNew && inputValueSearch ? (
                   <CommandEmpty asChild>
                     <Button
                       size="sm"

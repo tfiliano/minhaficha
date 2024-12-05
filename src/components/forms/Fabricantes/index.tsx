@@ -1,4 +1,5 @@
 import { BottomSheetSheetController } from "@/components/bottom-sheet";
+import { cleanDocument } from "@/components/form-builder/@masks/clean";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
 import { executeQuery } from "@/lib/supabase-helper";
 import { Tables } from "@/types/database.types";
@@ -29,6 +30,7 @@ const formBuilder = {
               placeholder: "Digite o CNPJ",
               type: "text",
               required: true,
+              mask: "cnpj",
             },
           ],
         },
@@ -40,7 +42,7 @@ const formBuilder = {
 type Fabricante = Tables<"fabricantes">;
 
 type FabricanteProps = {
-  fabricante: Fabricante;
+  fabricante?: Fabricante;
   bottomSheetController?: BottomSheetSheetController;
 };
 
@@ -52,6 +54,8 @@ function FabricanteForm({
   const supabase = createBrowserClient();
 
   const handleSubmit = async (data: Fabricante) => {
+    data.cnpj = cleanDocument(data.cnpj!);
+
     const query =
       mode === "update"
         ? supabase.from("fabricantes").update(data).eq("id", fabricante!.id)
@@ -81,9 +85,9 @@ function FabricanteForm({
 
 export const Fabricantes = {
   Update: (props: FabricanteProps) => (
-    <FabricanteForm mode="create" {...props} />
+    <FabricanteForm mode="update" {...props} />
   ),
   Create: (props: FabricanteProps) => (
-    <FabricanteForm mode="update" {...props} />
+    <FabricanteForm mode="create" {...props} />
   ),
 };

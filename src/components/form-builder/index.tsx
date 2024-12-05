@@ -42,6 +42,7 @@ import { Loader2 } from "lucide-react";
 import React, { FocusEvent, forwardRef, type JSX } from "react";
 import { UseFormReturn, useFormContext } from "react-hook-form";
 import { Button } from "../ui/button";
+import { FieldMask } from "./@masks";
 import { AddOptionComponentType } from "./add-option-component-list";
 import { FormBuilder2 as FormBuilderV2 } from "./form-builder-2";
 import { ServiceLoadOptionsType } from "./services-loadOptions";
@@ -64,6 +65,7 @@ type BaseField = {
   onActionBlur?: keyof typeof onBlurActions;
   width?: string;
   isFullRow?: boolean;
+  mask?: FieldMask;
 };
 
 export interface InputField extends BaseField {
@@ -95,6 +97,7 @@ export interface ComboBoxField extends BaseField {
     classNamesContent?: string;
   };
   map: (item?: any) => { value: any; label: any };
+  addNew?: boolean;
 }
 
 export interface RadioField extends BaseField {

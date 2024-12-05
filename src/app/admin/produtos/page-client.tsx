@@ -66,6 +66,7 @@ export function ProdutosPageClient({
           produto={produto!}
           grupos={grupos!}
           armazenamentos={armazenamentos!}
+          produtos={produtos!}
           bottomSheetController={bottomSheetControllerUpdateProduto}
         />
       </BottomSheet>
@@ -78,6 +79,7 @@ export function ProdutosPageClient({
         <Forms.Produto.Create
           grupos={grupos!}
           armazenamentos={armazenamentos!}
+          produtos={produtos!}
           bottomSheetController={bottomSheetControllerCreateProduto}
         />
       </BottomSheet>

@@ -5,6 +5,7 @@ import {
   BottomSheet,
   BottomSheetImperativeHandle,
 } from "@/components/bottom-sheet";
+import { normalizeCnpj } from "@/components/form-builder/@masks/cnpj";
 import { Forms } from "@/components/forms";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -101,7 +102,9 @@ export function FabricantesClient({
               key={fabricante.id}
               onClick={() => onSelectOperador(fabricante)}
             >
-              <p className="text-gray-600 mb-2">{fabricante.cnpj}</p>
+              <p className="text-gray-600 mb-2">
+                {normalizeCnpj(fabricante.cnpj!)}
+              </p>
             </GridItem>
           );
         })}
