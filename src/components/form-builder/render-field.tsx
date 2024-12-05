@@ -6,6 +6,7 @@ import { ChangeEvent, useState } from "react";
 import { ComboBoxSearch, isComboBoxField } from "../comboxbox-search";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
+import { CustomInput } from "./input-mask";
 import { RadioGroupForm } from "./radio-group";
 import { SelectForm, isSelectField } from "./select-form";
 
@@ -17,7 +18,17 @@ export function RenderField(
 ) {
   const [isFetching, setIsFetching] = useState(false);
 
-  const { reset } = useFormContext();
+  const { reset, control } = useFormContext();
+
+  if (field.mask)
+    return (
+      <CustomInput
+        control={control}
+        registerName={field.name}
+        maskName={field.mask}
+        type={field.type!}
+      />
+    );
 
   if (field.component) {
     const Component = field.component;

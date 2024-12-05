@@ -4,13 +4,14 @@ import { createClient } from "@/utils/supabase";
 import { GruposPageClient } from "./page-client";
 
 type Props = {
-  params?: {};
-  searchParams?: {
+  params?: Promise<{}>;
+  searchParams?: Promise<{
     operacao?: string;
-  };
+  }>;
 };
 
-export default async function Grupos({ searchParams }: Props) {
+export default async function Grupos(props: Props) {
+  const searchParams = await props.searchParams;
   const params = new URLSearchParams(searchParams);
   let route = "";
 

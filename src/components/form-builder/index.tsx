@@ -39,9 +39,10 @@ import { cn } from "@/lib/utils";
 import { PublicSchema } from "@/types/database.types";
 import { get } from "lodash";
 import { Loader2 } from "lucide-react";
-import React, { FocusEvent, forwardRef } from "react";
+import React, { FocusEvent, forwardRef, type JSX } from "react";
 import { UseFormReturn, useFormContext } from "react-hook-form";
 import { Button } from "../ui/button";
+import { FieldMask } from "./@masks";
 import { AddOptionComponentType } from "./add-option-component-list";
 import { FormBuilder2 as FormBuilderV2 } from "./form-builder-2";
 import { ServiceLoadOptionsType } from "./services-loadOptions";
@@ -64,6 +65,7 @@ type BaseField = {
   onActionBlur?: keyof typeof onBlurActions;
   width?: string;
   isFullRow?: boolean;
+  mask?: FieldMask;
 };
 
 export interface InputField extends BaseField {
@@ -95,6 +97,7 @@ export interface ComboBoxField extends BaseField {
     classNamesContent?: string;
   };
   map: (item?: any) => { value: any; label: any };
+  addNew?: boolean;
 }
 
 export interface RadioField extends BaseField {
@@ -216,7 +219,9 @@ export function copyAndAddRow({
 
         const fieldsIgnoreds = column.rows
           ?.flatMap((row) =>
-            row.fields.filter((field) => ignores?.includes(field.name))
+            row.fields.filter((field) =>
+              ignores?.includes(field.name as string)
+            )
           )
           .filter((x) => !!x);
 
@@ -241,7 +246,9 @@ export function copyAndAddRow({
               { fields: [...(fieldsIgnoreds || [])] },
               ...(rows ||
                 column.rows!.filter((row) =>
-                  row.fields.find((field) => field.name.match(propName))
+                  row.fields.find((field) =>
+                    (field.name as string).match(propName)
+                  )
                 )),
             ].filter((row) => row.fields.length > 0),
           };
@@ -259,8 +266,8 @@ export function copyAndAddRow({
                     ...row.fields
                       .filter(
                         (field) =>
-                          !ignores?.includes(field.name) &&
-                          field.name.includes(
+                          !ignores?.includes(field.name as string) &&
+                          (field.name as string).includes(
                             `${changePropName.replace("$1", `${quantity - 1}`)}`
                           )
                       )

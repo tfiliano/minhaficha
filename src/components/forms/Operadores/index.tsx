@@ -1,16 +1,13 @@
-import { BottomSheetSheetController } from "@/components/bottom-sheet";
-import { FormBuilder2 } from "@/components/form-builder";
-import { Button } from "@/components/ui/button";
-import { useDeviceType } from "@/hooks/use-device-type";
+import { Builder } from "@/components/form-builder";
+import { useRouter } from "@/hooks/use-router";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
 import { executeQuery } from "@/lib/supabase-helper";
-import { cn } from "@/lib/utils";
 import { Tables } from "@/types/database.types";
 import { createBrowserClient } from "@/utils/supabase-client";
 import { toast } from "sonner";
-import { FormContent } from "..";
+import { EntityFormHandler, ModeFormHandlerProp } from "..";
 
-const formBuilder = {
+const formBuilder: Builder = {
   columns: [
     {
       rows: [
@@ -54,103 +51,46 @@ const formBuilder = {
 
 type Operador = Tables<"operadores">;
 
-type OperadorProps = {
-  operador: Operador;
-  bottomSheetController?: BottomSheetSheetController;
+export type OperadorProps = {
+  operador?: Operador;
 };
 
-function Update({
-  operador,
-  bottomSheetController,
-}: Pick<OperadorProps, "operador" | "bottomSheetController">) {
+function OperadorForm({ mode, operador }: OperadorProps & ModeFormHandlerProp) {
   const supabase = createBrowserClient();
+  const router = useRouter();
+  const handleSubmit = async (data: Operador) => {
+    const query =
+      mode === "update"
+        ? supabase.from("operadores").update(data).eq("id", operador!.id)
+        : supabase.from("operadores").insert(data).select().maybeSingle();
 
-  const onSubmit = async ({ id, ...data }: Operador) => {
-    const query = supabase
-      .from("operadores")
-      .update({ ...data })
-      .eq("id", operador.id);
-
-    const { success, message } = await executeQuery<typeof query>(() => query);
+    const {
+      success,
+      message,
+      data: result,
+    } = await executeQuery<typeof query, Operador>(() => query);
 
     if (success) {
       toast.success(message);
+      if (mode === "create")
+        router.push("/admin/operadores" + `/${result!.id}`);
       executeRevalidationPath("/admin/operadores");
-    } else if (!success) {
+    } else {
       toast.error(message);
     }
   };
-
   return (
-    <FormContent>
-      <FormBuilder2
-        builder={formBuilder}
-        onSubmit={onSubmit}
-        submitLabel="Atualizar"
-        buttonsContainerClass={cn({
-          "mb-8": useDeviceType() === "PC",
-        })}
-        form={{ defaultValues: { ...(operador || {}) } }}
-        extraButtons={
-          <Button
-            variant="destructive"
-            className="w-full"
-            type="button"
-            onClick={() => bottomSheetController?.current?.onClose()}
-          >
-            Cancelar
-          </Button>
-        }
-      />
-    </FormContent>
-  );
-}
-
-function Create({
-  bottomSheetController,
-}: Pick<OperadorProps, "bottomSheetController">) {
-  const supabase = createBrowserClient();
-
-  const onSubmit = async ({ ...data }: Operador) => {
-    const query = supabase.from("operadores").insert({ ...data });
-
-    const { success, message } = await executeQuery<typeof query>(() => query);
-
-    if (success) {
-      toast.success(message);
-      bottomSheetController?.current?.onClose();
-      executeRevalidationPath("/admin/operadores");
-    } else if (!success) {
-      toast.error(message);
-    }
-  };
-
-  return (
-    <FormContent>
-      <FormBuilder2
-        builder={formBuilder}
-        onSubmit={onSubmit}
-        submitLabel="Adicionar"
-        buttonsContainerClass={cn({
-          "mb-8": useDeviceType() === "PC",
-        })}
-        form={{}}
-        extraButtons={
-          <Button
-            variant="destructive"
-            className="w-full"
-            type="button"
-            onClick={() => bottomSheetController?.current?.onClose()}
-          >
-            Cancelar
-          </Button>
-        }
-      />
-    </FormContent>
+    <EntityFormHandler<Operador>
+      mode={mode}
+      entity={operador}
+      builder={formBuilder}
+      onSubmit={handleSubmit}
+      submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
+    />
   );
 }
 
 export const Operadores = {
-  Update,
-  Create,
+  Create: (props: OperadorProps) => <OperadorForm mode="create" {...props} />,
+  Update: (props: OperadorProps) => <OperadorForm mode="update" {...props} />,
 };

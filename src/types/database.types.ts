@@ -9,25 +9,112 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      etiquetas: {
+        Row: {
+          armazenamento_id: string | null;
+          command: string | null;
+          created_at: string;
+          fornecedor_id: string | null;
+          grupo_id: string | null;
+          id: string;
+          impressora: string | null;
+          loja_id: string | null;
+          lote: string | null;
+          operador_id: string | null;
+          produto_id: string | null;
+          quantidade: number | null;
+          SIF: string | null;
+          validade: string | null;
+        };
+        Insert: {
+          armazenamento_id?: string | null;
+          command?: string | null;
+          created_at?: string;
+          fornecedor_id?: string | null;
+          grupo_id?: string | null;
+          id?: string;
+          impressora?: string | null;
+          loja_id?: string | null;
+          lote?: string | null;
+          operador_id?: string | null;
+          produto_id?: string | null;
+          quantidade?: number | null;
+          SIF?: string | null;
+          validade?: string | null;
+        };
+        Update: {
+          armazenamento_id?: string | null;
+          command?: string | null;
+          created_at?: string;
+          fornecedor_id?: string | null;
+          grupo_id?: string | null;
+          id?: string;
+          impressora?: string | null;
+          loja_id?: string | null;
+          lote?: string | null;
+          operador_id?: string | null;
+          produto_id?: string | null;
+          quantidade?: number | null;
+          SIF?: string | null;
+          validade?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "etiquetas_armazenamento_id_fkey";
+            columns: ["armazenamento_id"];
+            isOneToOne: false;
+            referencedRelation: "locais_armazenamento";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "etiquetas_grupo_id_fkey";
+            columns: ["grupo_id"];
+            isOneToOne: false;
+            referencedRelation: "grupos";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "etiquetas_loja_id_fkey";
+            columns: ["loja_id"];
+            isOneToOne: false;
+            referencedRelation: "lojas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "etiquetas_operador_id_fkey";
+            columns: ["operador_id"];
+            isOneToOne: false;
+            referencedRelation: "operadores";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "etiquetas_produto_id_fkey";
+            columns: ["produto_id"];
+            isOneToOne: false;
+            referencedRelation: "produtos";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       fabricantes: {
         Row: {
           cnpj: string | null;
           created_at: string;
-          id: number;
+          id: string;
           loja_id: string | null;
           nome: string | null;
         };
         Insert: {
           cnpj?: string | null;
           created_at?: string;
-          id?: number;
+          id?: string;
           loja_id?: string | null;
           nome?: string | null;
         };
         Update: {
           cnpj?: string | null;
           created_at?: string;
-          id?: number;
+          id?: string;
           loja_id?: string | null;
           nome?: string | null;
         };
@@ -287,6 +374,7 @@ export type Database = {
           conformidade_transporte: string | null;
           created_at: string;
           data_recebimento: string | null;
+          fabricante_id: string | null;
           fornecedor: string | null;
           id: string;
           loja_id: string | null;
@@ -307,6 +395,7 @@ export type Database = {
           conformidade_transporte?: string | null;
           created_at?: string;
           data_recebimento?: string | null;
+          fabricante_id?: string | null;
           fornecedor?: string | null;
           id?: string;
           loja_id?: string | null;
@@ -327,6 +416,7 @@ export type Database = {
           conformidade_transporte?: string | null;
           created_at?: string;
           data_recebimento?: string | null;
+          fabricante_id?: string | null;
           fornecedor?: string | null;
           id?: string;
           loja_id?: string | null;
@@ -368,6 +458,13 @@ export type Database = {
             columns: ["loja_id"];
             isOneToOne: false;
             referencedRelation: "lojas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "recebimentos_fabricante_id_fkey";
+            columns: ["fabricante_id"];
+            isOneToOne: false;
+            referencedRelation: "fabricantes";
             referencedColumns: ["id"];
           }
         ];

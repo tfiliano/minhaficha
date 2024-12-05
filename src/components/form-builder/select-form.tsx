@@ -8,6 +8,8 @@ import {
   SelectValue,
 } from "../ui/select";
 
+import { v4 as uuid } from "uuid";
+
 export function isSelectField(field: Field): field is SelectField {
   return field.type === "select";
 }
@@ -71,7 +73,7 @@ export function SelectForm({
         </SelectTrigger>
         <SelectContent>
           {field.options.map((option) => (
-            <SelectItem key={option.label} value={option.value.toString()}>
+            <SelectItem key={uuid()} value={option.value.toString()}>
               {option.label}
             </SelectItem>
           ))}

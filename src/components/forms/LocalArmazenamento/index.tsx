@@ -1,16 +1,13 @@
-import { BottomSheetSheetController } from "@/components/bottom-sheet";
-import { FormBuilder2 } from "@/components/form-builder";
-import { Button } from "@/components/ui/button";
-import { useDeviceType } from "@/hooks/use-device-type";
+import { Builder } from "@/components/form-builder";
+import { useRouter } from "@/hooks/use-router";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
 import { executeQuery } from "@/lib/supabase-helper";
-import { cn } from "@/lib/utils";
 import { Tables } from "@/types/database.types";
 import { createBrowserClient } from "@/utils/supabase-client";
 import { toast } from "sonner";
-import { FormContent } from "..";
+import { EntityFormHandler, ModeFormHandlerProp } from "..";
 
-const formBuilder = {
+const formBuilder: Builder = {
   columns: [
     {
       rows: [
@@ -43,106 +40,61 @@ const formBuilder = {
 
 type LocalArmazenamento = Tables<"locais_armazenamento">;
 
-type LocalArmazenamentoProps = {
-  localArmazenamento: LocalArmazenamento;
-  bottomSheetController?: BottomSheetSheetController;
+export type LocalArmazenamentoProps = {
+  localArmazenamento?: LocalArmazenamento;
 };
 
-function Update({
+function LocalArmazenamentoForm({
+  mode,
   localArmazenamento,
-  bottomSheetController,
-}: Pick<
-  LocalArmazenamentoProps,
-  "localArmazenamento" | "bottomSheetController"
->) {
+}: LocalArmazenamentoProps & ModeFormHandlerProp) {
   const supabase = createBrowserClient();
+  const router = useRouter();
+  const handleSubmit = async (data: LocalArmazenamento) => {
+    const query =
+      mode === "update"
+        ? supabase
+            .from("locais_armazenamento")
+            .update(data)
+            .eq("id", localArmazenamento!.id)
+        : supabase
+            .from("locais_armazenamento")
+            .insert(data)
+            .select()
+            .maybeSingle();
 
-  const onSubmit = async ({ id, ...data }: LocalArmazenamento) => {
-    const query = supabase
-      .from("locais_armazenamento")
-      .update({ ...data })
-      .eq("id", localArmazenamento.id);
-
-    const { success, message } = await executeQuery<typeof query>(() => query);
+    const {
+      success,
+      message,
+      data: result,
+    } = await executeQuery<typeof query, LocalArmazenamento>(() => query);
 
     if (success) {
       toast.success(message);
+      if (mode === "create")
+        router.push("/admin/armazenamentos" + `${result!.id}`);
       executeRevalidationPath("/admin/armazenamentos");
-    } else if (!success) {
+    } else {
       toast.error(message);
     }
   };
 
   return (
-    <FormContent>
-      <FormBuilder2
-        builder={formBuilder}
-        onSubmit={onSubmit}
-        submitLabel="Atualizar"
-        buttonsContainerClass={cn({
-          "mb-8": useDeviceType() === "PC",
-        })}
-        form={{ defaultValues: { ...(localArmazenamento || {}) } }}
-        extraButtons={
-          <Button
-            variant="destructive"
-            className="w-full"
-            type="button"
-            onClick={() => bottomSheetController?.current?.onClose()}
-          >
-            Cancelar
-          </Button>
-        }
-      />
-    </FormContent>
-  );
-}
-
-function Create({
-  bottomSheetController,
-}: Pick<LocalArmazenamentoProps, "bottomSheetController">) {
-  const supabase = createBrowserClient();
-
-  const onSubmit = async ({ ...data }: LocalArmazenamento) => {
-    const query = supabase.from("locais_armazenamento").insert({ ...data });
-
-    const { success, message } = await executeQuery<typeof query>(() => query);
-
-    if (success) {
-      toast.success(message);
-      bottomSheetController?.current?.onClose();
-      executeRevalidationPath("/admin/armazenamentos");
-    } else if (!success) {
-      toast.error(message);
-    }
-  };
-
-  return (
-    <FormContent>
-      <FormBuilder2
-        builder={formBuilder}
-        onSubmit={onSubmit}
-        submitLabel="Adicionar"
-        buttonsContainerClass={cn({
-          "mb-8": useDeviceType() === "PC",
-        })}
-        form={{}}
-        extraButtons={
-          <Button
-            variant="destructive"
-            className="w-full"
-            type="button"
-            onClick={() => bottomSheetController?.current?.onClose()}
-          >
-            Cancelar
-          </Button>
-        }
-      />
-    </FormContent>
+    <EntityFormHandler<LocalArmazenamento>
+      mode={mode}
+      entity={localArmazenamento}
+      builder={formBuilder}
+      onSubmit={handleSubmit}
+      submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
+    />
   );
 }
 
 export const LocalArmazenamento = {
-  Update,
-  Create,
+  Create: (props: LocalArmazenamentoProps) => (
+    <LocalArmazenamentoForm mode="create" {...props} />
+  ),
+  Update: (props: LocalArmazenamentoProps) => (
+    <LocalArmazenamentoForm mode="update" {...props} />
+  ),
 };

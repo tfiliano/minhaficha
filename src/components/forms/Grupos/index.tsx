@@ -1,16 +1,13 @@
-import { BottomSheetSheetController } from "@/components/bottom-sheet";
-import { FormBuilder2 } from "@/components/form-builder";
-import { Button } from "@/components/ui/button";
-import { useDeviceType } from "@/hooks/use-device-type";
+import { Builder } from "@/components/form-builder";
+import { useRouter } from "@/hooks/use-router";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
 import { executeQuery } from "@/lib/supabase-helper";
-import { cn } from "@/lib/utils";
 import { Tables } from "@/types/database.types";
 import { createBrowserClient } from "@/utils/supabase-client";
 import { toast } from "sonner";
-import { FormContent } from "..";
+import { EntityFormHandler, ModeFormHandlerProp } from "..";
 
-const formBuilder = {
+const formBuilder: Builder = {
   columns: [
     {
       rows: [
@@ -65,103 +62,46 @@ const formBuilder = {
 
 type Grupo = Tables<"grupos">;
 
-type GrupoProps = {
-  grupo: Grupo;
-  bottomSheetController?: BottomSheetSheetController;
+export type GrupoProps = {
+  grupo?: Grupo;
 };
 
-function Update({
-  grupo,
-  bottomSheetController,
-}: Pick<GrupoProps, "grupo" | "bottomSheetController">) {
+function GrupoForm({ mode, grupo }: GrupoProps & ModeFormHandlerProp) {
   const supabase = createBrowserClient();
+  const router = useRouter();
+  const handleSubmit = async (data: Grupo) => {
+    const query =
+      mode === "update"
+        ? supabase.from("grupos").update(data).eq("id", grupo!.id)
+        : supabase.from("grupos").insert(data).select().maybeSingle();
 
-  const onSubmit = async ({ id, ...data }: Grupo) => {
-    const query = supabase
-      .from("grupos")
-      .update({ ...data })
-      .eq("id", grupo.id);
-
-    const { success, message } = await executeQuery<typeof query>(() => query);
+    const {
+      success,
+      message,
+      data: result,
+    } = await executeQuery<typeof query, Grupo>(() => query);
 
     if (success) {
       toast.success(message);
+      if (mode === "create") router.push("/admin/grupos" + `/${result!.id}`);
       executeRevalidationPath("/admin/grupos");
-    } else if (!success) {
+    } else {
       toast.error(message);
     }
   };
 
   return (
-    <div className="max-w-lg mx-auto px-4">
-      <FormBuilder2
-        builder={formBuilder}
-        onSubmit={onSubmit}
-        submitLabel="Atualizar"
-        buttonsContainerClass={cn({
-          "mb-8": useDeviceType() === "PC",
-        })}
-        form={{ defaultValues: { ...(grupo || {}) } }}
-        extraButtons={
-          <Button
-            variant="destructive"
-            className="w-full"
-            type="button"
-            onClick={() => bottomSheetController?.current?.onClose()}
-          >
-            Cancelar
-          </Button>
-        }
-      />
-    </div>
-  );
-}
-
-function Create({
-  bottomSheetController,
-}: Pick<GrupoProps, "bottomSheetController">) {
-  const supabase = createBrowserClient();
-
-  const onSubmit = async ({ ...data }: Grupo) => {
-    const query = supabase.from("grupos").insert({ ...data });
-
-    const { success, message } = await executeQuery<typeof query>(() => query);
-
-    if (success) {
-      toast.success(message);
-      bottomSheetController?.current?.onClose();
-      executeRevalidationPath("/admin/armazenamentos");
-    } else if (!success) {
-      toast.error(message);
-    }
-  };
-
-  return (
-    <FormContent>
-      <FormBuilder2
-        builder={formBuilder}
-        onSubmit={onSubmit}
-        submitLabel="Adicionar"
-        buttonsContainerClass={cn({
-          "mb-8": useDeviceType() === "PC",
-        })}
-        form={{}}
-        extraButtons={
-          <Button
-            variant="destructive"
-            className="w-full"
-            type="button"
-            onClick={() => bottomSheetController?.current?.onClose()}
-          >
-            Cancelar
-          </Button>
-        }
-      />
-    </FormContent>
+    <EntityFormHandler<Grupo>
+      mode={mode}
+      entity={grupo}
+      builder={formBuilder}
+      onSubmit={handleSubmit}
+      submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
+    />
   );
 }
 
 export const Grupos = {
-  Update,
-  Create,
+  Create: (props: GrupoProps) => <GrupoForm mode="create" {...props} />,
+  Update: (props: GrupoProps) => <GrupoForm mode="update" {...props} />,
 };

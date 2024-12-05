@@ -1,16 +1,14 @@
-import { BottomSheetSheetController } from "@/components/bottom-sheet";
-import { FormBuilder2 } from "@/components/form-builder";
-import { Button } from "@/components/ui/button";
-import { useDeviceType } from "@/hooks/use-device-type";
+import { Builder } from "@/components/form-builder";
+import { cleanDocument } from "@/components/form-builder/@masks/clean";
+import { useRouter } from "@/hooks/use-router";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
 import { executeQuery } from "@/lib/supabase-helper";
-import { cn } from "@/lib/utils";
 import { Tables } from "@/types/database.types";
 import { createBrowserClient } from "@/utils/supabase-client";
 import { toast } from "sonner";
-import { FormContent } from "..";
+import { EntityFormHandler, ModeFormHandlerProp } from "..";
 
-const formBuilder = {
+const formBuilder: Builder = {
   columns: [
     {
       rows: [
@@ -33,6 +31,7 @@ const formBuilder = {
               placeholder: "Digite o CNPJ",
               type: "text",
               required: true,
+              mask: "cnpj",
             },
           ],
         },
@@ -43,103 +42,56 @@ const formBuilder = {
 
 type Fabricante = Tables<"fabricantes">;
 
-type FabricanteProps = {
-  fabricante: Fabricante;
-  bottomSheetController?: BottomSheetSheetController;
+export type FabricanteProps = {
+  fabricante?: Fabricante;
 };
 
-function Update({
+function FabricanteForm({
+  mode,
   fabricante,
-  bottomSheetController,
-}: Pick<FabricanteProps, "fabricante" | "bottomSheetController">) {
+}: FabricanteProps & ModeFormHandlerProp) {
   const supabase = createBrowserClient();
+  const router = useRouter();
+  const handleSubmit = async (data: Fabricante) => {
+    data.cnpj = cleanDocument(data.cnpj!);
 
-  const onSubmit = async ({ id, ...data }: Fabricante) => {
-    const query = supabase
-      .from("fabricantes")
-      .update({ ...data })
-      .eq("id", fabricante.id);
+    const query =
+      mode === "update"
+        ? supabase.from("fabricantes").update(data).eq("id", fabricante!.id)
+        : supabase.from("fabricantes").insert(data).select().maybeSingle();
 
-    const { success, message } = await executeQuery<typeof query>(() => query);
+    const {
+      success,
+      message,
+      data: result,
+    } = await executeQuery<typeof query, Fabricante>(() => query);
 
     if (success) {
       toast.success(message);
+      if (mode === "create")
+        router.push("/admin/fabricantes" + `/${result!.id}`);
       executeRevalidationPath("/admin/fabricantes");
-    } else if (!success) {
+    } else {
       toast.error(message);
     }
   };
 
   return (
-    <FormContent>
-      <FormBuilder2
-        builder={formBuilder}
-        onSubmit={onSubmit}
-        submitLabel="Atualizar"
-        buttonsContainerClass={cn({
-          "mb-8": useDeviceType() === "PC",
-        })}
-        form={{ defaultValues: { ...(fabricante || {}) } }}
-        extraButtons={
-          <Button
-            variant="destructive"
-            className="w-full"
-            type="button"
-            onClick={() => bottomSheetController?.current?.onClose()}
-          >
-            Cancelar
-          </Button>
-        }
-      />
-    </FormContent>
-  );
-}
-
-function Create({
-  bottomSheetController,
-}: Pick<FabricanteProps, "bottomSheetController">) {
-  const supabase = createBrowserClient();
-
-  const onSubmit = async ({ ...data }: Fabricante) => {
-    const query = supabase.from("fabricantes").insert({ ...data });
-
-    const { success, message } = await executeQuery<typeof query>(() => query);
-
-    if (success) {
-      toast.success(message);
-      bottomSheetController?.current?.onClose();
-      executeRevalidationPath("/admin/fabricantes");
-    } else if (!success) {
-      toast.error(message);
-    }
-  };
-
-  return (
-    <FormContent>
-      <FormBuilder2
-        builder={formBuilder}
-        onSubmit={onSubmit}
-        submitLabel="Adicionar"
-        buttonsContainerClass={cn({
-          "mb-8": useDeviceType() === "PC",
-        })}
-        form={{}}
-        extraButtons={
-          <Button
-            variant="destructive"
-            className="w-full"
-            type="button"
-            onClick={() => bottomSheetController?.current?.onClose()}
-          >
-            Cancelar
-          </Button>
-        }
-      />
-    </FormContent>
+    <EntityFormHandler<Fabricante>
+      mode={mode}
+      entity={fabricante}
+      builder={formBuilder}
+      onSubmit={handleSubmit}
+      submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
+    />
   );
 }
 
 export const Fabricantes = {
-  Update,
-  Create,
+  Update: (props: FabricanteProps) => (
+    <FabricanteForm mode="update" {...props} />
+  ),
+  Create: (props: FabricanteProps) => (
+    <FabricanteForm mode="create" {...props} />
+  ),
 };

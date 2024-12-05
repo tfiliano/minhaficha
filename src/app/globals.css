@@ -83,3 +83,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+.PopoverContent {
+  width: var(--radix-popover-trigger-width);
+  max-height: var(--radix-popover-content-available-height);
+  padding: 0;
+}
+
+.PopoverContent[data-side="top"] {
+  animation-name: slideUp;
+}
+.PopoverContent[data-side="bottom"] {
+  animation-name: slideDown;
+}

@@ -4,13 +4,14 @@ import { createClient } from "@/utils/supabase";
 import { ProdutosPageClient } from "./page-client";
 
 type Props = {
-  params?: {};
-  searchParams?: {
+  params?: Promise<{}>;
+  searchParams?: Promise<{
     operacao?: string;
-  };
+  }>;
 };
 
-export default async function Produtos({ searchParams }: Props) {
+export default async function Produtos(props: Props) {
+  const searchParams = await props.searchParams;
   const params = new URLSearchParams(searchParams);
   let route = "";
 
@@ -21,19 +22,11 @@ export default async function Produtos({ searchParams }: Props) {
   //   }
   const supabase = createClient();
   const { data: produtos } = await supabase.from("produtos").select("*");
-  const { data: grupos } = await supabase.from("grupos").select("*");
-  const { data: armazenamentos } = await supabase
-    .from("locais_armazenamento")
-    .select("*");
 
   return (
     <AnimationTransitionPage>
       <ContentGrid>
-        <ProdutosPageClient
-          produtos={produtos}
-          grupos={grupos}
-          armazenamentos={armazenamentos}
-        />
+        <ProdutosPageClient produtos={produtos} />
       </ContentGrid>
     </AnimationTransitionPage>
   );

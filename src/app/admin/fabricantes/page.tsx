@@ -4,13 +4,14 @@ import { createClient } from "@/utils/supabase";
 import { FabricantesClient } from "./page-client";
 
 type Props = {
-  params?: {};
-  searchParams?: {
+  params?: Promise<{}>;
+  searchParams?: Promise<{
     operacao?: string;
-  };
+  }>;
 };
 
-export default async function Fabricantes({ searchParams }: Props) {
+export default async function Fabricantes(props: Props) {
+  const searchParams = await props.searchParams;
   const params = new URLSearchParams(searchParams);
   let route = "";
 
