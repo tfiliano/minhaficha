@@ -1,4 +1,4 @@
-import * as databaseTypes from "@/types/database.types";
+import { Tables } from "@/types/database.types";
 import { UsuarioClass } from "@/utils/decorators/usuario";
 
 export const UsuarioTypes = {
@@ -7,8 +7,10 @@ export const UsuarioTypes = {
   manager: "Gerente",
 };
 
+type USER = Tables<"usuarios">;
+
 @UsuarioClass
-export class Usuario implements databaseTypes.Tables<"usuarios"> {
+export class Usuario implements USER {
   ativo!: boolean;
   avatar!: string | null;
   created_at!: string;
@@ -17,7 +19,7 @@ export class Usuario implements databaseTypes.Tables<"usuarios"> {
   name!: string | null;
   type!: string;
 
-  constructor(usuario: databaseTypes.Tables<"usuarios">) {
+  constructor(usuario: USER) {
     Object.assign(this, usuario);
   }
 }
