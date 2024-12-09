@@ -172,6 +172,7 @@ type FormBuilderProps = {
   buttonsContainerClass?: string;
   columns?: number;
   form: UseFormReturn<any>;
+  hideExtraButtonsSubmiting?: boolean;
 };
 
 export function RenderContainer({
@@ -319,6 +320,7 @@ export function FooterFormBuilder({
   extraButtonsContainerClass,
   buttonsContainerClass,
   onSubmit,
+  hideExtraButtonsSubmiting = true,
 }: Pick<
   FormBuilderProps,
   | "submitLabel"
@@ -328,6 +330,7 @@ export function FooterFormBuilder({
   | "submitType"
   | "onSubmit"
   | "buttonsContainerClass"
+  | "hideExtraButtonsSubmiting"
 >) {
   const { formState, handleSubmit } = useFormContext();
 
@@ -354,7 +357,7 @@ export function FooterFormBuilder({
               "flex items-center justify-center ",
               extraButtonsContainerClass,
               {
-                hidden: !!formState.isSubmitting,
+                hidden: hideExtraButtonsSubmiting && !!formState.isSubmitting,
               }
             )}
           >

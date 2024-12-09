@@ -10,6 +10,8 @@ import { FormBuilder2 } from "@/components/form-builder";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@/hooks/use-router";
 import { Etiquetas } from "./Etiquetas";
+import { Lojas } from "./Lojas";
+import { Usuarios } from "./Usuarios";
 
 export const Forms = {
   Produto,
@@ -18,6 +20,8 @@ export const Forms = {
   Operadores,
   Fabricantes,
   Etiquetas,
+  Lojas,
+  Usuarios,
 };
 
 export function FormContent({ children }: PropsWithChildren) {
@@ -33,6 +37,7 @@ type EntityFormHandlerProps<T> = {
   builder: any;
   onSubmit: (data: T) => Promise<void>;
   submitLabel: string;
+  extraButtons?: boolean;
 };
 
 export function EntityFormHandler<T>({
@@ -41,6 +46,7 @@ export function EntityFormHandler<T>({
   builder,
   onSubmit,
   submitLabel,
+  extraButtons = true,
 }: EntityFormHandlerProps<T>) {
   const router = useRouter();
 
@@ -52,14 +58,16 @@ export function EntityFormHandler<T>({
         submitLabel={submitLabel}
         form={{ defaultValues: entity }}
         extraButtons={
-          <Button
-            variant="destructive"
-            className="w-full"
-            type="button"
-            onClick={() => router.back()}
-          >
-            Cancelar
-          </Button>
+          extraButtons && (
+            <Button
+              variant="destructive"
+              className="w-full"
+              type="button"
+              onClick={() => router.back()}
+            >
+              Cancelar
+            </Button>
+          )
         }
       />
     </FormContent>

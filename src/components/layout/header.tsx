@@ -1,9 +1,13 @@
+"use client";
 import { ListChecks } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import { ModeToggle } from "../mode-toggle";
 import { BackButton } from "./back-button";
 
 export function Header() {
+  const pathname = usePathname();
+
   return (
     <header className="bg-background/70 border-b h-20 sticky top-0 flex items-center justify-center gap-4 z-20 backdrop-blur">
       <Suspense>

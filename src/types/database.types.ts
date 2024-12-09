@@ -174,6 +174,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      loja_usuarios: {
+        Row: {
+          ativo: boolean | null;
+          created_at: string;
+          id: string;
+          loja_id: string | null;
+        };
+        Insert: {
+          ativo?: boolean | null;
+          created_at?: string;
+          id: string;
+          loja_id?: string | null;
+        };
+        Update: {
+          ativo?: boolean | null;
+          created_at?: string;
+          id?: string;
+          loja_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "loja_usuarios_id_fkey";
+            columns: ["id"];
+            isOneToOne: true;
+            referencedRelation: "usuarios";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "loja_usuarios_loja_id_fkey";
+            columns: ["loja_id"];
+            isOneToOne: false;
+            referencedRelation: "lojas";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       lojas: {
         Row: {
           ativo: boolean | null;
@@ -468,6 +504,36 @@ export type Database = {
             referencedColumns: ["id"];
           }
         ];
+      };
+      usuarios: {
+        Row: {
+          ativo: boolean;
+          avatar: string | null;
+          created_at: string;
+          email: string | null;
+          id: string;
+          name: string | null;
+          type: string;
+        };
+        Insert: {
+          ativo?: boolean;
+          avatar?: string | null;
+          created_at?: string;
+          email?: string | null;
+          id: string;
+          name?: string | null;
+          type?: string;
+        };
+        Update: {
+          ativo?: boolean;
+          avatar?: string | null;
+          created_at?: string;
+          email?: string | null;
+          id?: string;
+          name?: string | null;
+          type?: string;
+        };
+        Relationships: [];
       };
     };
     Views: {

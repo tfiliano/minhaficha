@@ -48,6 +48,7 @@ type FormBuilderProps = {
   form: FieldValues;
   schema?: any;
   preventDefaultSubmit?: boolean;
+  hideExtraButtonsSubmiting?: boolean;
 };
 
 export type FormBuilderRef = UseFormReturn<any, any, undefined>;
@@ -68,6 +69,7 @@ export const FormBuilder2: React.ForwardRefRenderFunction<
     schema,
     form,
     preventDefaultSubmit,
+    hideExtraButtonsSubmiting,
   } = props;
 
   const [builder, setBuilder] = useState(builderState);
@@ -168,6 +170,7 @@ export const FormBuilder2: React.ForwardRefRenderFunction<
           extraButtonsContainerClass={extraButtonsContainerClass}
           buttonsContainerClass={buttonsContainerClass}
           onSubmit={onSubmit}
+          hideExtraButtonsSubmiting={hideExtraButtonsSubmiting}
         />
       </form>
     </FormProvider>
