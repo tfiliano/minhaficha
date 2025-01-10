@@ -9,7 +9,12 @@ import { Produto } from "./produtos";
 import { FormBuilder2 } from "@/components/form-builder";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@/hooks/use-router";
+import { PublicSchema } from "@/types/database.types";
+import { Codigo } from "./Codigos";
 import { Etiquetas } from "./Etiquetas";
+import { Impressora } from "./Impressoras";
+import { ButtonRemoveItem } from "./remove-item-table";
+import { SIF } from "./SIF";
 
 export const Forms = {
   Produto,
@@ -18,6 +23,9 @@ export const Forms = {
   Operadores,
   Fabricantes,
   Etiquetas,
+  Impressora,
+  SIF,
+  Codigo,
 };
 
 export function FormContent({ children }: PropsWithChildren) {
@@ -25,6 +33,10 @@ export function FormContent({ children }: PropsWithChildren) {
 }
 
 type ModeFormHandler = "create" | "update";
+
+export type TableCollection = keyof (PublicSchema["Tables"] &
+  PublicSchema["Views"]);
+
 export type ModeFormHandlerProp = { mode: ModeFormHandler };
 
 type EntityFormHandlerProps<T> = {
@@ -33,6 +45,7 @@ type EntityFormHandlerProps<T> = {
   builder: any;
   onSubmit: (data: T) => Promise<void>;
   submitLabel: string;
+  tableCollection?: TableCollection;
 };
 
 export function EntityFormHandler<T>({
@@ -41,6 +54,7 @@ export function EntityFormHandler<T>({
   builder,
   onSubmit,
   submitLabel,
+  tableCollection,
 }: EntityFormHandlerProps<T>) {
   const router = useRouter();
 
@@ -62,6 +76,12 @@ export function EntityFormHandler<T>({
           </Button>
         }
       />
+      {mode === "update" && tableCollection && (
+        <ButtonRemoveItem<T>
+          entity={entity}
+          tableCollection={tableCollection}
+        />
+      )}
     </FormContent>
   );
 }

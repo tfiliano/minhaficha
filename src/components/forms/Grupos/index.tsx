@@ -96,6 +96,7 @@ function GrupoForm({ mode, grupo }: GrupoProps & ModeFormHandlerProp) {
       entity={grupo}
       builder={formBuilder}
       onSubmit={handleSubmit}
+      tableCollection="grupos"
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
     />
   );

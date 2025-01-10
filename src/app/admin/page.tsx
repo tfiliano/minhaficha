@@ -32,6 +32,14 @@ export default function Admin() {
       route: "impressoras",
     },
     {
+      title: "Códigos",
+      route: "codigos",
+    },
+    {
+      title: "SIF",
+      route: "sifs",
+    },
+    {
       title: "Config. da Loja",
       route: "configuracoes",
     },

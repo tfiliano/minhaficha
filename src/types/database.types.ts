@@ -9,6 +9,24 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      codigos: {
+        Row: {
+          code: string | null;
+          created_at: string;
+          id: string;
+        };
+        Insert: {
+          code?: string | null;
+          created_at?: string;
+          id?: string;
+        };
+        Update: {
+          code?: string | null;
+          created_at?: string;
+          id?: string;
+        };
+        Relationships: [];
+      };
       etiquetas: {
         Row: {
           armazenamento_id: string | null;
@@ -150,6 +168,21 @@ export type Database = {
         };
         Relationships: [];
       };
+      impressoras: {
+        Row: {
+          id: string;
+          nome: string;
+        };
+        Insert: {
+          id?: string;
+          nome: string;
+        };
+        Update: {
+          id?: string;
+          nome?: string;
+        };
+        Relationships: [];
+      };
       locais_armazenamento: {
         Row: {
           armazenamento: string | null;
@@ -173,6 +206,42 @@ export type Database = {
           metodo?: string | null;
         };
         Relationships: [];
+      };
+      loja_usuarios: {
+        Row: {
+          ativo: boolean | null;
+          created_at: string;
+          id: string;
+          loja_id: string | null;
+        };
+        Insert: {
+          ativo?: boolean | null;
+          created_at?: string;
+          id: string;
+          loja_id?: string | null;
+        };
+        Update: {
+          ativo?: boolean | null;
+          created_at?: string;
+          id?: string;
+          loja_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "loja_usuarios_id_fkey";
+            columns: ["id"];
+            isOneToOne: true;
+            referencedRelation: "usuarios";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "loja_usuarios_loja_id_fkey";
+            columns: ["loja_id"];
+            isOneToOne: false;
+            referencedRelation: "lojas";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       lojas: {
         Row: {
@@ -203,6 +272,7 @@ export type Database = {
       };
       operadores: {
         Row: {
+          ativo: boolean | null;
           cor_botao: string | null;
           cor_fonte: string | null;
           created_at: string;
@@ -211,6 +281,7 @@ export type Database = {
           nome: string;
         };
         Insert: {
+          ativo?: boolean | null;
           cor_botao?: string | null;
           cor_fonte?: string | null;
           created_at?: string;
@@ -219,6 +290,7 @@ export type Database = {
           nome: string;
         };
         Update: {
+          ativo?: boolean | null;
           cor_botao?: string | null;
           cor_fonte?: string | null;
           created_at?: string;
@@ -305,6 +377,7 @@ export type Database = {
         Row: {
           armazenamento: string | null;
           armazenamento_id: string | null;
+          ativo: boolean | null;
           codigo: string;
           dias_validade: number | null;
           estoque_kilo: number | null;
@@ -321,6 +394,7 @@ export type Database = {
         Insert: {
           armazenamento?: string | null;
           armazenamento_id?: string | null;
+          ativo?: boolean | null;
           codigo: string;
           dias_validade?: number | null;
           estoque_kilo?: number | null;
@@ -337,6 +411,7 @@ export type Database = {
         Update: {
           armazenamento?: string | null;
           armazenamento_id?: string | null;
+          ativo?: boolean | null;
           codigo?: string;
           dias_validade?: number | null;
           estoque_kilo?: number | null;
@@ -468,6 +543,54 @@ export type Database = {
             referencedColumns: ["id"];
           }
         ];
+      };
+      sifs: {
+        Row: {
+          created_at: string;
+          id: string;
+          nome: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          nome?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          nome?: string | null;
+        };
+        Relationships: [];
+      };
+      usuarios: {
+        Row: {
+          ativo: boolean;
+          avatar: string | null;
+          created_at: string;
+          email: string | null;
+          id: string;
+          name: string | null;
+          type: string;
+        };
+        Insert: {
+          ativo?: boolean;
+          avatar?: string | null;
+          created_at?: string;
+          email?: string | null;
+          id: string;
+          name?: string | null;
+          type?: string;
+        };
+        Update: {
+          ativo?: boolean;
+          avatar?: string | null;
+          created_at?: string;
+          email?: string | null;
+          id?: string;
+          name?: string | null;
+          type?: string;
+        };
+        Relationships: [];
       };
     };
     Views: {

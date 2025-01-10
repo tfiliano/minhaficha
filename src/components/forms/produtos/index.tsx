@@ -173,6 +173,7 @@ function ProdutoForm({
       entity={produto}
       builder={formBuilder(grupos, armazenamentos, produtos)}
       onSubmit={handleSubmit}
+      tableCollection="produtos"
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
     />
   );

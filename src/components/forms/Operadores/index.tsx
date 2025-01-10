@@ -85,6 +85,7 @@ function OperadorForm({ mode, operador }: OperadorProps & ModeFormHandlerProp) {
       entity={operador}
       builder={formBuilder}
       onSubmit={handleSubmit}
+      tableCollection="operadores"
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
     />
   );

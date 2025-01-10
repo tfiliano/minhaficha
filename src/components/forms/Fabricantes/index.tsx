@@ -82,6 +82,7 @@ function FabricanteForm({
       entity={fabricante}
       builder={formBuilder}
       onSubmit={handleSubmit}
+      tableCollection="fabricantes"
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
     />
   );

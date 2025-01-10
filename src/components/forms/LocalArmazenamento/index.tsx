@@ -85,6 +85,7 @@ function LocalArmazenamentoForm({
       entity={localArmazenamento}
       builder={formBuilder}
       onSubmit={handleSubmit}
+      tableCollection="locais_armazenamento"
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
     />
   );
