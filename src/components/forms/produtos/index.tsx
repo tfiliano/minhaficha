@@ -1,4 +1,4 @@
-import { Builder } from "@/components/form-builder";
+import { Builder, registerBlurAction } from "@/components/form-builder";
 import { useRouter } from "@/hooks/use-router";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
 import { executeQuery } from "@/lib/supabase-helper";
@@ -6,6 +6,7 @@ import { Tables } from "@/types/database.types";
 import { createBrowserClient } from "@/utils/supabase-client";
 import { toast } from "sonner";
 import { EntityFormHandler, ModeFormHandlerProp } from "..";
+import { FieldValues, UseFormReset } from "react-hook-form";
 
 type Produto = Tables<"produtos">;
 type Grupo = Tables<"grupos">;
@@ -17,6 +18,50 @@ export type ProdutoProps = {
   armazenamentos: LocalArmazenamento[];
   produtos: Produto[];
 };
+
+registerBlurAction("checarProdutoJaCadastrado", checarProdutoJaCadastrado);
+async function checarProdutoJaCadastrado(
+  value: string,
+  resetForm: UseFormReset<FieldValues>
+) {
+  const codigo = value;
+  if (codigo.length > 1) {
+    const supabase = createBrowserClient();
+    const toastId = toast.loading("Buscando dados na Anac.");
+    
+    if (!codigo) return;
+    const { success, message } = await executeQuery(
+      () =>
+        supabase
+          .from("produtos")
+          .select()
+          .eq("codigo", codigo)
+          .single()
+    );
+
+    if (success) {
+      console.log("success", success)
+        // form.setError("codigo", {
+        //   type: "manual",
+        //   message: "Código já cadastrado",
+        // });
+      // }
+      // toast.success("Busca finalizada.", { id: toastId });
+      // if (data.manufacture_year) {
+      //   data.manufacture_year = data.manufacture_year.toString();
+      // }
+      resetForm({ ...success });
+    } else {
+      toast.warning("Produto já cadastrado. Verifique o codigo inserido.", { id: toastId });
+    }
+  }
+  return codigo;
+}
+
+export const onBlurActions = {
+  checarProdutoJaCadastrado,
+};
+
 
 const formBuilder = (
   grupos: Grupo[],
@@ -35,6 +80,7 @@ const formBuilder = (
                 placeholder: "Digite o código do produto",
                 type: "text",
                 required: true,
+                onActionBlur: "checarProdutoJaCadastrado"
               },
               {
                 name: "nome",
@@ -47,6 +93,13 @@ const formBuilder = (
           },
           {
             fields: [
+              {
+                name: "unidade",
+                label: "Unidades",
+                placeholder: "ex: UN, KG, LT",
+                type: "text",
+                required: true,
+              },
               {
                 name: "estoque_unidade",
                 label: "Estoque em Unidades",
@@ -120,7 +173,7 @@ const formBuilder = (
                   label: produto.nome,
                 })),
                 addNew: false,
-                required: true,
+                required: false,
               },
             ],
           },
