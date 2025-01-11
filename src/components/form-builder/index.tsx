@@ -4,7 +4,15 @@ export function isTextareaField(field: Field): field is TextareaField {
   return field.type === "textarea";
 }
 
+
 export const onBlurActions: any = {};
+
+export function registerBlurAction(
+  name: keyof typeof onBlurActions,
+  action: any
+) {
+  onBlurActions[name] = action;
+}
 
 export type Option = {
   value: string | number;
