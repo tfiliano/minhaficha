@@ -1,5 +1,11 @@
 import { ControllerRenderProps, useFormContext } from "react-hook-form";
-import { Builder, Field, InputField, isTextareaField, onBlurActions } from ".";
+import {
+  Builder,
+  Field,
+  InputField,
+  blurActionRegistry,
+  isTextareaField,
+} from ".";
 
 import { Loader } from "lucide-react";
 import { ChangeEvent, useState } from "react";
@@ -131,7 +137,10 @@ export function RenderField(
           if (onActionBlur) {
             try {
               setIsFetching(true);
-              await onBlurActions[onActionBlur](e.target.value, reset);
+              await blurActionRegistry.actions[onActionBlur](
+                e.target.value,
+                reset
+              );
             } finally {
               setIsFetching(false);
             }
