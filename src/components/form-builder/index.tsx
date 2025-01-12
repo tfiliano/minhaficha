@@ -56,6 +56,19 @@ import { FormBuilder2 as FormBuilderV2 } from "./form-builder-2";
 import { ServiceLoadOptionsType } from "./services-loadOptions";
 import { ServiceSearchType } from "./services-search";
 
+// Debounce function
+function debounce(func: (...args: any[]) => void, wait: number) {
+  let timeout: NodeJS.Timeout;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
 type BaseField = {
   name: string;
   label?: string;
@@ -65,6 +78,7 @@ type BaseField = {
   component?: (...props: any) => JSX.Element;
   itemClass?: string;
   onWheel?: (event: any) => void;
+  onChange?: (event: any) => void;
   required?: boolean;
   onChangeFieldsForm?: boolean;
   onBlur?: (
@@ -80,6 +94,7 @@ export interface InputField extends BaseField {
   type?: React.HTMLInputTypeAttribute;
   step?: string | number;
   onChangeCapture?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onDebouncedChange?: (event: React.ChangeEvent<HTMLInputElement>) => void; // New property
 }
 
 export interface TextareaField extends BaseField {
@@ -392,3 +407,20 @@ export function FormMessageError({ name }: { name: string }) {
 export { type FormBuilderRef } from "./form-builder-2";
 
 export const FormBuilder2 = forwardRef(FormBuilderV2);
+
+// Example usage in a component
+function InputComponent({ field }: { field: InputField }) {
+  const debouncedOnChange = field.onDebouncedChange
+    ? debounce(field.onDebouncedChange, 300) // 300ms debounce
+    : undefined;
+
+  return (
+    <input
+      type={field.type}
+      step={field.step}
+      onChangeCapture={field.onChangeCapture}
+      onChange={debouncedOnChange}
+      // ...other props
+    />
+  );
+}

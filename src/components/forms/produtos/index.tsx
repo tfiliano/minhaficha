@@ -24,13 +24,14 @@ async function checarProdutoJaCadastrado(
   value: string,
   resetForm: UseFormReset<FieldValues>
 ) {
+  console.log("oooiii")
   const codigo = value;
   if (codigo.length > 1) {
     const supabase = createBrowserClient();
-    const toastId = toast.loading("Buscando dados na Anac.");
+    const toastId = toast.loading("Verificando Codigo do Produto.");
     
     if (!codigo) return;
-    const { success, message } = await executeQuery(
+    const { success, message, data } = await executeQuery(
       () =>
         supabase
           .from("produtos")
@@ -39,8 +40,11 @@ async function checarProdutoJaCadastrado(
           .single()
     );
 
+    // const { error ,data } = await supabase.from("produtos").select().eq("codigo", codigo).single();
+    
+    console.log("success", success, message, data )
     if (success) {
-      console.log("success", success)
+      toast.warning("Produto já cadastrado. Verifique o codigo inserido.", { id: toastId });
         // form.setError("codigo", {
         //   type: "manual",
         //   message: "Código já cadastrado",
@@ -50,9 +54,10 @@ async function checarProdutoJaCadastrado(
       // if (data.manufacture_year) {
       //   data.manufacture_year = data.manufacture_year.toString();
       // }
-      resetForm({ ...success });
+      resetForm({ });
     } else {
-      toast.warning("Produto já cadastrado. Verifique o codigo inserido.", { id: toastId });
+      toast.success("OK...", { id: toastId });
+      // toast.warning("Produto já cadastrado. Verifique o codigo inserido.", { id: toastId });
     }
   }
   return codigo;
@@ -80,7 +85,8 @@ const formBuilder = (
                 placeholder: "Digite o código do produto",
                 type: "text",
                 required: true,
-                onActionBlur: "checarProdutoJaCadastrado"
+                // onActionBlur: "checarProdutoJaCadastrado",
+                onDebouncedChange: checarProdutoJaCadastrado
               },
               {
                 name: "nome",

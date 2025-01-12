@@ -85,7 +85,35 @@ export function RenderField(
     field.onWheel = (event) => event.target.blur();
   }
 
-  const { readOnly, onActionBlur, ...restField } = field as InputField;
+  const { readOnly, onActionBlur, onDebouncedChange, ...restField } = field as InputField;
+
+  const onChangeBase = (e: ChangeEvent<HTMLInputElement>) => {
+    if (restField.type === "number") return formField.onChange(+e.target.value);
+    
+    return formField.onChange(e);
+  }
+
+  // Debounce function
+  function debounce(func: (...args: any[]) => void, wait: number) {
+    let timeout: NodeJS.Timeout;
+    return function executedFunction(...args: any[]) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  const debouncedOnChange = onDebouncedChange
+    ? debounce((e: ChangeEvent<HTMLInputElement>) => {
+        formField.onChange(e);
+        onDebouncedChange(e);
+      }, 300) // 300ms debounce
+    : onChangeBase;
+
+  const onChange = debouncedOnChange;
 
   return (
     <div className="relative">
@@ -95,12 +123,7 @@ export function RenderField(
         placeholder={restField.placeholder || restField.label}
         type={restField.type || "text"}
         autoComplete={restField?.autoComplete}
-        onChange={(e) => {
-          if (restField.type === "number") {
-            return formField.onChange(+e.target.value);
-          }
-          return formField.onChange(e);
-        }}
+        onChange={onChange}
         ref={formField.ref}
         value={formField.value || ""}
         id={restField.name}
