@@ -1,12 +1,12 @@
-import { Builder, registerBlurAction } from "@/components/form-builder";
+import { Builder, blurActionRegistry } from "@/components/form-builder";
 import { useRouter } from "@/hooks/use-router";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
 import { executeQuery } from "@/lib/supabase-helper";
 import { Tables } from "@/types/database.types";
 import { createBrowserClient } from "@/utils/supabase-client";
+import { FieldValues, UseFormReset } from "react-hook-form";
 import { toast } from "sonner";
 import { EntityFormHandler, ModeFormHandlerProp } from "..";
-import { FieldValues, UseFormReset } from "react-hook-form";
 
 type Produto = Tables<"produtos">;
 type Grupo = Tables<"grupos">;
@@ -19,7 +19,6 @@ export type ProdutoProps = {
   produtos: Produto[];
 };
 
-registerBlurAction("checarProdutoJaCadastrado", checarProdutoJaCadastrado);
 async function checarProdutoJaCadastrado(
   value: string,
   resetForm: UseFormReset<FieldValues>
@@ -27,41 +26,33 @@ async function checarProdutoJaCadastrado(
   const codigo = value;
   if (codigo.length > 1) {
     const supabase = createBrowserClient();
-    const toastId = toast.loading("Buscando dados na Anac.");
-    
+
     if (!codigo) return;
-    const { success, message } = await executeQuery(
-      () =>
-        supabase
-          .from("produtos")
-          .select()
-          .eq("codigo", codigo)
-          .single()
-    );
+
+    const query = supabase
+      .from("produtos")
+      .select()
+      .eq("codigo", codigo)
+      .maybeSingle();
+
+    const { success, message, data } = await executeQuery<
+      typeof query,
+      Produto
+    >(() => query);
 
     if (success) {
-      console.log("success", success)
-        // form.setError("codigo", {
-        //   type: "manual",
-        //   message: "Código já cadastrado",
-        // });
-      // }
-      // toast.success("Busca finalizada.", { id: toastId });
-      // if (data.manufacture_year) {
-      //   data.manufacture_year = data.manufacture_year.toString();
-      // }
-      resetForm({ ...success });
+      if (data && data.id) {
+        toast.warning("Produto já cadastrado. Verifique o codigo inserido.");
+        //resetForm({  });
+      }
     } else {
-      toast.warning("Produto já cadastrado. Verifique o codigo inserido.", { id: toastId });
+      toast.error(`Erro ao buscar produto, ${message}`);
     }
   }
   return codigo;
 }
 
-export const onBlurActions = {
-  checarProdutoJaCadastrado,
-};
-
+blurActionRegistry.register(checarProdutoJaCadastrado);
 
 const formBuilder = (
   grupos: Grupo[],
@@ -80,7 +71,7 @@ const formBuilder = (
                 placeholder: "Digite o código do produto",
                 type: "text",
                 required: true,
-                onActionBlur: "checarProdutoJaCadastrado"
+                onActionBlur: "checarProdutoJaCadastrado",
               },
               {
                 name: "nome",
