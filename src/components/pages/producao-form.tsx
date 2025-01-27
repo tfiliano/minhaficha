@@ -16,7 +16,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 
-import { Inputs, saveProducao } from "@/app/producao/actions";
+import { Inputs, saveProducao } from "@/app/(app)/producao/actions";
 import {
   Table,
   TableBody,

@@ -2,7 +2,7 @@ import { Title } from "@/components/layout";
 import { ProducaoForm } from "@/components/pages";
 import { createClient } from "@/utils/supabase";
 import { redirect } from "next/navigation";
-import { AnimationTransitionPage } from "../../components/animation";
+import { AnimationTransitionPage } from "../../../components/animation";
 
 type Props = {
   params?: Promise<{}>;

@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase";
 import { redirect } from "next/navigation";
-import { AnimationTransitionPage } from "../../components/animation";
+import { AnimationTransitionPage } from "../../../components/animation";
 
 import { Title } from "@/components/layout";
 import { GerarEtiquetaForm } from "@/components/pages";

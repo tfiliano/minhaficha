@@ -6,7 +6,10 @@ import { Input } from "../ui/input";
 
 import { toast } from "sonner";
 
-import { IEntradaInsumo, saveRecebimento } from "@/app/entrada-insumo/actions";
+import {
+  IEntradaInsumo,
+  saveRecebimento,
+} from "@/app/(app)/entrada-insumo/actions";
 import {
   Table,
   TableBody,

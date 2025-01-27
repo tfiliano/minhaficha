@@ -6,15 +6,8 @@ import { Input } from "../ui/input";
 
 import { toast } from "sonner";
 
-import { IEntradaInsumo, saveRecebimento } from "@/app/entrada-insumo/actions";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { IEntradaInsumo } from "@/app/(app)/entrada-insumo/actions";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useRouter } from "@/hooks/use-router";
 import { cn } from "@/lib/utils";
 import { LoaderCircle } from "lucide-react";
@@ -80,10 +73,10 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
       // OPERADOR
       // PRODUTO_NAME
       setLoading(true);
-      console.log("TODO: salvar etiqueta e mandar imprimir")
-    //   const response = await saveRecebimento({ ...formValue });
+      console.log("TODO: salvar etiqueta e mandar imprimir");
+      //   const response = await saveRecebimento({ ...formValue });
 
-    //   if (response.error) throw response.error;
+      //   if (response.error) throw response.error;
 
       router.replace("/");
     } catch (error: any) {
@@ -110,7 +103,6 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col max-w-3xl w-full mx-auto"
       >
-
         <Table>
           <TableBody>
             <TableRow>

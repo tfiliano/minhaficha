@@ -1,4 +1,3 @@
-import { Header } from "@/components/layout/header";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -46,9 +45,8 @@ export default function RootLayout({
         )}
       >
         <ThemeProvider attribute="class" defaultTheme="system">
+          {children}
           <NextTopLoader showSpinner={true} color="hsl(var(--primary))" />
-          <Header />
-          <main className=" h-[calc(100%-80px)]">{children}</main>
           <Toaster richColors closeButton position="top-center" />
         </ThemeProvider>
       </body>
