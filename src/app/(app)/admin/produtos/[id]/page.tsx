@@ -7,7 +7,7 @@ export default async function ProdutosAdd({
   params: Promise<{ id: string }>;
 }) {
   const product_id = (await params).id;
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: produto } = await supabase
     .from("produtos")
     .select()

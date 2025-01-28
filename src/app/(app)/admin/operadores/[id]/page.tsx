@@ -7,7 +7,7 @@ export default async function OperadoresUpdate({
   params: Promise<{ id: string }>;
 }) {
   const product_id = (await params).id;
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: operador } = await supabase
     .from("operadores")
     .select()

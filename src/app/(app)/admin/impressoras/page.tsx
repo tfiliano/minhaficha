@@ -20,7 +20,7 @@ export default async function Impressoras(props: Props) {
   //   if (!params.get("operacao")) {
   //     return redirect("/");
   //   }
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: impressoras } = await supabase.from("impressoras").select("*");
 
   return (

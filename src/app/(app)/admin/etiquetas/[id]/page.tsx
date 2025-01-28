@@ -7,7 +7,7 @@ export default async function FabricantesesUpdate({
   params: Promise<{ id: string }>;
 }) {
   const product_id = (await params).id;
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: etiqueta } = await supabase
     .from("etiquetas")
     .select()

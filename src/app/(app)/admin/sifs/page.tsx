@@ -20,7 +20,7 @@ export default async function Sifs(props: Props) {
   //   if (!params.get("operacao")) {
   //     return redirect("/");
   //   }
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: sifs } = await supabase.from("sifs").select("*");
 
   return (

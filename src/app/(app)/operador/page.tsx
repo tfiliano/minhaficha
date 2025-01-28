@@ -13,17 +13,18 @@ type Props = {
 export default async function Operadores(props: Props) {
   const searchParams = await props.searchParams;
   const params = new URLSearchParams(searchParams);
-  let route = ""
+  let route = "";
 
   if (!params.get("operacao")) {
     return redirect("/");
   }
 
-  if (params.get("operacao") == "Produção") route = "/setor"
-  else if (params.get("operacao") == "Etiquetas") route = "/setor"
-  else if (params.get("operacao") == "Entrada de Insumos") route = "/selecionar-insumo";
+  if (params.get("operacao") == "Produção") route = "/setor";
+  else if (params.get("operacao") == "Etiquetas") route = "/setor";
+  else if (params.get("operacao") == "Entrada de Insumos")
+    route = "/selecionar-insumo";
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: operadores } = await supabase.from("operadores").select("*");
 
   return (

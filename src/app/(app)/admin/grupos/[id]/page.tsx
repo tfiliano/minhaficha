@@ -7,7 +7,7 @@ export default async function GruposesUpdate({
   params: Promise<{ id: string }>;
 }) {
   const product_id = (await params).id;
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: grupo } = await supabase
     .from("grupos")
     .select()

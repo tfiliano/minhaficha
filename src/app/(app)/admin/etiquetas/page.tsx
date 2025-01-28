@@ -20,7 +20,7 @@ export default async function Produtos(props: Props) {
   //   if (!params.get("operacao")) {
   //     return redirect("/");
   //   }
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: etiquetas } = await supabase.from("etiquetas").select("*");
 
   return (

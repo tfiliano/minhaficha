@@ -20,7 +20,7 @@ export default async function Fabricantes(props: Props) {
   //   if (!params.get("operacao")) {
   //     return redirect("/");
   //   }
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: fabricantes } = await supabase.from("fabricantes").select("*");
 
   return (

@@ -15,15 +15,16 @@ type Props = {
 export default async function Produtos(props: Props) {
   const searchParams = await props.searchParams;
   const params = new URLSearchParams(searchParams);
-  let route = ""
+  let route = "";
 
-  if (params.get("operacao") == "Produção") route = "/producao"
-  else if (params.get("operacao") == "Entrada de Insumos") route = "/entrada-insumo";
+  if (params.get("operacao") == "Produção") route = "/producao";
+  else if (params.get("operacao") == "Entrada de Insumos")
+    route = "/entrada-insumo";
 
   if (!params.get("operador")) {
     return redirect("/");
   }
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: produtos } = await supabase
     .from("produtos")
     .select()

@@ -20,19 +20,17 @@ export default async function Produtos(props: Props) {
   if (!params.get("operador")) {
     return redirect("/");
   }
-  const supabase = createClient();
-  let produtos:  any[] | null;
+  const supabase = await createClient();
+  let produtos: any[] | null;
 
   if (params.get("operacao") == "Etiquetas") {
-    route = "/gerar-etiqueta"
+    route = "/gerar-etiqueta";
 
-    const { data } = await supabase
-      .from("produtos")
-      .select();
+    const { data } = await supabase.from("produtos").select();
 
     produtos = data;
   } else {
-    route = "/entrada-insumo"
+    route = "/entrada-insumo";
     const { data } = await supabase
       .from("produtos")
       .select()

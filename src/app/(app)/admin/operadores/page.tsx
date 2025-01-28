@@ -20,7 +20,7 @@ export default async function Operadores(props: Props) {
   //   if (!params.get("operacao")) {
   //     return redirect("/");
   //   }
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: operadores } = await supabase.from("operadores").select("*");
 
   return (

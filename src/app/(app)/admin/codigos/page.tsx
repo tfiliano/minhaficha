@@ -20,7 +20,7 @@ export default async function Codigos(props: Props) {
   //   if (!params.get("operacao")) {
   //     return redirect("/");
   //   }
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: codigos } = await supabase.from("codigos").select("*");
 
   return (

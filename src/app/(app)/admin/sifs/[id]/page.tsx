@@ -7,7 +7,7 @@ export default async function SifsAdd({
   params: Promise<{ id: string }>;
 }) {
   const sif_id = (await params).id;
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: sif } = await supabase
     .from("sifs")
     .select()

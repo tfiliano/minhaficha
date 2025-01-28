@@ -20,7 +20,7 @@ export default async function Grupos(props: Props) {
   //   if (!params.get("operacao")) {
   //     return redirect("/");
   //   }
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: grupos } = await supabase.from("grupos").select("*");
 
   return (

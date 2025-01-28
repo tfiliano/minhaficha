@@ -7,7 +7,7 @@ export default async function ImpressorasAdd({
   params: Promise<{ id: string }>;
 }) {
   const printer_id = (await params).id;
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: impressora } = await supabase
     .from("impressoras")
     .select()

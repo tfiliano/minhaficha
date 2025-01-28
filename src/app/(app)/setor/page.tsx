@@ -13,15 +13,15 @@ type Props = {
 export default async function Setores(props: Props) {
   const searchParams = await props.searchParams;
   const params = new URLSearchParams(searchParams);
-  let route = "/produto"
+  let route = "/produto";
 
   if (!params.get("operador")) {
     return redirect("/");
   }
 
-  if (params.get("operacao") == "Etiquetas") route = "/selecionar-insumo"
+  if (params.get("operacao") == "Etiquetas") route = "/selecionar-insumo";
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: setors } = await supabase.rpc("listar_setores");
   return (
     <AnimationTransitionPage>

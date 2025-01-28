@@ -22,7 +22,7 @@ export default async function GerarEtiqueta(props: Props) {
   if (!params.get("produto")) {
     return redirect("/");
   }
-  const supabase = createClient();
+  const supabase = await createClient();
   // const { data: items } = await supabase
   //   .from("produtos")
   //   .select()

@@ -27,7 +27,7 @@ export async function saveRecebimento(
   insertObject: any
 ): Promise<{ error?: any; data?: any[] }> {
   try {
-    const supabase = createClient();
+    const supabase = await createClient();
     console.log("objeto to save: ", insertObject);
     insertObject.data_recebimento = new Date(insertObject.data_recebimento!);
     insertObject.validade = new Date(insertObject.validade!);

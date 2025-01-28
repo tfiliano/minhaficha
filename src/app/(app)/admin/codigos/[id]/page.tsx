@@ -7,7 +7,7 @@ export default async function CodigosAdd({
   params: Promise<{ id: string }>;
 }) {
   const codigo_id = (await params).id;
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: codigo } = await supabase
     .from("codigos")
     .select()

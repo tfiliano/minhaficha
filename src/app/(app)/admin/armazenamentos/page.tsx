@@ -1,6 +1,7 @@
 import { AnimationTransitionPage } from "@/components/animation";
 import { ContentGrid } from "@/components/layout";
 import { createClient } from "@/utils/supabase";
+import { cookies } from "next/headers";
 import { LocaisArmazenamentoClient } from "./page-client";
 
 type Props = {
@@ -20,7 +21,9 @@ export default async function LocalArmazenamento(props: Props) {
   //   if (!params.get("operacao")) {
   //     return redirect("/");
   //   }
-  const supabase = createClient();
+  const supabase = await createClient();
+  const co = await cookies();
+  console.log(co.get("minhaficha_loja_id")?.value);
   const { data: locais_armazenamento } = await supabase
     .from("locais_armazenamento")
     .select("*");

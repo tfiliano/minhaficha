@@ -17,22 +17,27 @@ export type Inputs = {
   operador_id?: string | null;
 };
 
-export async function saveProducao(producao: Inputs): Promise<{ error?: any; data?: any[] }> {
+export async function saveProducao(
+  producao: Inputs
+): Promise<{ error?: any; data?: any[] }> {
   try {
-    const supabase = createClient();
-    const { data, error } = await supabase.from("producoes").insert(producao).select();
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("producoes")
+      .insert(producao)
+      .select();
     if (error) {
-      console.error(1, error)
+      console.error(1, error);
       return { error: error };
     }
-    
+
     //preciso colocar um Loading, com feedback pro usuario saber se salvou ou nao, e retornando pra pagina inicial.
 
     //esse console log nao foi executado!!!
-    console.log(2, data)
+    console.log(2, data);
     return { data };
   } catch (error) {
-    console.error(3, error)
+    console.error(3, error);
     return { error: error };
   }
 }
