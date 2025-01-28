@@ -8,10 +8,18 @@ export async function createClient() {
   const loja_id = (await cookieStore).get("minhaficha_loja_id")?.value;
 
   // Função para adicionar lógica customizada antes das operações do Supabase
-  const wrapWithInterceptor = (method: string, fn: Function) => {
+  const wrapWithInterceptor = (
+    method: string,
+    fn: Function,
+    table: keyof Database["public"]["Tables"]
+  ) => {
     return (...args: any[]) => {
       // No caso do select, adiciona o filtro `.eq("loja_id", loja_id)`
-      if (method === "select") {
+      if (
+        method === "select" &&
+        table !== "loja_usuarios" &&
+        table !== "usuarios"
+      ) {
         const query = fn(...args);
         return query.eq("loja_id", loja_id!);
       }
@@ -51,6 +59,7 @@ export async function createClient() {
     get(target, prop) {
       if (prop === "from") {
         return (table: keyof Database["public"]["Tables"]) => {
+          console.log(table);
           const tableClient = target.from(table);
           return new Proxy(tableClient, {
             get(tableTarget, tableProp) {
@@ -59,7 +68,8 @@ export async function createClient() {
               if (typeof originalMethod === "function") {
                 return wrapWithInterceptor(
                   tableProp as string,
-                  originalMethod.bind(tableTarget)
+                  originalMethod.bind(tableTarget),
+                  table
                 );
               }
               return originalMethod;
