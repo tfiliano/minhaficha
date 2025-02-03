@@ -3,9 +3,9 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 export async function createClient() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
-  const loja_id = (await cookieStore).get("minhaficha_loja_id")?.value;
+  const loja_id = cookieStore.get("minhaficha_loja_id")?.value;
 
   // Função para adicionar lógica customizada antes das operações do Supabase
   const wrapWithInterceptor = (
@@ -18,7 +18,8 @@ export async function createClient() {
       if (
         method === "select" &&
         table !== "loja_usuarios" &&
-        table !== "usuarios"
+        table !== "usuarios" &&
+        table !== "lojas"
       ) {
         const query = fn(...args);
         return query.eq("loja_id", loja_id!);
@@ -34,20 +35,18 @@ export async function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        async getAll() {
-          return (await cookieStore).getAll();
+        getAll() {
+          return cookieStore.getAll();
         },
-        async setAll(
-          cookiesToSet: { name: string; value: string; options: any }[]
-        ) {
+        setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(async ({ name, value, options }) =>
-              (await cookieStore).set(name, value, options)
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
             );
           } catch {
-            // O método `setAll` foi chamado a partir de um Componente do Servidor.
-            // Isso pode ser ignorado se você tiver um middleware que atualiza
-            // as sessões dos usuários.
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
           }
         },
       },
@@ -59,7 +58,6 @@ export async function createClient() {
     get(target, prop) {
       if (prop === "from") {
         return (table: keyof Database["public"]["Tables"]) => {
-          console.log(table);
           const tableClient = target.from(table);
           return new Proxy(tableClient, {
             get(tableTarget, tableProp) {

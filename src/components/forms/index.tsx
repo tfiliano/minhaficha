@@ -13,6 +13,7 @@ import { PublicSchema } from "@/types/database.types";
 import { Codigo } from "./Codigos";
 import { Etiquetas } from "./Etiquetas";
 import { Impressora } from "./Impressoras";
+import { Loja } from "./Loja";
 import { ButtonRemoveItem } from "./remove-item-table";
 import { SIF } from "./SIF";
 
@@ -26,6 +27,7 @@ export const Forms = {
   Impressora,
   SIF,
   Codigo,
+  Loja,
 };
 
 export function FormContent({ children }: PropsWithChildren) {

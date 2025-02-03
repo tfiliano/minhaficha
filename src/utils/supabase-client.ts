@@ -10,7 +10,11 @@ export function createBrowserClient() {
   );
 
   // Função wrapper para adicionar lógica customizada antes das operações
-  const wrapWithInterceptor = (method: string, fn: Function) => {
+  const wrapWithInterceptor = (
+    method: string,
+    fn: Function,
+    table: keyof Database["public"]["Tables"]
+  ) => {
     const loja_id = getCookie("minhaficha_loja_id");
     return (...args: any[]) => {
       if (method === "insert" || method === "update") {
@@ -20,6 +24,7 @@ export function createBrowserClient() {
           ...data,
           loja_id, // Valor a ser injetado
         };
+        if (table === "lojas") delete args[0].loja_id;
       }
 
       // Chame o método original
@@ -40,7 +45,8 @@ export function createBrowserClient() {
               if (typeof originalMethod === "function") {
                 return wrapWithInterceptor(
                   tableProp as string,
-                  originalMethod.bind(tableTarget)
+                  originalMethod.bind(tableTarget),
+                  table
                 );
               }
               return originalMethod;

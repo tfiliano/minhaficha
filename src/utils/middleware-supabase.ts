@@ -2,83 +2,115 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+class SupabaseService {
+  private supabase;
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+  constructor(private request: NextRequest) {
+    this.supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => this.request.cookies.getAll(),
+          setAll: (cookiesToSet) => {
+            cookiesToSet.forEach(({ name, value }) =>
+              this.request.cookies.set(name, value)
+            );
+          },
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    return NextResponse.redirect(url);
+      }
+    );
   }
 
-  const loja_id = (await cookies()).get("minhaficha_loja_id")?.value;
+  async getUser() {
+    const { data } = await this.supabase.auth.getUser();
+    return data?.user;
+  }
 
-  if (!loja_id) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/auth/login";
-    return NextResponse.redirect(url);
-  } else {
-    const { data, error } = await supabase
+  async getLojaUsuario(userId: string, lojaId: string) {
+    const { data, error } = await this.supabase
       .from("loja_usuarios")
       .select("*")
-      .eq("id", user!.id)
-      .eq("loja_id", loja_id)
+      .eq("id", userId)
+      .eq("loja_id", lojaId)
       .eq("ativo", true)
       .single();
-
-    if (!data || error) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/auth/login";
-      return NextResponse.redirect(url);
-    }
+    return { data, error };
   }
 
-  if (user && request.nextUrl.pathname.startsWith("/admin")) {
-    const { data, error } = await supabase
-      .from("usuarios")
-      .select("type")
-      .eq("id", user.id)
-      .eq("type", "master")
+  async getAdminAccess(userId: string) {
+    const { data, error } = await this.supabase
+      .from("loja_usuarios")
+      .select("tipo")
+      .eq("id", userId)
+      .or("tipo.eq.master,tipo.eq.manager")
       .single();
-
-    if (!data || error) {
-      const url = request.nextUrl.clone();
-      url.pathname = "/auth/login";
-      return NextResponse.redirect(url);
-    }
+    return { data, error };
   }
-  return supabaseResponse;
+
+  async getDashboardAccess(userId: string) {
+    const { data, error } = await this.supabase
+      .from("usuarios_masters")
+      .select("id")
+      .eq("id", userId)
+      .eq("is_active", true)
+      .maybeSingle();
+    return { data, error };
+  }
+}
+
+class AuthGuard {
+  constructor(
+    private request: NextRequest,
+    private supabaseService: SupabaseService
+  ) {}
+
+  private redirectToLogin() {
+    const url = this.request.nextUrl.clone();
+    url.pathname = "/auth/login";
+    return NextResponse.redirect(url);
+  }
+
+  async validateUserAccess() {
+    const user = await this.supabaseService.getUser();
+    if (!user && !this.isPublicRoute()) {
+      return this.redirectToLogin();
+    }
+
+    const lojaId = (await cookies()).get("minhaficha_loja_id")?.value;
+    if (
+      !lojaId ||
+      !(await this.supabaseService.getLojaUsuario(user!.id, lojaId)).data
+    ) {
+      return this.redirectToLogin();
+    }
+
+    if (this.request.nextUrl.pathname.startsWith("/admin")) {
+      console.log("entrei aqui");
+
+      if (!(await this.supabaseService.getAdminAccess(user!.id)).data) {
+        return this.redirectToLogin();
+      }
+    }
+
+    if (this.request.nextUrl.pathname.startsWith("/dashboard")) {
+      if (!(await this.supabaseService.getDashboardAccess(user!.id)).data) {
+        return this.redirectToLogin();
+      }
+    }
+    return NextResponse.next();
+  }
+
+  private isPublicRoute(): boolean {
+    return (
+      this.request.nextUrl.pathname.startsWith("/login") ||
+      this.request.nextUrl.pathname.startsWith("/auth")
+    );
+  }
+}
+
+export async function updateSession(request: NextRequest) {
+  const supabaseService = new SupabaseService(request);
+  const authGuard = new AuthGuard(request, supabaseService);
+  return authGuard.validateUserAccess();
 }
