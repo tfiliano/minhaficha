@@ -68,6 +68,7 @@ class AuthGuard {
 
   private redirectToLogin() {
     const url = this.request.nextUrl.clone();
+    if (url.pathname !== "/") url.searchParams.set("nextUrl", url.pathname);
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
   }

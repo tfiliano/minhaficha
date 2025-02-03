@@ -2,7 +2,7 @@
 
 import { Builder, FormBuilder2 } from "@/components/form-builder";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "@/hooks/use-router";
+import { useRouter, useSearchParams } from "@/hooks/use-router";
 import { generateToastPromise } from "@/lib/toast";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -54,6 +54,7 @@ const builder: Builder = {
 };
 
 export default function Page() {
+  const params = useSearchParams();
   const router = useRouter();
   const form = {
     defaultValues: {},
@@ -68,7 +69,7 @@ export default function Page() {
         successMessage: "Autenticado com sucesso!",
         loadingMessage: "Autenticando...",
       });
-      router.replace("/");
+      router.replace(params.get("nextUrl") || "/");
     } catch (error) {}
   };
 
