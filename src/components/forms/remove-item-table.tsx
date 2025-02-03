@@ -66,7 +66,7 @@ export function ButtonRemoveItem<T>({
     const queryHandle = IS_DISABLED
       ? query.update({ ativo: !(entity as any).ativo })
       : query.delete();
-    const processQuery = queryHandle.eq("id", id);
+    const processQuery = queryHandle.eq("id", id as string);
     const { success, message } = await executeQuery<typeof processQuery, T>(
       () => processQuery
     );
