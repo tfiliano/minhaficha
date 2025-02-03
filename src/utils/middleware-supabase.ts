@@ -43,8 +43,9 @@ class SupabaseService {
       .from("loja_usuarios")
       .select("tipo")
       .eq("id", userId)
-      .or("tipo.eq.master,tipo.eq.manager")
-      .single();
+      .or("tipo.eq.master,tipo.eq.manager,tipo.eq.admin")
+      .maybeSingle();
+
     return { data, error };
   }
 

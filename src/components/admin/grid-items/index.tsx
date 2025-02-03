@@ -1,9 +1,18 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import { HTMLAttributes, PropsWithChildren } from "react";
 
-export function GridItems({ children }: PropsWithChildren) {
+export function GridItems({
+  children,
+  classNames,
+}: PropsWithChildren<{ classNames?: string }>) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-6 w-full">
+    <div
+      className={cn(
+        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  gap-6 w-full",
+        classNames
+      )}
+    >
       {children}
     </div>
   );

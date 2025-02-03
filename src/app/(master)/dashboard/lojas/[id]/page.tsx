@@ -10,7 +10,7 @@ export default async function LojaUpdate({
   const supabase = await createClient();
   const { data: loja } = await supabase
     .from("lojas")
-    .select()
+    .select("*,usuarios:loja_usuarios(data:usuarios(*))")
     .eq("id", loja_id)
     .maybeSingle();
 

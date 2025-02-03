@@ -171,17 +171,28 @@ export type Database = {
       impressoras: {
         Row: {
           id: string;
+          loja_is: string | null;
           nome: string;
         };
         Insert: {
           id?: string;
+          loja_is?: string | null;
           nome: string;
         };
         Update: {
           id?: string;
+          loja_is?: string | null;
           nome?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "impressoras_loja_is_fkey";
+            columns: ["loja_is"];
+            isOneToOne: false;
+            referencedRelation: "lojas";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       locais_armazenamento: {
         Row: {
@@ -213,18 +224,21 @@ export type Database = {
           created_at: string;
           id: string;
           loja_id: string | null;
+          tipo: Database["public"]["Enums"]["USER_TYPE"] | null;
         };
         Insert: {
           ativo?: boolean | null;
           created_at?: string;
           id: string;
           loja_id?: string | null;
+          tipo?: Database["public"]["Enums"]["USER_TYPE"] | null;
         };
         Update: {
           ativo?: boolean | null;
           created_at?: string;
           id?: string;
           loja_id?: string | null;
+          tipo?: Database["public"]["Enums"]["USER_TYPE"] | null;
         };
         Relationships: [
           {
@@ -570,7 +584,7 @@ export type Database = {
           email: string | null;
           id: string;
           name: string | null;
-          type: string;
+          type: Database["public"]["Enums"]["USER_TYPE"];
         };
         Insert: {
           ativo?: boolean;
@@ -579,7 +593,7 @@ export type Database = {
           email?: string | null;
           id: string;
           name?: string | null;
-          type?: string;
+          type?: Database["public"]["Enums"]["USER_TYPE"];
         };
         Update: {
           ativo?: boolean;
@@ -588,7 +602,25 @@ export type Database = {
           email?: string | null;
           id?: string;
           name?: string | null;
-          type?: string;
+          type?: Database["public"]["Enums"]["USER_TYPE"];
+        };
+        Relationships: [];
+      };
+      usuarios_masters: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_active: boolean | null;
+        };
+        Insert: {
+          created_at?: string;
+          id: string;
+          is_active?: boolean | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean | null;
         };
         Relationships: [];
       };
@@ -605,7 +637,7 @@ export type Database = {
       };
     };
     Enums: {
-      [_ in never]: never;
+      USER_TYPE: "master" | "admin" | "manager" | "operator" | "user";
     };
     CompositeTypes: {
       [_ in never]: never;

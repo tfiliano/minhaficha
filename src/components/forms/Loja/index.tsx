@@ -10,7 +10,7 @@ import { EntityFormHandler, ModeFormHandlerProp } from "..";
 type Loja = Tables<"lojas">;
 
 export type LojaProps = {
-  loja?: Loja;
+  loja?: Loja & { usuarios: any[] };
 };
 
 const formBuilder = () =>

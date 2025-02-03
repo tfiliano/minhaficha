@@ -619,6 +619,20 @@
   dependencies:
     "@radix-ui/react-compose-refs" "1.1.1"
 
+"@radix-ui/react-tabs@^1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@radix-ui/react-tabs/-/react-tabs-1.1.2.tgz#a72da059593cba30fccb30a226d63af686b32854"
+  integrity sha512-9u/tQJMcC2aGq7KXpGivMm1mgq7oRJKXphDwdypPd/j21j/2znamPU8WkXgnhUaTrSFNIt8XhOyCAupg8/GbwQ==
+  dependencies:
+    "@radix-ui/primitive" "1.1.1"
+    "@radix-ui/react-context" "1.1.1"
+    "@radix-ui/react-direction" "1.1.0"
+    "@radix-ui/react-id" "1.1.0"
+    "@radix-ui/react-presence" "1.1.2"
+    "@radix-ui/react-primitive" "2.0.1"
+    "@radix-ui/react-roving-focus" "1.1.1"
+    "@radix-ui/react-use-controllable-state" "1.1.0"
+
 "@radix-ui/react-tooltip@^1.1.4":
   version "1.1.6"
   resolved "https://registry.yarnpkg.com/@radix-ui/react-tooltip/-/react-tooltip-1.1.6.tgz#eab98e9a5c876ef0abfae3cfeee229870528ed06"
@@ -2477,10 +2491,10 @@ lru-cache@^10.2.0:
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-10.4.3.tgz#410fc8a17b70e598013df257c2446b7f3383f119"
   integrity sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==
 
-lucide-react@^0.427.0:
-  version "0.427.0"
-  resolved "https://registry.yarnpkg.com/lucide-react/-/lucide-react-0.427.0.tgz#e06974514bbd591049f9d736b3d3ae99d4ede8c9"
-  integrity sha512-lv9s6c5BDF/ccuA0EgTdskTxIe11qpwBDmzRZHJAKtp8LTewAvDvOM+pTES9IpbBuTqkjiMhOmGpJ/CB+mKjFw==
+lucide-react@^0.474.0:
+  version "0.474.0"
+  resolved "https://registry.yarnpkg.com/lucide-react/-/lucide-react-0.474.0.tgz#9fcaa96250fa2de0b3e2803d4ad744eaea572247"
+  integrity sha512-CmghgHkh0OJNmxGKWc0qfPJCYHASPMVSyGY8fj3xgk4v84ItqDg64JNKFZn5hC6E0vHi6gxnbCgwhyVB09wQtA==
 
 math-intrinsics@^1.1.0:
   version "1.1.0"
@@ -3355,10 +3369,10 @@ supports-preserve-symlinks-flag@^1.0.0:
   resolved "https://registry.yarnpkg.com/supports-preserve-symlinks-flag/-/supports-preserve-symlinks-flag-1.0.0.tgz#6eda4bd344a3c94aea376d4cc31bc77311039e09"
   integrity sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==
 
-tailwind-merge@^2.5.2:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/tailwind-merge/-/tailwind-merge-2.6.0.tgz#ac5fb7e227910c038d458f396b7400d93a3142d5"
-  integrity sha512-P+Vu1qXfzediirmHOC3xKGAYeZtPcV9g76X+xg2FD4tYgR71ewMA35Y3sCz3zhiN/dwefRpJX0yBcgwi1fXNQA==
+tailwind-merge@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/tailwind-merge/-/tailwind-merge-3.0.1.tgz#0f0189966511ebcd63ef98d9eaf5607beb0d59d3"
+  integrity sha512-AvzE8FmSoXC7nC+oU5GlQJbip2UO7tmOhOfQyOmPhrStOGXHU08j8mZEHZ4BmCqY5dWTCo4ClWkNyRNx1wpT0g==
 
 tailwindcss-animate@^1.0.7:
   version "1.0.7"
