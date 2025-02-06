@@ -31,21 +31,21 @@ class SupabaseService {
     const { data, error } = await this.supabase
       .from("loja_usuarios")
       .select("*")
-      .eq("id", userId)
+      .eq("user_id", userId)
       .eq("loja_id", lojaId)
       .eq("ativo", true)
       .single();
     return { data, error };
   }
 
-  async getAdminAccess(userId: string) {
+  async getAdminAccess(userId: string, lojaId: string) {
     const { data, error } = await this.supabase
       .from("loja_usuarios")
       .select("tipo")
-      .eq("id", userId)
+      .eq("user_id", userId)
+      .eq("loja_id", lojaId)
       .or("tipo.eq.master,tipo.eq.manager,tipo.eq.admin")
       .maybeSingle();
-
     return { data, error };
   }
 
@@ -59,7 +59,6 @@ class SupabaseService {
     return { data, error };
   }
 }
-
 class AuthGuard {
   constructor(
     private request: NextRequest,
@@ -68,6 +67,7 @@ class AuthGuard {
 
   private redirectToLogin() {
     const url = this.request.nextUrl.clone();
+
     if (url.pathname !== "/") url.searchParams.set("nextUrl", url.pathname);
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);
@@ -79,7 +79,15 @@ class AuthGuard {
       return this.redirectToLogin();
     }
 
+    if (this.request.nextUrl.pathname.startsWith("/dashboard")) {
+      if (!(await this.supabaseService.getDashboardAccess(user!.id)).data) {
+        return this.redirectToLogin();
+      }
+      return NextResponse.next();
+    }
+
     const lojaId = (await cookies()).get("minhaficha_loja_id")?.value;
+
     if (
       !lojaId ||
       !(await this.supabaseService.getLojaUsuario(user!.id, lojaId)).data
@@ -88,18 +96,11 @@ class AuthGuard {
     }
 
     if (this.request.nextUrl.pathname.startsWith("/admin")) {
-      console.log("entrei aqui");
-
-      if (!(await this.supabaseService.getAdminAccess(user!.id)).data) {
+      if (!(await this.supabaseService.getAdminAccess(user!.id, lojaId)).data) {
         return this.redirectToLogin();
       }
     }
 
-    if (this.request.nextUrl.pathname.startsWith("/dashboard")) {
-      if (!(await this.supabaseService.getDashboardAccess(user!.id)).data) {
-        return this.redirectToLogin();
-      }
-    }
     return NextResponse.next();
   }
 

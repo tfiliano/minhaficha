@@ -63,13 +63,16 @@ export function PageClient() {
 
   const onSubmit = async (data: FormLogin) => {
     try {
-      await generateToastPromise<Awaited<ReturnType<typeof login>>, FormLogin>({
+      const response = await generateToastPromise<
+        Awaited<ReturnType<typeof login>>,
+        FormLogin
+      >({
         action: login,
         actionData: data,
         successMessage: "Autenticado com sucesso!",
         loadingMessage: "Autenticando...",
       });
-      router.replace(params.get("nextUrl") || "/");
+      router.replace(params.get("nextUrl") || response?.redirect || "/");
     } catch (error) {}
   };
 

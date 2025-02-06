@@ -19,7 +19,8 @@ export async function createClient() {
         method === "select" &&
         table !== "loja_usuarios" &&
         table !== "usuarios" &&
-        table !== "lojas"
+        table !== "lojas" &&
+        table !== "usuarios_masters"
       ) {
         const query = fn(...args);
         return query.eq("loja_id", loja_id!);

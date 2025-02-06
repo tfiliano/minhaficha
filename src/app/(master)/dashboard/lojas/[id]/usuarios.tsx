@@ -45,7 +45,7 @@ export function UsuariosPage({
           size={20}
         />
       </div>
-      <ButtonAdd />
+      <ButtonAdd addPath="/usuarios/add" />
       <GridItems classNames="md:grid-cols-1 lg:grid-cols-1">
         {(usuariosFiltrados || [])?.map((usuario) => {
           return (

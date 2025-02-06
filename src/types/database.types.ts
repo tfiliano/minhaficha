@@ -225,13 +225,15 @@ export type Database = {
           id: string;
           loja_id: string | null;
           tipo: Database["public"]["Enums"]["USER_TYPE"] | null;
+          user_id: string | null;
         };
         Insert: {
           ativo?: boolean | null;
           created_at?: string;
-          id: string;
+          id?: string;
           loja_id?: string | null;
           tipo?: Database["public"]["Enums"]["USER_TYPE"] | null;
+          user_id?: string | null;
         };
         Update: {
           ativo?: boolean | null;
@@ -239,20 +241,21 @@ export type Database = {
           id?: string;
           loja_id?: string | null;
           tipo?: Database["public"]["Enums"]["USER_TYPE"] | null;
+          user_id?: string | null;
         };
         Relationships: [
-          {
-            foreignKeyName: "loja_usuarios_id_fkey";
-            columns: ["id"];
-            isOneToOne: true;
-            referencedRelation: "usuarios";
-            referencedColumns: ["id"];
-          },
           {
             foreignKeyName: "loja_usuarios_loja_id_fkey";
             columns: ["loja_id"];
             isOneToOne: false;
             referencedRelation: "lojas";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "loja_usuarios_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "usuarios";
             referencedColumns: ["id"];
           }
         ];

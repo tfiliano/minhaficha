@@ -1,8 +1,8 @@
 "use client";
 
 import { Forms } from "@/components/forms";
-import { CodigosProps } from "@/components/forms/Codigos";
+import { LojaProps } from "@/components/forms/Loja";
 
-export function CodigosAddClient({ ...props }: CodigosProps) {
-  return <Forms.Codigo.Create {...props} />;
+export function CodigosAddClient({ ...props }: LojaProps) {
+  return <Forms.Loja.Create {...props} />;
 }

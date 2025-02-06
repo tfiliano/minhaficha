@@ -7,5 +7,7 @@ export function UserPageClient({
   loja_id,
   user,
 }: UsuarioProps & { loja_id: string }) {
-  return <Forms.Usuarios.Update user={user} loja_id={loja_id} />;
+  return (
+    <Forms.Usuarios.Update user={user} loja_id={loja_id} keyProp={"user_id"} />
+  );
 }

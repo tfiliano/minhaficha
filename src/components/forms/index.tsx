@@ -41,7 +41,7 @@ type ModeFormHandler = "create" | "update";
 export type TableCollection = keyof (PublicSchema["Tables"] &
   PublicSchema["Views"]);
 
-export type ModeFormHandlerProp = { mode: ModeFormHandler };
+export type ModeFormHandlerProp = { mode: ModeFormHandler; keyProp?: string };
 
 type EntityFormHandlerProps<T> = {
   mode: ModeFormHandler;
@@ -50,6 +50,7 @@ type EntityFormHandlerProps<T> = {
   onSubmit: (data: T) => Promise<void>;
   submitLabel: string;
   tableCollection?: TableCollection;
+  keyProp?: string;
 };
 
 export function EntityFormHandler<T>({
@@ -59,6 +60,7 @@ export function EntityFormHandler<T>({
   onSubmit,
   submitLabel,
   tableCollection,
+  keyProp,
 }: EntityFormHandlerProps<T>) {
   const router = useRouter();
 
@@ -84,6 +86,7 @@ export function EntityFormHandler<T>({
         <ButtonRemoveItem<T>
           entity={entity}
           tableCollection={tableCollection}
+          keyProp={keyProp}
         />
       )}
     </FormContent>

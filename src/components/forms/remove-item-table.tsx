@@ -19,12 +19,15 @@ type EntityWithId = {
 type ButtonRemoveProps<T> = {
   tableCollection: TableCollection;
   entity: T | undefined;
+  keyProp?: string;
 };
 
 export function ButtonRemoveItem<T>({
   tableCollection,
   entity,
+  keyProp,
 }: ButtonRemoveProps<T>) {
+  console.log({ keyProp, entity });
   const router = useRouter();
   const pathname = usePathname();
 
@@ -59,14 +62,16 @@ export function ButtonRemoveItem<T>({
   }
 
   const handleAction = async () => {
-    const { id } = entity as unknown as EntityWithId;
-
+    const doc = entity as unknown as EntityWithId;
     const supabase = createBrowserClient();
     const query = supabase.from(tableCollection);
     const queryHandle = IS_DISABLED
       ? query.update({ ativo: !(entity as any).ativo })
       : query.delete();
-    const processQuery = queryHandle.eq("id", id as string);
+    const processQuery = queryHandle.eq(
+      keyProp || "id",
+      (entity as Record<string, any>)["id"] as string
+    );
     const { success, message } = await executeQuery<typeof processQuery, T>(
       () => processQuery
     );
