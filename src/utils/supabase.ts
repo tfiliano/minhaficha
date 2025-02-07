@@ -6,7 +6,6 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   const loja_id = cookieStore.get("minhaficha_loja_id")?.value;
-
   // Função para adicionar lógica customizada antes das operações do Supabase
   const wrapWithInterceptor = (
     method: string,
@@ -24,6 +23,15 @@ export async function createClient() {
       ) {
         const query = fn(...args);
         return query.eq("loja_id", loja_id!);
+      }
+      if (
+        method === "insert" &&
+        table !== "loja_usuarios" &&
+        table !== "usuarios" &&
+        table !== "lojas" &&
+        table !== "usuarios_masters"
+      ) {
+        if (!args[0].loja_id) args[0].loja_id = loja_id;
       }
       // Chama o método original
       return fn(...args);

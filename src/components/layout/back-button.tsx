@@ -9,10 +9,8 @@ export function BackButton() {
   const params = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
-
+  console.log(window.history);
   if (params.size === 0 && !pathname.includes("/admin")) return <></>;
-
-  if (pathname === "/admin") return <></>;
 
   return (
     <Button

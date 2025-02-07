@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { LoaderCircle } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { gerarEtiqueta } from "./actions";
 
 const INIT_RECEBIMENTO = {
   // peso_bruto: 2.5,
@@ -50,6 +51,7 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
   const router = useRouter();
+
   // const params = new URLSearchParams(searchParams);
 
   function getParam(property: string) {
@@ -74,6 +76,13 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
       // PRODUTO_NAME
       setLoading(true);
       console.log("TODO: salvar etiqueta e mandar imprimir");
+
+      const obj = {
+        SIF: formValue.sif,
+      };
+
+      await gerarEtiqueta({ ...formValue, ...obj });
+
       //   const response = await saveRecebimento({ ...formValue });
 
       //   if (response.error) throw response.error;

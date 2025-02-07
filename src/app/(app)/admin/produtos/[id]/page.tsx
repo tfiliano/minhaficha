@@ -19,12 +19,15 @@ export default async function ProdutosAdd({
     .from("locais_armazenamento")
     .select("*");
 
+  const { data: setores } = await supabase.from("setores").select("id,nome");
+
   return (
     <ProdutoUpdateClient
       produtos={produtos!}
       grupos={grupos!}
       armazenamentos={armazenamentos!}
       produto={produto!}
+      setores={setores}
     />
   );
 }

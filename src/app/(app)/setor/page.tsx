@@ -22,7 +22,7 @@ export default async function Setores(props: Props) {
   if (params.get("operacao") == "Etiquetas") route = "/selecionar-insumo";
 
   const supabase = await createClient();
-  const { data: setors } = await supabase.rpc("listar_setores");
+  const { data: setors } = await supabase.from("setores").select("id,nome");
   return (
     <AnimationTransitionPage>
       <Title>
@@ -39,6 +39,7 @@ export default async function Setores(props: Props) {
                 query: {
                   ...Object.fromEntries(params.entries()),
                   setor: setor.nome,
+                  setor_id: setor.id,
                 },
               }}
             />

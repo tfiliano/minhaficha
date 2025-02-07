@@ -9,11 +9,14 @@ export default async function ProdutosAdd() {
     .from("locais_armazenamento")
     .select("*");
 
+  const { data: setores } = await supabase.from("setores").select("id,nome");
+
   return (
     <ProdutoAddClient
       produtos={produtos!}
       grupos={grupos!}
       armazenamentos={armazenamentos!}
+      setores={setores}
     />
   );
 }

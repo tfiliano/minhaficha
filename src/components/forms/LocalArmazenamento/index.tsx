@@ -72,7 +72,7 @@ function LocalArmazenamentoForm({
     if (success) {
       toast.success(message);
       if (mode === "create")
-        router.push("/admin/armazenamentos" + `${result!.id}`);
+        router.push("/admin/armazenamentos" + `/${result!.id}`);
       executeRevalidationPath("/admin/armazenamentos");
     } else {
       toast.error(message);

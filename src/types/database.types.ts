@@ -561,6 +561,33 @@ export type Database = {
           }
         ];
       };
+      setores: {
+        Row: {
+          cor_botao: string | null;
+          cor_fonte: string | null;
+          created_at: string;
+          id: string;
+          loja_id: string | null;
+          nome: string | null;
+        };
+        Insert: {
+          cor_botao?: string | null;
+          cor_fonte?: string | null;
+          created_at?: string;
+          id?: string;
+          loja_id?: string | null;
+          nome?: string | null;
+        };
+        Update: {
+          cor_botao?: string | null;
+          cor_fonte?: string | null;
+          created_at?: string;
+          id?: string;
+          loja_id?: string | null;
+          nome?: string | null;
+        };
+        Relationships: [];
+      };
       sifs: {
         Row: {
           created_at: string;

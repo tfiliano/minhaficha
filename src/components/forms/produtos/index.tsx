@@ -17,13 +17,14 @@ export type ProdutoProps = {
   grupos: Grupo[];
   armazenamentos: LocalArmazenamento[];
   produtos: Produto[];
+  setores: any[] | null;
 };
 
 async function checarProdutoJaCadastrado(
   value: string,
   resetForm: UseFormReset<FieldValues>
 ) {
-  console.log("oooiii")
+  console.log("oooiii");
   const codigo = value;
   if (codigo.length > 1) {
     const supabase = createBrowserClient();
@@ -42,8 +43,8 @@ async function checarProdutoJaCadastrado(
     >(() => query);
 
     // const { error ,data } = await supabase.from("produtos").select().eq("codigo", codigo).single();
-    
-    console.log("success", success, message, data )
+
+    console.log("success", success, message, data);
     if (success) {
       if (data && data.id) {
         toast.warning("Produto já cadastrado. Verifique o codigo inserido.");
@@ -61,7 +62,8 @@ blurActionRegistry.register(checarProdutoJaCadastrado);
 const formBuilder = (
   grupos: Grupo[],
   armazenamentos: LocalArmazenamento[],
-  produtos: Produto[]
+  produtos: Produto[],
+  setores: any[] | null
 ) =>
   ({
     columns: [
@@ -129,7 +131,11 @@ const formBuilder = (
                 name: "setor",
                 label: "Setor",
                 placeholder: "Digite o setor",
-                type: "text",
+                type: "select",
+                options: (setores || []).map((setor) => ({
+                  value: setor.nome,
+                  label: setor.nome,
+                })),
                 required: true,
               },
             ],
@@ -183,6 +189,7 @@ function ProdutoForm({
   grupos,
   armazenamentos,
   produtos,
+  setores,
 }: ProdutoProps & ModeFormHandlerProp) {
   const supabase = createBrowserClient();
   const router = useRouter();
@@ -219,7 +226,7 @@ function ProdutoForm({
     <EntityFormHandler<Produto>
       mode={mode}
       entity={produto}
-      builder={formBuilder(grupos, armazenamentos, produtos)}
+      builder={formBuilder(grupos, armazenamentos, produtos, setores)}
       onSubmit={handleSubmit}
       tableCollection="produtos"
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}

@@ -32,8 +32,8 @@ export default function Admin() {
       route: "impressoras",
     },
     {
-      title: "Códigos",
-      route: "codigos",
+      title: "Setor",
+      route: "setores",
     },
     {
       title: "SIF",

@@ -27,7 +27,6 @@ export function ButtonRemoveItem<T>({
   entity,
   keyProp,
 }: ButtonRemoveProps<T>) {
-  console.log({ keyProp, entity });
   const router = useRouter();
   const pathname = usePathname();
 

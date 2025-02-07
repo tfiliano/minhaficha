@@ -15,6 +15,7 @@ import { Etiquetas } from "./Etiquetas";
 import { Impressora } from "./Impressoras";
 import { Loja } from "./Loja";
 import { ButtonRemoveItem } from "./remove-item-table";
+import { Setores } from "./Setores";
 import { SIF } from "./SIF";
 import { Usuarios } from "./Usuario";
 
@@ -30,6 +31,7 @@ export const Forms = {
   Codigo,
   Loja,
   Usuarios,
+  Setores,
 };
 
 export function FormContent({ children }: PropsWithChildren) {
