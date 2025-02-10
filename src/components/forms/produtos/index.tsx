@@ -166,7 +166,7 @@ const formBuilder = (
             fields: [
               {
                 name: "originado",
-                label: "Produto (Pai) 2",
+                label: "Produto (Pai)",
                 placeholder: "Selecione o produto",
                 type: "combobox",
                 options: produtos.map((produto) => ({
@@ -174,7 +174,7 @@ const formBuilder = (
                   label: produto.nome,
                 })),
                 addNew: false,
-                required: true,
+                required: false,
               },
             ],
           },
