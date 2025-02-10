@@ -59,7 +59,7 @@ function LojaForm({ mode, loja }: LojaProps & ModeFormHandlerProp) {
     if (success) {
       toast.success(message);
       if (mode === "create") {
-        router.replace("/dashboard/lojas" + `/${result!.id}`);
+        router.replace("/dashboard/lojas");
       }
       executeRevalidationPath("/dashboard/lojs");
     } else {

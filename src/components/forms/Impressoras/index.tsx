@@ -54,8 +54,7 @@ function ImpressoraForm({
 
     if (success) {
       toast.success(message);
-      if (mode === "create")
-        router.replace("/admin/impressoras" + `/${result!.id}`);
+      if (mode === "create") router.replace("/admin/impressoras");
       executeRevalidationPath("/admin/impressoras");
     } else {
       toast.error(message);

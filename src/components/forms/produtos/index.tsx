@@ -217,7 +217,7 @@ function ProdutoForm({
 
     if (success) {
       toast.success(message);
-      if (mode === "create") router.push("/admin/produtos" + `/${result!.id}`);
+      if (mode === "create") router.push("/admin/produtos");
       executeRevalidationPath("/admin/produtos");
     } else {
       toast.error(message);

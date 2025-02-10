@@ -72,8 +72,7 @@ function OperadorForm({ mode, operador }: OperadorProps & ModeFormHandlerProp) {
 
     if (success) {
       toast.success(message);
-      if (mode === "create")
-        router.push("/admin/operadores" + `/${result!.id}`);
+      if (mode === "create") router.push("/admin/operadores");
       executeRevalidationPath("/admin/operadores");
     } else {
       toast.error(message);

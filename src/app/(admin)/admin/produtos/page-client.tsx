@@ -7,6 +7,7 @@ import { Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PropsWithChildren, useState } from "react";
+import { ButtonExcel } from "../button-excel";
 import { ButtonAdd } from "../button-new";
 
 type Produto = Tables<`produtos`>;
@@ -49,7 +50,14 @@ export function ProdutosPageClient({
           size={20}
         />
       </div>
-      <ButtonAdd />
+      <div className="flex items-end justify-end w-full gap-4">
+        <div>
+          <ButtonExcel />
+        </div>
+        <div>
+          <ButtonAdd />
+        </div>
+      </div>
       <GridItems>
         {(produtosFiltrados || [])?.map((produto) => {
           return (

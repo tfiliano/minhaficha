@@ -68,8 +68,7 @@ function FabricanteForm({
 
     if (success) {
       toast.success(message);
-      if (mode === "create")
-        router.push("/admin/fabricantes" + `/${result!.id}`);
+      if (mode === "create") router.push("/admin/fabricantes");
       executeRevalidationPath("/admin/fabricantes");
     } else {
       toast.error(message);

@@ -51,7 +51,7 @@ function SIFForm({ mode, sif }: SIFProps & ModeFormHandlerProp) {
 
     if (success) {
       toast.success(message);
-      if (mode === "create") router.replace("/admin/sifs" + `/${result!.id}`);
+      if (mode === "create") router.replace("/admin/sifs");
       executeRevalidationPath("/admin/sifs");
     } else {
       toast.error(message);

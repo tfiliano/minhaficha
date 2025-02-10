@@ -72,7 +72,7 @@ function SetorForm({ mode, setor }: SetorProps & ModeFormHandlerProp) {
 
     if (success) {
       toast.success(message);
-      if (mode === "create") router.push("/admin/setores" + `/${result!.id}`);
+      if (mode === "create") router.push("/admin/setores");
       executeRevalidationPath("/admin/setores");
     } else {
       toast.error(message);

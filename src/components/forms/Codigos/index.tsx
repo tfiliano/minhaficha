@@ -51,8 +51,7 @@ function CodigoForm({ mode, codigo }: CodigosProps & ModeFormHandlerProp) {
 
     if (success) {
       toast.success(message);
-      if (mode === "create")
-        router.replace("/admin/codigos" + `/${result!.id}`);
+      if (mode === "create") router.replace("/admin/codigos");
       executeRevalidationPath("/admin/codigos");
     } else {
       toast.error(message);
