@@ -165,16 +165,16 @@ const formBuilder = (
           {
             fields: [
               {
-                name: "produto_id",
-                label: "Produto (Pai)",
+                name: "originado",
+                label: "Produto (Pai) 2",
                 placeholder: "Selecione o produto",
                 type: "combobox",
                 options: produtos.map((produto) => ({
-                  value: produto.id,
+                  value: produto.codigo,
                   label: produto.nome,
                 })),
                 addNew: false,
-                required: false,
+                required: true,
               },
             ],
           },
@@ -194,6 +194,8 @@ function ProdutoForm({
   const supabase = createBrowserClient();
   const router = useRouter();
   const handleSubmit = async (data: Produto) => {
+    console.log(data);
+
     const grupo = grupos.find((g) => g.id === data.grupo_id);
     if (grupo) Object.assign(data, { grupo: grupo.nome });
 
