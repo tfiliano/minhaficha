@@ -29,8 +29,11 @@ export const generateSchema = (columns: Column[], schemaFields: any = {}) => {
     if (column.rows) {
       for (let row of column.rows) {
         for (let field of row.fields) {
-          if (field.required === false) continue;
           let schema;
+          if (!field.required) {
+            schema = z.any().optional();
+            continue;
+          }
           switch (field.type) {
             case "number":
               schema = z.number({
