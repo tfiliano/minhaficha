@@ -31,42 +31,41 @@ export const generateSchema = (columns: Column[], schemaFields: any = {}) => {
         for (let field of row.fields) {
           let schema;
           if (!field.required) {
-            schema = z.any().optional();
-            continue;
-          }
-          switch (field.type) {
-            case "number":
-              schema = z.number({
-                required_error: "Campo obrigatório",
-                invalid_type_error: "Campo numerico",
-              });
-              break;
-            case "combobox":
-            case "select":
-              if ((field as SelectField)?.valueAs === "number") {
+            schema = z.any().nullable();
+          } else {
+            switch (field.type) {
+              case "number":
                 schema = z.number({
                   required_error: "Campo obrigatório",
                   invalid_type_error: "Campo numerico",
                 });
-              } else {
+                break;
+              case "combobox":
+              case "select":
+                if ((field as SelectField)?.valueAs === "number") {
+                  schema = z.number({
+                    required_error: "Campo obrigatório",
+                    invalid_type_error: "Campo numerico",
+                  });
+                } else {
+                  schema = z
+                    .string({ required_error: "Campo obrigatório" })
+                    .min(1);
+                }
+                break;
+              case "email":
+                schema = z.string({ required_error: "Campo obrigatório" }).email({
+                  message: "Email inválido",
+                });
+                break;
+              default:
                 schema = z
-                  .string({ required_error: "Campo obrigatório" })
+                  .string({
+                    required_error: "Campo obrigatório",
+                    invalid_type_error: "Campo não pode ficar vazio.",
+                  })
                   .min(1);
-              }
-
-              break;
-            case "email":
-              schema = z.string({ required_error: "Campo obrigatório" }).email({
-                message: "Email inválido",
-              });
-              break;
-            default:
-              schema = z
-                .string({
-                  required_error: "Campo obrigatório",
-                  invalid_type_error: "Campo não pode ficar vazio.",
-                })
-                .min(1);
+            }
           }
 
           setNestedSchemaField(field.name, schema);
