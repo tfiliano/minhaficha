@@ -7,6 +7,7 @@ export type Inputs = {
   peso_bruto: number | null;
   peso_liquido: number;
   peso_perda: number;
+  quantidade: number;
   fator_correcao: number;
 
   produto_nome?: string | null;

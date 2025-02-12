@@ -36,6 +36,7 @@ const INIT_PRODUCAO = {
   peso_bruto: null,
   peso_perda: 0,
   fator_correcao: 0,
+  quantidade: 1,
   produto_nome: "",
   operador: "",
 };
@@ -174,6 +175,13 @@ export function ProducaoForm({
             <TableRow>
               <TableCell className="font-medium">{produto.nome}</TableCell>
               <TableCell>
+                  <Input
+                    type="number"
+                    pattern="^[$\-\s]*[\d\,]*?([\.]\d{0,10})?\s*$"
+                    {...register("quantidade", { valueAsNumber: true, })}
+                  />
+                </TableCell>
+              <TableCell>
                 <Input
                   type="number"
                   placeholder={""}
@@ -279,7 +287,7 @@ export function ProducaoForm({
                   <TableBody>
                     <TableRow>
                       <TableCell>{producao!.produto_nome}</TableCell>
-                      <TableCell>-</TableCell>
+                      <TableCell>{producao!.quantidade}</TableCell>
                       <TableCell>{producao!.peso_bruto} Kg</TableCell>
                     </TableRow>
                   </TableBody>
