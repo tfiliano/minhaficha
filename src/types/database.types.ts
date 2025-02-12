@@ -455,7 +455,7 @@ export type Database = {
             columns: ["originado"];
             isOneToOne: false;
             referencedRelation: "produtos";
-            referencedColumns: ["codigo"];
+            referencedColumns: ["id"];
           }
         ];
       };
