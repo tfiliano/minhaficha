@@ -25,7 +25,7 @@ export default async function Producao(props: Props) {
   const { data: items } = await supabase
     .from("produtos")
     .select()
-    .eq("originado", params.get("produto")!);
+    .eq("originado", params.get("produtoId")!);
 
   const { data: produto } = await supabase
     .from("produtos")
