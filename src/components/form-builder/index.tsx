@@ -30,7 +30,7 @@ class BlurActionRegistry {
 export const blurActionRegistry = new BlurActionRegistry();
 
 export type Option = {
-  value: string | number;
+  value: string | number | null;
   label: string;
 };
 
@@ -151,7 +151,7 @@ export interface RadioField extends BaseField {
 
 export interface SelectField extends BaseField {
   type: "select";
-  options: { value: string | number | boolean; label: string }[];
+  options: { value: string | number | boolean | null; label: string }[];
   valueAs?: "number" | "string" | "boolean";
   copy?: {
     onEvent: "onchange" | "click";
@@ -255,8 +255,11 @@ export function copyAndAddRow({
     ignores: string[] | undefined,
     qty: number | undefined
   ): Column[] => {
+    console.log("columns", columns)
     return columns.map((column) => {
+      console.log("each column", column)
       if (column.id === columnId) {
+        console.log("column ", column)
         let quantity = qty || 0;
         if (isNaN(quantity)) quantity = 1;
 
