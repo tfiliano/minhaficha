@@ -38,6 +38,8 @@ const INIT_PRODUCAO = {
   fator_correcao: 0,
   quantidade: 1,
   produto_nome: "",
+  produto_id: null,
+  grupo_id: null,
   operador: "",
 };
 
@@ -67,6 +69,8 @@ export function ProducaoForm({
       operador: getParam("operador"),
       setor: getParam("setor"),
       produto: getParam("produto"),
+      produto_id: getParam("produtoId"),
+      grupo_id: produto.grupo_id,
       produto_nome: getParam("produtoDesc"),
     },
   });

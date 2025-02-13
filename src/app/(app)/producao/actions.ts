@@ -14,6 +14,7 @@ export type Inputs = {
   produto_id?: string | null;
   produto?: string | null;
   setor?: string | null;
+  grupo_id?: string | null;
   operador?: string | null;
   operador_id?: string | null;
 };

@@ -40,6 +40,10 @@ export default function Admin() {
       route: "sifs",
     },
     {
+      title: "Relatórios",
+      route: "reports",
+    },
+    {
       title: "Config. da Loja",
       route: "configuracoes",
     },
