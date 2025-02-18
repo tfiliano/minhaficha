@@ -19,7 +19,8 @@ export async function createClient() {
         table !== "loja_usuarios" &&
         table !== "usuarios" &&
         table !== "lojas" &&
-        table !== "usuarios_masters"
+        table !== "usuarios_masters" &&
+        table !== "impressoras"
       ) {
         const query = fn(...args);
         return query.eq("loja_id", loja_id!);
@@ -29,7 +30,18 @@ export async function createClient() {
         table !== "loja_usuarios" &&
         table !== "usuarios" &&
         table !== "lojas" &&
-        table !== "usuarios_masters"
+        table !== "usuarios_masters" &&
+        table !== "impressoras"
+      ) {
+        if (!args[0].loja_id) args[0].loja_id = loja_id;
+      }
+      if (
+        method === "upsert" &&
+        table !== "loja_usuarios" &&
+        table !== "usuarios" &&
+        table !== "lojas" &&
+        table !== "usuarios_masters" &&
+        table !== "impressoras"
       ) {
         if (!args[0].loja_id) args[0].loja_id = loja_id;
       }

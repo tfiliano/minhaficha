@@ -1,63 +1,18 @@
 import { AnimationTransitionPage } from "@/components/animation";
 import { CardButton, ContentGrid } from "@/components/layout";
+import { adminMenuOptions } from "@/config/menu-options";
 
 export default function Admin() {
-  const menu = [
-    {
-      title: "Produtos",
-      route: "produtos",
-    },
-    {
-      title: "Etiquetas",
-      route: "etiquetas",
-    },
-    {
-      title: "Grupos",
-      route: "grupos",
-    },
-    {
-      title: "Armazenamento",
-      route: "armazenamentos",
-    },
-    {
-      title: "Operadores",
-      route: "operadores",
-    },
-    {
-      title: "Fabricantes",
-      route: "fabricantes",
-    },
-    {
-      title: "Impressoras",
-      route: "impressoras",
-    },
-    {
-      title: "Setor",
-      route: "setores",
-    },
-    {
-      title: "SIF",
-      route: "sifs",
-    },
-    {
-      title: "Relatórios",
-      route: "reports",
-    },
-    {
-      title: "Config. da Loja",
-      route: "configuracoes",
-    },
-  ];
-
+  
   return (
     <AnimationTransitionPage>
       <ContentGrid>
-        {menu.map((item) => (
+        {adminMenuOptions.map((item) => (
           <CardButton
-            key={item.title}
-            title={item.title}
+            key={item.label}
+            title={item.label}
             url={{
-              pathname: `admin/${item.route}`,
+              pathname: `admin/${item.href}`,
             }}
           />
         ))}
