@@ -87,7 +87,7 @@ export async function testPrinter(id: string) {
       status: "pending",
       impressora_id: id,
       quantidade: 1,
-      test_print: true
+      // test_print: true
     });
 
   if (error) throw new Error(error.message);

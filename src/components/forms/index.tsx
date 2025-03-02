@@ -10,7 +10,6 @@ import { FormBuilder2 } from "@/components/form-builder";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@/hooks/use-router";
 import { PublicSchema } from "@/types/database.types";
-import { Codigo } from "./Codigos";
 import { Etiquetas } from "./Etiquetas";
 import { Impressora } from "./Impressoras";
 import { Loja } from "./Loja";
@@ -28,7 +27,6 @@ export const Forms = {
   Etiquetas,
   Impressora,
   SIF,
-  Codigo,
   Loja,
   Usuarios,
   Setores,

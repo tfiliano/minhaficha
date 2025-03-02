@@ -105,11 +105,11 @@ export default function TemplateEditorPage({ params }: { params?: { id: string }
           const templates = await getTemplates();
           const template = templates.find(t => t.id === params.id);
           if (template) {
-            setTemplateName(template.nome);
-            setZpl(template.zpl);
-            setFields(template.campos);
-            setLabelWidth(template.width);
-            setLabelHeight(template.height);
+            setTemplateName(template.nome ?? "");
+            setZpl(template.zpl ?? "");
+            setFields((template.campos ?? []) as unknown as FieldPosition[]);
+            setLabelWidth(template.width ?? 0);
+            setLabelHeight(template.height ?? 0);
           }
         }
       } catch (error: any) {
@@ -173,9 +173,9 @@ export default function TemplateEditorPage({ params }: { params?: { id: string }
       setSaving(true);
       await saveTemplate({
         id: params?.id,
-        name: templateName,
+        nome: templateName,
         zpl,
-        fields,
+        campos: fields,
         width: labelWidth,
         height: labelHeight
       });

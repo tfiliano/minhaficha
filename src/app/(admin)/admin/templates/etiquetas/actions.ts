@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/utils/supabase";
+import type { Json } from "@/types/database.types";
 
 interface FieldPosition {
   name: string;
@@ -15,9 +16,9 @@ interface FieldPosition {
 
 interface TemplateData {
   id?: string;
-  name: string;
+  nome: string;
   zpl: string;
-  fields: FieldPosition[];
+  campos: FieldPosition[];
   width: number;
   height: number;
 }
@@ -29,9 +30,9 @@ export async function saveTemplate(template: TemplateData) {
     .from("templates_etiquetas")
     .upsert({
       id: template.id,
-      nome: template.name,
+      nome: template.nome,
       zpl: template.zpl,
-      campos: template.fields,
+      campos: template.campos as unknown as Json,
       width: template.width,
       height: template.height
     }, {
@@ -71,7 +72,7 @@ export async function testPrint(templateId: string, testData: Record<string, str
       .single();
 
     if (templateError) throw new Error(templateError.message);
-    zpl = template.zpl;
+    zpl = template.zpl ?? '';
   }
 
   // Replace placeholders with test data
@@ -86,7 +87,7 @@ export async function testPrint(templateId: string, testData: Record<string, str
       command: zpl,
       status: "pending",
       quantidade: 1,
-      test_print: true
+      // test_print: true
     });
 
   if (error) throw new Error(error.message);

@@ -129,13 +129,13 @@ export default function PrintQueuePage() {
                 <TableCell>{job.impressora?.nome || "-"}</TableCell>
                 <TableCell>{job.quantidade}</TableCell>
                 <TableCell>{getStatusBadge(job.status)}</TableCell>
-                <TableCell>
+                {/* <TableCell>
                   {job.test_print ? (
                     <Badge variant="secondary">Teste</Badge>
                   ) : (
                     <Badge variant="default">Produção</Badge>
                   )}
-                </TableCell>
+                </TableCell> */}
                 <TableCell className="text-right space-x-2">
                   {job.status === "failed" && (
                     <Button

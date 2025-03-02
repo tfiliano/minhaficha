@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { LoaderCircle, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import type { Json } from "@/types/database.types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,11 +22,11 @@ import {
 
 interface Template {
   id: string;
-  nome: string;
-  zpl: string;
-  campos: any[];
-  width: number;
-  height: number;
+  nome: string | null;
+  zpl: string | null;
+  campos: Json[];
+  width: number | null;
+  height: number | null;
 }
 
 export default function TemplateListPage() {
@@ -40,7 +41,7 @@ export default function TemplateListPage() {
 
   const loadTemplates = async () => {
     try {
-      const data = await getTemplates();
+      const data = await getTemplates() as Template[];
       setTemplates(data);
     } catch (error: any) {
       toast.error(error.message || "Erro ao carregar templates");

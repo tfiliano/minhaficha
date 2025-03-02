@@ -9,7 +9,7 @@ export interface PrintJob {
   command: string | null;
   impressora_id: string | null;
   quantidade: number | null;
-  test_print: boolean | null;
+  // test_print: boolean | null;
   produto: {
     nome: string;
   } | null;
