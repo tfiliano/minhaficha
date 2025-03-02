@@ -1,4 +1,4 @@
-import { AnimationTransitionPage } from "@/components/animation";
+timport { AnimationTransitionPage } from "@/components/animation";
 import { ContentGrid } from "@/components/layout";
 import { createClient } from "@/utils/supabase";
 import { ProdutosPageClient } from "./page-client";
