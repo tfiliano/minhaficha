@@ -231,7 +231,7 @@ export default function PrintersPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Impressora</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir a impressora "{printerToDelete?.nome}"?
+              Tem certeza que deseja excluir a impressora &quot;{printerToDelete?.nome}&quot;?
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>

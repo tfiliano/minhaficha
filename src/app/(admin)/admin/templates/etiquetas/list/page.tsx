@@ -132,7 +132,7 @@ export default function TemplateListPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Template</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o template "{templateToDelete?.nome}"?
+              Tem certeza que deseja excluir o template &quot;{templateToDelete?.nome}&quot;?
               Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>

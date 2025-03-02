@@ -6,6 +6,9 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+// Helper type to maintain backward compatibility with existing code
+export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
+
 export interface Database {
   public: {
     Tables: {
@@ -279,6 +282,38 @@ export interface Database {
             columns: ["produto_id"];
             isOneToOne: false;
             referencedRelation: "produtos";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      locais_armazenamento: {
+        Row: {
+          id: string;
+          armazenamento: string;
+          metodo: string;
+          created_at: string;
+          loja_id: string | null;
+        };
+        Insert: {
+          id?: string;
+          armazenamento: string;
+          metodo: string;
+          created_at?: string;
+          loja_id?: string | null;
+        };
+        Update: {
+          id?: string;
+          armazenamento?: string;
+          metodo?: string;
+          created_at?: string;
+          loja_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "locais_armazenamento_loja_id_fkey";
+            columns: ["loja_id"];
+            isOneToOne: false;
+            referencedRelation: "lojas";
             referencedColumns: ["id"];
           }
         ];
