@@ -1,21 +1,63 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
-const dotenv = require('dotenv');
 const net = require('net');
 const fs = require('fs');
+const { spawn } = require('child_process');
+
 
 // Load environment variables
-dotenv.config();
+let config;
+try {
+  // Em desenvolvimento, busca na raiz do projeto
+  if (process.env.NODE_ENV === 'development') {
+    config = require('../config.json');
+  } else {
+    // Em produção, busca no diretório de recursos do app
+    const configPath = path.join(process.resourcesPath, 'config.json');
+    config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  }
+} catch (error) {
+  console.error('Erro ao carregar configuração:', error);
+  // Mostrar uma janela de erro e fechar o aplicativo
+  app.whenReady().then(() => {
+    const errorWindow = new BrowserWindow({
+      width: 500,
+      height: 300,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false
+      }
+    });
+    
+    errorWindow.loadURL(`data:text/html,
+      <html>
+        <body>
+          <h2>Erro de Configuração</h2>
+          <p>Não foi possível carregar as configurações necessárias.</p>
+          <p>Erro: ${error.message}</p>
+          <p>Verifique se o arquivo config.json existe e contém os dados corretos.</p>
+        </body>
+      </html>
+    `);
+    
+    errorWindow.on('closed', () => {
+      app.quit();
+    });
+  });
+  return;
+}
+
+let pollingTimeout;
 
 // Initialize Supabase client
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
+  config.supabaseUrl,
+  config.supabaseKey
 );
 
 // Poll interval for checking print queue (in milliseconds)
-const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL) || 5000;
+const POLL_INTERVAL = config.pollInterval || 5000;
 
 // Keep a reference to the main window to prevent garbage collection
 let mainWindow;
@@ -64,9 +106,26 @@ app.whenReady().then(() => {
 // Quit when all windows are closed (except on macOS)
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    if (pollingTimeout) {
+      clearTimeout(pollingTimeout);
+    }
     app.quit();
   }
 });
+
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  console.log('Outra instância do aplicativo já está em execução. Fechando esta instância.');
+  app.quit();
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
 
 // Function to send ZPL to printer
 async function sendToPrinter(ip, port, zpl) {
@@ -185,13 +244,42 @@ async function pollPrintQueue() {
   }
 
   // Schedule next poll
-  setTimeout(pollPrintQueue, POLL_INTERVAL);
+  pollingTimeout = setTimeout(pollPrintQueue, POLL_INTERVAL);
 }
 
 // Start the print service
 function startPrintService() {
   console.log('Print service starting...');
   pollPrintQueue();
+}
+
+// Em algum lugar após a criação da janela
+function checkForUpdates() {
+  // Adicione um hook para verificar e aplicar atualizações
+  ipcMain.handle('check-for-updates', async () => {
+    // Lógica para verificar se existe nova versão disponível
+    return { updateAvailable: false }; // Substitua com sua lógica real
+  });
+  
+  ipcMain.handle('apply-update', async () => {
+    try {
+      // Caminho para o instalador da nova versão
+      const installerPath = path.join(process.resourcesPath, 'update.exe');
+      
+      // Executa o instalador silenciosamente e fecha este aplicativo
+      spawn(installerPath, ['/S'], {
+        detached: true,
+        stdio: 'ignore'
+      });
+      
+      // Fecha o aplicativo atual com atraso para permitir o início do instalador
+      setTimeout(() => app.quit(), 1000);
+      
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  });
 }
 
 // IPC handlers for renderer process communication
@@ -454,5 +542,20 @@ ipcMain.handle('generate-zpl-preview', async (event, zpl) => {
   } catch (error) {
     console.error('Error generating ZPL preview:', error);
     return { success: false, error: error.message };
+  }
+});
+
+// Adicione limpeza adequada
+app.on('before-quit', () => {
+  console.log('Aplicativo sendo encerrado...');
+  if (pollingTimeout) {
+    console.log('Limpando timer de polling');
+    clearTimeout(pollingTimeout);
+  }
+  
+  // Forçar fechamento de todas as conexões
+  if (mainWindow) {
+    console.log('Destruindo janela principal');
+    mainWindow.destroy();
   }
 });

@@ -1,17 +1,55 @@
 {
-  "name": "print-service",
-  "version": "1.0.0",
-  "description": "ZPL Print Service",
+  "name": "minhaficha-gerenciador-impressao",
+  "version": "1.0.2",
+  "description": "Gerenciador de Impressão para Minha Ficha",
   "main": "src/main.js",
+  "keywords": [],
+  "author": "Centre Soluções em Tecnologia Ltda",
+  "license": "ISC",
   "scripts": {
     "start": "electron .",
     "dev": "NODE_ENV=development electron .",
     "build": "electron-builder",
-    "postinstall": "electron-builder install-app-deps"
+    "build:win": "node scripts/prepare-nsis.js && electron-builder --win --x64 --config.nsis.differentialPackage=false",
+    "postinstall": "node scripts/setup-nsis.js",
+    "prepare-rebuild": "node scripts/force-kill.js && node scripts/prepare-nsis.js",
+    "rebuild": "npm run prepare-rebuild && electron-builder --win --x64 --force"    
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "build": {
+    "appId": "com.minhaficha.gerenciador-impressao",
+    "productName": "Minha Ficha - Print Service",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "node_modules/**/*",
+      "package.json",
+      "config.json"
+    ],
+    "extraResources": [
+      {
+        "from": "config.json",
+        "to": "config.json"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "src/assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "runAfterFinish": false,
+      "uninstallDisplayName": "Minha Ficha - Print Service",
+      "include": "build/installer.nsh",
+      "perMachine": false,
+      "deleteAppDataOnUninstall": true,
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    }
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
     "dotenv": "^16.4.4",
@@ -20,46 +58,5 @@
   "devDependencies": {
     "electron": "^29.4.6",
     "electron-builder": "^24.9.1"
-  },
-  "build": {
-    "appId": "com.minhaficha.print-service",
-    "productName": "Serviço de Impressão",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "src/**/*",
-      "node_modules/**/*",
-      "package.json"
-    ],
-   "mac": {
-      "category": "public.app-category.utilities",
-      "target": [
-        {
-          "target": "dmg",
-          "arch": ["x64", "arm64"]
-        },
-        {
-          "target": "zip",
-          "arch": ["x64", "arm64"]
-        }
-      ]
-    },
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64", "ia32"]
-        }
-      ]
-    },
-    "linux": {
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": ["x64"]
-        }
-      ]
-    }
-}
+  }
 }
