@@ -11,6 +11,7 @@
     "dev": "NODE_ENV=development electron .",
     "build": "electron-builder",
     "build:win": "node scripts/prepare-nsis.js && electron-builder --win --x64 --config.nsis.differentialPackage=false",
+    "build:win-files": "electron-builder --win --x64 --dir",
     "postinstall": "node scripts/setup-nsis.js",
     "prepare-rebuild": "node scripts/force-kill.js && node scripts/prepare-nsis.js",
     "rebuild": "npm run prepare-rebuild && electron-builder --win --x64 --force"    
