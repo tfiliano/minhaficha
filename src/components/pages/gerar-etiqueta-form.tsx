@@ -1,19 +1,26 @@
 "use client";
 
-import { SubmitHandler, useForm } from "react-hook-form";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { toast } from "sonner";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useRouter } from "@/hooks/use-router";
 import { cn } from "@/lib/utils";
+import { addDays } from "date-fns";
 import { LoaderCircle } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { gerarEtiqueta, getImpressoras, getTemplates } from "./actions";
 import { PrintDialog } from "./print-dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
-import { Label } from "../ui/label";
 
 interface IEtiqueta {
   validade: string;
@@ -53,7 +60,9 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
   const [showPrintDialog, setShowPrintDialog] = useState(false);
-  const [printers, setPrinters] = useState<Array<{ id: string; nome: string }>>([]);
+  const [printers, setPrinters] = useState<Array<{ id: string; nome: string }>>(
+    []
+  );
   const [templates, setTemplates] = useState<Template[]>([]);
   const [formData, setFormData] = useState<IEtiqueta | null>(null);
   const router = useRouter();
@@ -67,6 +76,10 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
       ...INIT_ETIQUETA,
       operador_id: getParam("operadorId"),
       produto_id: getParam("produtoId"),
+
+      validade: produto.dias_validade
+        ? addDays(new Date(), produto.dias_validade).toISOString().split("T")[0]
+        : undefined,
     },
   });
 
@@ -76,7 +89,7 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
       try {
         const [printersData, templatesData] = await Promise.all([
           getImpressoras(),
-          getTemplates()
+          getTemplates(),
         ]);
         setPrinters(printersData);
         setTemplates(templatesData);
@@ -114,7 +127,7 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
         ...formData,
         impressora: printer,
         quantidade: quantity,
-        produto_nome: produto.nome
+        produto_nome: produto.nome,
       });
 
       router.replace("/");
@@ -175,7 +188,12 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
             <TableRow>
               <TableCell className="font-medium">Validade</TableCell>
               <TableCell>
-                <Input type="Date" {...register("validade")} />
+                <Input
+                  type="Date"
+                  {...register("validade")}
+                  readOnly={!!produto.dias_validade}
+                  disabled={!!produto.dias_validade}
+                />
               </TableCell>
             </TableRow>
             <TableRow>
