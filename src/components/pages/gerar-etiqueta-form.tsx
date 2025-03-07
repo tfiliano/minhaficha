@@ -29,7 +29,7 @@ interface IEtiqueta {
   sif: string;
   operador_id?: string | null;
   produto_id?: string | null;
-  impressora?: string;
+  impressora_id?: string;
   quantidade?: number;
   template_id?: string;
 }
@@ -125,7 +125,7 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
 
       await gerarEtiqueta({
         ...formData,
-        impressora: printer,
+        impressora_id: printer,
         quantidade: quantity,
         produto_nome: produto.nome,
       });

@@ -19,7 +19,7 @@ interface EtiquetaData {
   produto?: string;
   sif?: string;
   temperatura?: string;
-  impressora?: string;
+  impressora_id?: string;
   quantidade?: number;
   [key: string]: any;
 }
