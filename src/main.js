@@ -4,6 +4,15 @@ const { createClient } = require('@supabase/supabase-js');
 const net = require('net');
 const fs = require('fs');
 const { spawn } = require('child_process');
+const MockPrinterService = require('./mockPrinterService');
+
+// Configuration for test mode
+const TEST_MODE = process.env.TEST_MODE === 'true';
+const mockPrinterService = new MockPrinterService({
+  successRate: 0.7, // 70% success for tests
+  responseDelay: 1000, // 1000ms delay
+  randomFailures: true
+});
 
 
 // Load environment variables
@@ -129,6 +138,12 @@ if (!gotTheLock) {
 
 // Function to send ZPL to printer
 async function sendToPrinter(ip, port, zpl) {
+  // Use mock printer service in test mode
+  if (TEST_MODE) {
+    console.log(`[TEST MODE] Sending to mock printer at ${ip}:${port}`);
+    return mockPrinterService.sendToPrinter(ip, port, zpl);
+  }
+
   return new Promise((resolve, reject) => {
     const client = new net.Socket();
     let responseData = '';
@@ -158,20 +173,31 @@ async function sendToPrinter(ip, port, zpl) {
   });
 }
 
-// Function to process a single print job
-async function processPrintJob(job) {
+// Configuration for print retry 
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  initialDelay: 5000,    // 5 seconds
+  backoffFactor: 2,      // Exponential backoff
+  maxPrintingState: 300000 // 5 minutes max in printing state
+};
+
+// Function to process a single print job with retries
+async function processPrintJob(job, attemptNumber = 1) {
   try {
-    console.log(`Processing job ${job.id}`);
+    console.log(`Processing job ${job.id} (attempt ${attemptNumber})`);
 
     // Update status to printing
     await supabase
       .from('etiquetas')
-      .update({ status: 'printing' })
+      .update({ 
+        status: 'printing',
+        processing_started_at: new Date().toISOString()
+      })
       .eq('id', job.id);
 
     // Get printer details
     if (!job.impressora_id) {
-      throw new Error('No printer assigned to job');
+      throw new Error('Nenhuma impressora atribuída ao trabalho');
     }
 
     const { data: printer, error: printerError } = await supabase
@@ -180,7 +206,7 @@ async function processPrintJob(job) {
       .eq('id', job.impressora_id)
       .single();
 
-    if (printerError) throw new Error(`Printer not found: ${printerError.message}`);
+    if (printerError) throw new Error(`Impressora não encontrada: ${printerError.message}`);
 
     // Send to printer
     await sendToPrinter(printer.ip, printer.port || 9100, job.command);
@@ -188,7 +214,10 @@ async function processPrintJob(job) {
     // Update status to completed
     await supabase
       .from('etiquetas')
-      .update({ status: 'completed' })
+      .update({ 
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      })
       .eq('id', job.id);
 
     console.log(`Job ${job.id} completed successfully`);
@@ -203,12 +232,35 @@ async function processPrintJob(job) {
   } catch (error) {
     console.error(`Error processing job ${job.id}:`, error);
 
-    // Update status to failed
+    // If within retry limit, attempt retry
+    if (attemptNumber < RETRY_CONFIG.maxRetries) {
+      console.log(`Scheduling retry ${attemptNumber + 1} for job ${job.id} in ${RETRY_CONFIG.initialDelay * Math.pow(RETRY_CONFIG.backoffFactor, attemptNumber - 1)}ms`);
+      
+      // Add retry information
+      await supabase
+        .from('etiquetas')
+        .update({ 
+          retry_count: attemptNumber,
+          last_error: error.message,
+          next_retry_at: new Date(Date.now() + RETRY_CONFIG.initialDelay * Math.pow(RETRY_CONFIG.backoffFactor, attemptNumber - 1)).toISOString()
+        })
+        .eq('id', job.id);
+        
+      // Schedule retry with exponential backoff
+      setTimeout(() => {
+        processPrintJob(job, attemptNumber + 1);
+      }, RETRY_CONFIG.initialDelay * Math.pow(RETRY_CONFIG.backoffFactor, attemptNumber - 1));
+      
+      return;
+    }
+
+    // Update status to failed after all retries
     await supabase
       .from('etiquetas')
       .update({ 
         status: 'failed',
-        error_message: error.message
+        error_message: `Falha na impressão após ${attemptNumber} tentativas: ${error.message}`,
+        completed_at: new Date().toISOString()
       })
       .eq('id', job.id);
       
@@ -223,9 +275,61 @@ async function processPrintJob(job) {
   }
 }
 
-// Main polling function
+// Main polling function with enhanced job handling
 async function pollPrintQueue() {
   try {
+    // Check for stalled "printing" jobs first (jobs that have been in printing state for too long)
+    const { data: printingJobs, error: printingError } = await supabase
+      .from('etiquetas')
+      .select('*')
+      .eq('status', 'printing')
+      .order('created_at');
+      
+    if (printingError) throw printingError;
+    
+    for (const job of printingJobs || []) {
+      // Check if job has been in printing state for too long
+      const processingStartedAt = job.processing_started_at ? new Date(job.processing_started_at) : null;
+      const now = new Date();
+      
+      // If processing_started_at is missing or too old, mark as failed or retry
+      if (!processingStartedAt || (now - processingStartedAt > RETRY_CONFIG.maxPrintingState)) {
+        console.log(`Job ${job.id} has been in "printing" state for too long, marking as failed`);
+        
+        // If retry count is available and within limits, retry
+        if (job.retry_count < RETRY_CONFIG.maxRetries - 1) {
+          console.log(`Requeuing job ${job.id} for retry`);
+          await supabase
+            .from('etiquetas')
+            .update({ 
+              status: 'pending',
+              retry_count: (job.retry_count || 0) + 1,
+              processing_started_at: null
+            })
+            .eq('id', job.id);
+        } else {
+          // Otherwise mark as failed
+          await supabase
+            .from('etiquetas')
+            .update({ 
+              status: 'failed', 
+              error_message: 'Tempo limite de impressão excedido', 
+              completed_at: now.toISOString()
+            })
+            .eq('id', job.id);
+            
+          // Notify renderer
+          if (mainWindow) {
+            mainWindow.webContents.send('job-status-update', {
+              id: job.id,
+              status: 'failed',
+              error: 'Tempo limite de impressão excedido'
+            });
+          }
+        }
+      }
+    }
+
     // Get pending print jobs
     const { data: jobs, error } = await supabase
       .from('etiquetas')
@@ -237,7 +341,8 @@ async function pollPrintQueue() {
 
     // Process each job
     for (const job of jobs) {
-      await processPrintJob(job);
+      // Process jobs concurrently - no await here
+      processPrintJob(job);
     }
   } catch (error) {
     console.error('Error polling print queue:', error);
@@ -320,8 +425,7 @@ ipcMain.handle('retry-job', async (event, jobId) => {
     await supabase
       .from('etiquetas')
       .update({ 
-        status: 'pending',
-        error_message: null
+        status: 'pending'
       })
       .eq('id', jobId);
       
@@ -329,6 +433,72 @@ ipcMain.handle('retry-job', async (event, jobId) => {
   } catch (error) {
     console.error('Error retrying job:', error);
     return { error: error.message };
+  }
+});
+
+// Change printer for a job
+ipcMain.handle('change-printer', async (event, { jobId, printerId }) => {
+  try {
+    // Verify printer exists
+    const { data: printer, error: printerError } = await supabase
+      .from('impressoras')
+      .select('id, nome')
+      .eq('id', printerId)
+      .single();
+      
+    if (printerError) throw new Error(`Impressora não encontrada: ${printerError.message}`);
+    
+    // Update job with new printer - only update fields we know exist
+    const { data: updatedJob, error: updateError } = await supabase
+      .from('etiquetas')
+      .update({ 
+        impressora_id: printerId,
+        status: 'pending' // Reset status to pending
+      })
+      .eq('id', jobId)
+      .select('*, impressoras(nome)')
+      .single();
+      
+    if (updateError) throw updateError;
+    
+    return { 
+      success: true, 
+      job: updatedJob,
+      message: `Impressora alterada para ${printer.nome}`
+    };
+  } catch (error) {
+    console.error('Error changing printer:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+// Immediate reprocessing of a job
+ipcMain.handle('reprocess-job', async (event, jobId) => {
+  try {
+    // Get job details
+    const { data: job, error: jobError } = await supabase
+      .from('etiquetas')
+      .select('*')
+      .eq('id', jobId)
+      .single();
+      
+    if (jobError) throw new Error(`Trabalho não encontrado: ${jobError.message}`);
+    
+    // Reset job status and process immediately - only use fields we know exist
+    await supabase
+      .from('etiquetas')
+      .update({ 
+        status: 'pending'
+      })
+      .eq('id', jobId);
+    
+    // Process immediately (don't wait for the regular polling)
+    processPrintJob(job);
+      
+    return { success: true };
+  } catch (error) {
+    console.error('Error reprocessing job:', error);
+    return { success: false, error: error.message };
   }
 });
 

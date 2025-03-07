@@ -18,6 +18,8 @@ contextBridge.exposeInMainWorld(
     generateZplPreview: (zpl) => ipcRenderer.invoke('generate-zpl-preview', zpl),
     retryJob: (jobId) => ipcRenderer.invoke('retry-job', jobId),
     cancelJob: (jobId) => ipcRenderer.invoke('cancel-job', jobId),
+    changePrinter: (jobId, printerId) => ipcRenderer.invoke('change-printer', { jobId, printerId }),
+    reprocessJob: (jobId) => ipcRenderer.invoke('reprocess-job', jobId),
     
     // Event listeners
     onJobStatusUpdate: (callback) => {

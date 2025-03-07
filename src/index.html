@@ -472,6 +472,36 @@
       </div>
     </div>
     
+    <!-- Modal for changing printer -->
+    <div id="change-printer-modal" class="modal" style="display: none;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Trocar Impressora</h2>
+          <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="change-printer-job-id">
+          <div id="printer-selection-loading" class="loading">
+            <div class="spinner"></div>
+            <span>Carregando impressoras...</span>
+          </div>
+          <div id="printer-selection-error" class="error-message" style="display: none;"></div>
+          <div id="printer-selection-container" style="display: none;">
+            <p>Selecione a nova impressora para este trabalho:</p>
+            <div class="form-group">
+              <select id="printer-selection" class="form-select">
+                <option value="" disabled selected>Selecione uma impressora</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn close-modal-btn">Cancelar</button>
+            <button type="button" id="confirm-change-printer" class="btn">Trocar Impressora</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <div class="tabs">
       <button class="tab active" data-tab="printers">Lista de Impressoras</button>
       <button class="tab" data-tab="queue">Fila de Impressão</button>

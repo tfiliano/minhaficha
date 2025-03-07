@@ -182,6 +182,9 @@ async function loadPrintQueue() {
           <button class="btn btn-sm btn-success" onclick="previewJob('${job.id}')">
             Preview
           </button>
+          <button class="btn btn-sm" onclick="showChangePrinterModal('${job.id}')">
+            Trocar Impressora
+          </button>
         `;
         
         if (job.status === 'pending' || job.status === 'printing') {
@@ -194,6 +197,12 @@ async function loadPrintQueue() {
           actions += `
             <button class="btn btn-sm btn-warning" onclick="retryJob('${job.id}')">
               Tentar Novamente
+            </button>
+          `;
+        } else if (job.status === 'completed' || job.status === 'cancelled') {
+          actions += `
+            <button class="btn btn-sm" onclick="reprocessJob('${job.id}')">
+              Reprocessar
             </button>
           `;
         }
@@ -541,6 +550,114 @@ window.previewJob = async (jobId) => {
   }
 };
 
+// Change printer modal elements
+const changePrinterModal = document.getElementById('change-printer-modal');
+const changePrinterJobId = document.getElementById('change-printer-job-id');
+const printerSelectionLoading = document.getElementById('printer-selection-loading');
+const printerSelectionError = document.getElementById('printer-selection-error');
+const printerSelectionContainer = document.getElementById('printer-selection-container');
+const printerSelection = document.getElementById('printer-selection');
+const confirmChangePrinterBtn = document.getElementById('confirm-change-printer');
+
+// Show change printer modal
+window.showChangePrinterModal = async (jobId) => {
+  // Reset modal state
+  changePrinterJobId.value = jobId;
+  printerSelection.innerHTML = '<option value="" disabled selected>Selecione uma impressora</option>';
+  printerSelectionLoading.style.display = 'flex';
+  printerSelectionError.style.display = 'none';
+  printerSelectionContainer.style.display = 'none';
+  
+  // Show modal
+  showModal(changePrinterModal);
+  
+  try {
+    // Fetch printers
+    const printers = await window.api.getPrinters();
+    
+    if (printers.error) {
+      throw new Error(printers.error);
+    }
+    
+    // Get current job details to know current printer
+    const job = await window.api.getJobDetails(jobId);
+    
+    if (job.error) {
+      throw new Error(job.error);
+    }
+    
+    // Populate printer selection dropdown
+    printers.forEach(printer => {
+      const option = document.createElement('option');
+      option.value = printer.id;
+      option.textContent = printer.nome;
+      
+      // Mark current printer as selected
+      if (printer.id === job.impressora_id) {
+        option.selected = true;
+      }
+      
+      printerSelection.appendChild(option);
+    });
+    
+    // Show printer selection
+    printerSelectionContainer.style.display = 'block';
+  } catch (error) {
+    // Show error
+    printerSelectionError.textContent = `Erro ao carregar impressoras: ${error.message}`;
+    printerSelectionError.style.display = 'block';
+  } finally {
+    // Hide loading
+    printerSelectionLoading.style.display = 'none';
+  }
+};
+
+// Reprocess job
+window.reprocessJob = async (jobId) => {
+  try {
+    const result = await window.api.reprocessJob(jobId);
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Erro ao reprocessar trabalho');
+    }
+    
+    // Reload queue
+    loadPrintQueue();
+  } catch (error) {
+    alert(`Erro ao reprocessar trabalho: ${error.message}`);
+  }
+};
+
+// Confirm change printer button click
+confirmChangePrinterBtn.addEventListener('click', async () => {
+  const jobId = changePrinterJobId.value;
+  const newPrinterId = printerSelection.value;
+  
+  if (!newPrinterId) {
+    alert('Por favor, selecione uma impressora.');
+    return;
+  }
+  
+  try {
+    const result = await window.api.changePrinter(jobId, newPrinterId);
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Erro ao trocar impressora');
+    }
+    
+    // Hide modal
+    hideModal(changePrinterModal);
+    
+    // Show success message
+    alert(result.message || 'Impressora alterada com sucesso!');
+    
+    // Reload queue
+    loadPrintQueue();
+  } catch (error) {
+    alert(`Erro ao trocar impressora: ${error.message}`);
+  }
+});
+
 // Initial data load
 loadPrinters();
 
@@ -550,3 +667,35 @@ window.addEventListener('beforeunload', () => {
     removeJobStatusListener();
   }
 });
+
+// Enable test mode (for development only)
+window.enableTestMode = () => {
+  localStorage.setItem('testMode', 'true');
+  alert('Modo de teste ativado! As impressões serão processadas em um ambiente simulado.');
+  location.reload();
+};
+
+window.disableTestMode = () => {
+  localStorage.removeItem('testMode');
+  alert('Modo de teste desativado.');
+  location.reload();
+};
+
+// Check if test mode is enabled (for development only)
+if (localStorage.getItem('testMode') === 'true') {
+  console.log('Executando em modo de teste');
+  
+  // Add test mode indicator
+  const testModeIndicator = document.createElement('div');
+  testModeIndicator.style.position = 'fixed';
+  testModeIndicator.style.bottom = '10px';
+  testModeIndicator.style.right = '10px';
+  testModeIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.7)';
+  testModeIndicator.style.color = 'white';
+  testModeIndicator.style.padding = '5px 10px';
+  testModeIndicator.style.borderRadius = '4px';
+  testModeIndicator.style.fontSize = '12px';
+  testModeIndicator.textContent = 'MODO DE TESTE';
+  
+  document.body.appendChild(testModeIndicator);
+}
