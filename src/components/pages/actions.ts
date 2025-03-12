@@ -39,16 +39,28 @@ export async function gerarEtiqueta(obj: EtiquetaData) {
     if (template) {
       // Replace placeholders in ZPL
       command = template.zpl;
-      const data = {
-        produto: obj.produto_nome,
-        validade: obj.validade,
-        lote: obj.lote,
-        sif: obj.SIF,
+      
+      // Prepare data to replace dynamic fields
+      const data: Record<string, string> = {
+        produto: obj.produto_nome || "",
+        validade: obj.validade || "",
+        lote: obj.lote || "",
+        sif: obj.sif || obj.SIF || "",
+        codigo: obj.produto_id || "", // Use product ID for QR code
       };
 
+      // Add any other fields from object that might be used in the template
+      Object.entries(obj).forEach(([key, value]) => {
+        if (typeof value === 'string' || typeof value === 'number') {
+          data[key] = String(value);
+        }
+      });
+
+      // Replace all dynamic placeholders
       Object.entries(data).forEach(([key, value]) => {
         if (command) {
-          command = command.replace(`{${key}}`, value || "");
+          // Replace all occurrences globally using RegExp
+          command = command.replace(new RegExp(`\\{${key}\\}`, 'g'), value || "");
         }
       });
     }
@@ -79,12 +91,34 @@ export async function gerarEtiqueta(obj: EtiquetaData) {
   return data;
 }
 
+export interface FieldPosition {
+  name: string;
+  x: number;
+  y: number;
+  fontSize: number;
+  fontStyle?: 'normal' | 'bold';
+  reversed?: boolean;
+  alignment?: 'left' | 'center' | 'right';
+  fontFamily?: string;
+  fieldType?: 'dynamic' | 'static' | 'qrcode' | 'barcode' | 'line';
+  staticValue?: string;
+  lineNumber?: number;
+  linePosition?: number;
+  defaultValue?: string;
+  barcodeType?: 'code39' | 'code128' | 'ean13';
+  barcodeHeight?: number;
+  lineWidth?: number;
+  lineHeight?: number;
+}
+
 export interface Template {
   id: string;
   nome: string;
   zpl: string;
-  campos: any;
+  campos: FieldPosition[];
   created_at: string;
+  width?: number;
+  height?: number;
 }
 
 export async function getTemplates() {
@@ -95,7 +129,42 @@ export async function getTemplates() {
     .order("nome");
 
   if (error) throw new Error(error.message);
-  return data as Template[];
+  
+  // Tratar os templates e converter de forma segura
+  return (data || []).map(item => {
+    // Usar tipagem 'any' de forma segura para campos
+    const campos = item.campos as any[] || [];
+    
+    // Retornar um objeto Template com valores padrão para campos ausentes
+    return {
+      id: item.id,
+      nome: item.nome || '',
+      zpl: item.zpl || '',
+      created_at: item.created_at,
+      width: item.width || 400,
+      height: item.height || 300,
+      // Mapear os campos garantindo que todos tenham as propriedades esperadas
+      campos: campos.map(campo => ({
+        name: campo?.name || 'campo',
+        x: typeof campo?.x === 'number' ? campo.x : 10,
+        y: typeof campo?.y === 'number' ? campo.y : 10,
+        fontSize: typeof campo?.fontSize === 'number' ? campo.fontSize : 10,
+        fontStyle: campo?.fontStyle || 'normal',
+        reversed: Boolean(campo?.reversed),
+        alignment: campo?.alignment || 'left',
+        fontFamily: campo?.fontFamily || 'A',
+        fieldType: campo?.fieldType || 'dynamic',
+        lineNumber: typeof campo?.lineNumber === 'number' ? campo.lineNumber : 1,
+        linePosition: typeof campo?.linePosition === 'number' ? campo.linePosition : 1,
+        staticValue: campo?.staticValue,
+        defaultValue: campo?.defaultValue,
+        barcodeType: campo?.barcodeType,
+        barcodeHeight: campo?.barcodeHeight,
+        lineWidth: campo?.lineWidth,
+        lineHeight: campo?.lineHeight
+      }))
+    } as Template;
+  });
 }
 
 export interface Impressora {
