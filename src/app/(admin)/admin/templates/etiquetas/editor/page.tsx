@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 import { FieldPosition, saveTemplate, getTemplates } from "../actions";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from 'react';
 
@@ -53,6 +53,14 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
   const [showStaticTextDialog, setShowStaticTextDialog] = useState(false);
   const [staticText, setStaticText] = useState("");
   const [staticTextAlignment, setStaticTextAlignment] = useState<'left' | 'center' | 'right'>('left');
+
+  // Modo de edição
+  const [editingField, setEditingField] = useState<FieldPosition | null>(null);
+  const [showEditFieldDialog, setShowEditFieldDialog] = useState(false);
+  const [editFieldIndex, setEditFieldIndex] = useState<number | null>(null);
+  const [editLineWidth, setEditLineWidth] = useState<number>(0);
+  const [editLineHeight, setEditLineHeight] = useState<number>(1);
+  const [editLineNumber, setEditLineNumber] = useState<number>(1);
 
   // Log para debugging
   useEffect(() => {
@@ -235,17 +243,94 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
     setFields([...fields, newField]);
   };
 
-  if (loading) {
-    return (
-      <div className="container mx-auto p-4">
-        <Title>Editor de Template de Etiqueta</Title>
-        <div className="flex justify-center items-center h-64">
-          <LoaderCircle className="w-6 h-6 animate-spin" />
-          <span className="ml-2">Carregando...</span>
-        </div>
-      </div>
-    );
-  }
+  // Adicionar linha horizontal
+  const addHorizontalLine = () => {
+    const newField: FieldPosition = {
+      name: `line_${Date.now()}`,
+      x: 0,
+      y: currentLine * 30,
+      fontSize: 0,
+      fontStyle: 'normal',
+      reversed: false,
+      alignment: 'left',
+      fontFamily: 'A',
+      fieldType: 'line',
+      lineWidth: labelWidth - 20,
+      lineHeight: 1,
+      lineNumber: currentLine,
+      linePosition: fields.filter(f => f.lineNumber === currentLine).length + 1
+    };
+    
+    setFields([...fields, newField]);
+  };
+
+  // Função para abrir diálogo de edição
+  const openEditDialog = (field: FieldPosition, index: number) => {
+    setEditingField({...field});
+    setEditFieldIndex(index);
+    
+    if (field.fieldType === 'line') {
+      setEditLineWidth(field.lineWidth || labelWidth - 20);
+      setEditLineHeight(field.lineHeight || 1);
+    }
+    
+    setEditLineNumber(field.lineNumber || 1);
+    setShowEditFieldDialog(true);
+  };
+
+  // Função para salvar edição de campo
+  const saveFieldEdit = () => {
+    if (!editingField || editFieldIndex === null) return;
+    
+    const updatedField = {...editingField};
+    
+    if (editingField.fieldType === 'line') {
+      updatedField.lineWidth = editLineWidth;
+      updatedField.lineHeight = editLineHeight;
+    }
+    
+    updatedField.lineNumber = editLineNumber;
+    
+    const updatedFields = [...fields];
+    updatedFields[editFieldIndex] = updatedField;
+    setFields(updatedFields);
+    
+    setShowEditFieldDialog(false);
+    setEditingField(null);
+    setEditFieldIndex(null);
+  };
+
+  // Função para gerar ZPL
+  const generateZPL = () => {
+    let zpl = `^XA^LL${labelHeight}^FWB`; // Início do ZPL, comprimento da etiqueta e orientação
+    
+    fields.sort((a, b) => {
+      if (a.lineNumber !== b.lineNumber) {
+        return (a.lineNumber || 0) - (b.lineNumber || 0);
+      }
+      return (a.linePosition || 0) - (b.linePosition || 0);
+    }).forEach(field => {
+      if (field.fieldType === 'dynamic') {
+        zpl += `^FO${field.x},${(field.lineNumber - 1) * 30 + 10}^A0,${field.fontSize},${field.fontSize}^FD{${field.name}}^FS`;
+      } else if (field.fieldType === 'static') {
+        zpl += `^FO${field.x},${(field.lineNumber - 1) * 30 + 10}^A0,${field.fontSize},${field.fontSize}^FD${field.staticValue}^FS`;
+      } else if (field.fieldType === 'barcode') {
+        zpl += `^FO${field.x},${(field.lineNumber - 1) * 30 + 10}^BCN,${field.barcodeHeight || 50},Y,N,N^FD{${field.name}}^FS`;
+      } else if (field.fieldType === 'qrcode') {
+        zpl += `^FO${field.x},${(field.lineNumber - 1) * 30 + 10}^BQ,2,2^FD{${field.name}}^FS`;
+      } else if (field.fieldType === 'line') {
+        zpl += `^FO${field.x},${(field.lineNumber - 1) * 30 + 10}^GB${field.lineWidth},${field.lineHeight},${field.lineHeight}^FS`;
+      }
+    });
+    
+    zpl += "^XZ"; // Fim do ZPL
+    return zpl;
+  };
+
+  useEffect(() => {
+    const newZpl = generateZPL();
+    setZpl(newZpl);
+  }, [fields, labelWidth, labelHeight]);
 
   return (
     <div className="container mx-auto p-4">
@@ -296,6 +381,13 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
                 size="sm"
               >
                 + QR Code
+              </Button>
+              <Button
+                onClick={addHorizontalLine}
+                variant="outline"
+                size="sm"
+              >
+                + Linha Horizontal
               </Button>
             </div>
           </Card>
@@ -359,6 +451,25 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
                       onChange={(e) => setCurrentLine(parseInt(e.target.value) || 1)}
                     />
                   </div>
+                  <div>
+                    <Label>Tamanho da Etiqueta</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        type="number" 
+                        min="100" 
+                        value={labelWidth} 
+                        onChange={(e) => setLabelWidth(parseInt(e.target.value) || 400)}
+                        placeholder="Largura"
+                      />
+                      <Input 
+                        type="number" 
+                        min="100" 
+                        value={labelHeight} 
+                        onChange={(e) => setLabelHeight(parseInt(e.target.value) || 300)}
+                        placeholder="Altura"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
               
@@ -378,7 +489,11 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
                         return (a.linePosition || 0) - (b.linePosition || 0);
                       })
                       .map((field, index) => (
-                        <div key={index} className="flex items-center justify-between p-2 bg-secondary/20 rounded">
+                        <div 
+                          key={index} 
+                          className="flex items-center justify-between p-2 bg-secondary/20 rounded cursor-pointer hover:bg-secondary/30"
+                          onClick={() => openEditDialog(field, index)}
+                        >
                           <div className="flex-1">
                             <span className="font-medium">
                               L{field.lineNumber || 1} - {field.name}
@@ -391,16 +506,39 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
                                 "{field.staticValue}"
                               </span>
                             )}
+                            {field.reversed && (
+                              <span className="text-xs ml-1 px-1 bg-black text-white rounded">
+                                Reverso
+                              </span>
+                            )}
+                            <span className="text-xs ml-1">
+                              {field.fontSize}px {field.fontStyle === 'bold' ? 'Negrito' : ''}
+                            </span>
                           </div>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => {
-                              setFields(fields.filter((_, i) => i !== index));
-                            }}
-                          >
-                            Remover
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2"
+                              onClick={(e) => {
+                                e.stopPropagation();  // Impedir que abra o diálogo de edição
+                                openEditDialog(field, index);
+                              }}
+                            >
+                              Editar
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="h-7 px-2"
+                              onClick={(e) => {
+                                e.stopPropagation();  // Impedir que abra o diálogo de edição
+                                setFields(fields.filter((_, i) => i !== index));
+                              }}
+                            >
+                              Remover
+                            </Button>
+                          </div>
                         </div>
                       ))
                   )}
@@ -429,6 +567,22 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
                 if (field.alignment === 'center') x = labelWidth / 2;
                 else if (field.alignment === 'right') x = labelWidth - 20;
                 
+                if (field.fieldType === 'line') {
+                  return (
+                    <div 
+                      key={index} 
+                      style={{
+                        position: 'absolute',
+                        left: `${field.x}px`,
+                        top: `${y}px`,
+                        width: `${field.lineWidth}px`,
+                        height: `${field.lineHeight}px`,
+                        backgroundColor: 'black',
+                      }}
+                    />
+                  );
+                }
+                
                 let content = "";
                 if (field.fieldType === 'static') content = field.staticValue || "";
                 else if (field.fieldType === 'barcode') content = "[Código de Barras]";
@@ -452,6 +606,10 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
                 return <div key={index} style={style}>{content}</div>;
               })}
             </div>
+          </Card>
+          <Card className="p-4">
+            <h3 className="text-lg font-semibold mb-4">ZPL Gerado</h3>
+            <pre className="bg-gray-100 p-2 rounded-md overflow-x-auto">{zpl}</pre>
           </Card>
         </div>
       </div>
@@ -483,6 +641,24 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
               </div>
               
               <div>
+                <Label>Estilo da Fonte</Label>
+                <Select
+                  value={fieldFontStyle}
+                  onValueChange={(value) => 
+                    setFieldFontStyle(value as 'normal' | 'bold')
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o estilo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="bold">Negrito</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
                 <Label>Alinhamento</Label>
                 <Select
                   value={fieldAlignment}
@@ -499,6 +675,15 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
                     <SelectItem value="right">Direita</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="field-reversed" 
+                  checked={fieldReversed} 
+                  onCheckedChange={(checked) => setFieldReversed(checked === true)} 
+                />
+                <Label htmlFor="field-reversed">Texto Reverso (branco em fundo preto)</Label>
               </div>
               
               <div className="flex justify-between">
@@ -531,6 +716,36 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
                   placeholder="Ex: Data de Manipulação:"
                 />
               </div>
+              
+              <div>
+                <Label>Tamanho da Fonte</Label>
+                <Input 
+                  type="number" 
+                  min="6" 
+                  max="24" 
+                  value={fieldFontSize} 
+                  onChange={(e) => setFieldFontSize(parseInt(e.target.value) || 10)} 
+                />
+              </div>
+              
+              <div>
+                <Label>Estilo da Fonte</Label>
+                <Select
+                  value={fieldFontStyle}
+                  onValueChange={(value) => 
+                    setFieldFontStyle(value as 'normal' | 'bold')
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o estilo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="normal">Normal</SelectItem>
+                    <SelectItem value="bold">Negrito</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
               <div>
                 <Label>Alinhamento</Label>
                 <Select
@@ -549,6 +764,16 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
                   </SelectContent>
                 </Select>
               </div>
+              
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="static-reversed" 
+                  checked={fieldReversed} 
+                  onCheckedChange={(checked) => setFieldReversed(checked === true)} 
+                />
+                <Label htmlFor="static-reversed">Texto Reverso (branco em fundo preto)</Label>
+              </div>
+              
               <div className="flex justify-between">
                 <Button 
                   variant="outline"
@@ -558,6 +783,142 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
                 </Button>
                 <Button onClick={addStaticText}>
                   Adicionar
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Modal de edição de campo */}
+      {showEditFieldDialog && editingField && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-background rounded-lg p-6 w-96 max-w-full">
+            <h3 className="text-lg font-semibold mb-4">Editar Campo</h3>
+            <div className="space-y-4">
+              {editingField.fieldType === 'dynamic' && (
+                <div>
+                  <Label>Nome do Campo</Label>
+                  <Input 
+                    value={editingField.name} 
+                    onChange={(e) => setEditingField({...editingField, name: e.target.value})}
+                  />
+                </div>
+              )}
+              
+              {editingField.fieldType === 'static' && (
+                <div>
+                  <Label>Texto</Label>
+                  <Input 
+                    value={editingField.staticValue || ''} 
+                    onChange={(e) => setEditingField({...editingField, staticValue: e.target.value})}
+                  />
+                </div>
+              )}
+              
+              <div>
+                <Label>Linha</Label>
+                <Input 
+                  type="number" 
+                  min="1" 
+                  value={editLineNumber} 
+                  onChange={(e) => setEditLineNumber(parseInt(e.target.value) || 1)}
+                />
+              </div>
+              
+              {editingField.fieldType === 'line' ? (
+                <>
+                  <div>
+                    <Label>Largura da Linha</Label>
+                    <Input 
+                      type="number" 
+                      min="10" 
+                      value={editLineWidth} 
+                      onChange={(e) => setEditLineWidth(parseInt(e.target.value) || 100)}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>Altura da Linha</Label>
+                    <Input 
+                      type="number" 
+                      min="1" 
+                      max="10" 
+                      value={editLineHeight} 
+                      onChange={(e) => setEditLineHeight(parseInt(e.target.value) || 1)}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <Label>Tamanho da Fonte</Label>
+                    <Input 
+                      type="number" 
+                      min="6" 
+                      max="24" 
+                      value={editingField.fontSize} 
+                      onChange={(e) => setEditingField({...editingField, fontSize: parseInt(e.target.value) || 10})}
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label>Estilo da Fonte</Label>
+                    <Select
+                      value={editingField.fontStyle}
+                      onValueChange={(value) => 
+                        setEditingField({...editingField, fontStyle: value as 'normal' | 'bold'})
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o estilo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="bold">Negrito</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label>Alinhamento</Label>
+                    <Select
+                      value={editingField.alignment}
+                      onValueChange={(value) => 
+                        setEditingField({...editingField, alignment: value as 'left' | 'center' | 'right'})
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o alinhamento" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="left">Esquerda</SelectItem>
+                        <SelectItem value="center">Centro</SelectItem>
+                        <SelectItem value="right">Direita</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox 
+                      id="edit-reversed" 
+                      checked={editingField.reversed} 
+                      onCheckedChange={(checked) => setEditingField({...editingField, reversed: checked === true})}
+                    />
+                    <Label htmlFor="edit-reversed">Texto Reverso (branco em fundo preto)</Label>
+                  </div>
+                </>
+              )}
+              
+              <div className="flex justify-between">
+                <Button 
+                  variant="outline"
+                  onClick={() => setShowEditFieldDialog(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button onClick={saveFieldEdit}>
+                  Salvar
                 </Button>
               </div>
             </div>
