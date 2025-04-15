@@ -1,320 +1,416 @@
+// components/label-preview.tsx
 "use client";
 
-import { useEffect, useRef } from "react";
-
-interface FieldPosition {
-  name: string;
-  x: number;
-  y: number;
-  fontSize: number;
-  fontStyle: 'normal' | 'bold';
-  reversed: boolean;
-  alignment: 'left' | 'center' | 'right';
-  fontFamily: string;
-  fieldType?: 'dynamic' | 'static' | 'qrcode' | 'barcode' | 'line';
-  staticValue?: string;
-  lineNumber?: number;
-  linePosition?: number;
-  defaultValue?: string;
-  barcodeType?: 'code39' | 'code128' | 'ean13';
-  barcodeHeight?: number;
-  lineWidth?: number;
-  lineHeight?: number;
-}
+import React, { useRef, useEffect } from 'react';
+import type { FieldPosition } from "@/app/admin/templates/etiquetas/actions";
 
 interface LabelPreviewProps {
   fields: FieldPosition[];
-  width?: number;
-  height?: number;
   scale?: number;
+  width: number;
+  height: number;
+  onSelectField?: (index: number | null) => void;
+  selectedFieldIndex?: number | null;
+  showGrid?: boolean;
 }
-
-const SAMPLE_DATA = {
-  produto: "PRODUTO TESTE",
-  validade: "31/12/2024",
-  lote: "LOTE-123",
-  sif: "SIF-456",
-  codigo: "12345678",
-  endereco: "Av. Exemplo, 123",
-  cidade: "São Paulo"
-};
-
-const FIELD_COLORS = {
-  produto: "#ff0000",
-  validade: "#00ff00",
-  lote: "#0000ff",
-  sif: "#ff00ff",
-  codigo: "#ff9900",
-  static: "#666666",
-  barcode: "#009688",
-  line: "#424242",
-  default: "#333333"
-};
 
 export function LabelPreview({ 
   fields, 
-  width = 400, 
-  height = 300,
-  scale = 1 
+  scale = 1, 
+  width, 
+  height, 
+  onSelectField,
+  selectedFieldIndex = null,
+  showGrid = true
 }: LabelPreviewProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  
+  // Função para processar conteúdo do campo (prefixos, sufixos, maiúsculas)
+  const processFieldContent = (field: FieldPosition): string => {
+    let content = '';
+    
+    if (field.fieldType === 'static') {
+      content = field.staticValue || '';
+    } else if (field.fieldType === 'dynamic') {
+      content = field.defaultValue || `{${field.name}}`;
+    } else if (field.fieldType === 'barcode' || field.fieldType === 'qrcode') {
+      content = field.defaultValue || field.name;
+    }
+    
+    // Aplicar prefixo/sufixo se configurados
+    if (field.prefix) {
+      content = field.prefix + content;
+    }
+    if (field.suffix) {
+      content = content + field.suffix;
+    }
+    
+    // Converter para maiúsculas se configurado
+    if (field.uppercase) {
+      content = content.toUpperCase();
+    }
+    
+    return content;
+  };
 
+  // Desenhar a prévia da etiqueta
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Clear canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Configurar dimensões do canvas
+    canvas.width = width * scale;
+    canvas.height = height * scale;
 
-    // Draw grid
-    ctx.strokeStyle = "#e5e5e5";
-    ctx.lineWidth = 0.5;
+    // Limpar o canvas
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Desenhar borda
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(0.5, 0.5, canvas.width - 1, canvas.height - 1);
 
-    // Vertical lines
-    for (let x = 0; x < width; x += 20) {
-      ctx.beginPath();
-      ctx.moveTo(x * scale, 0);
-      ctx.lineTo(x * scale, height * scale);
-      ctx.stroke();
-    }
-
-    // Horizontal lines
-    for (let y = 0; y < height; y += 20) {
-      ctx.beginPath();
-      ctx.moveTo(0, y * scale);
-      ctx.lineTo(width * scale, y * scale);
-      ctx.stroke();
-    }
-
-    // Draw fields
-    fields.forEach((field) => {
-      // Handle different field types
-      const fieldType = field.fieldType || 'dynamic';
+    // Desenhar grade (opcional)
+    if (showGrid && scale > 0.75) {
+      ctx.strokeStyle = '#f0f0f0';
+      ctx.lineWidth = 0.5;
       
-      // Select color based on field type and name
-      let color;
-      if (fieldType === 'static') {
-        color = FIELD_COLORS.static;
-      } else if (fieldType === 'qrcode') {
-        color = FIELD_COLORS[field.name as keyof typeof FIELD_COLORS] || FIELD_COLORS.default;
-      } else if (fieldType === 'barcode') {
-        color = FIELD_COLORS.barcode;
-      } else if (fieldType === 'line') {
-        color = FIELD_COLORS.line;
-      } else {
-        color = FIELD_COLORS[field.name as keyof typeof FIELD_COLORS] || FIELD_COLORS.default;
+      // Linhas de grade verticais (a cada 50 pontos)
+      for (let x = 50; x < width; x += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x * scale, 0);
+        ctx.lineTo(x * scale, height * scale);
+        ctx.stroke();
+        
+        // Desenhar marcadores de coordenadas
+        ctx.fillStyle = '#d0d0d0';
+        ctx.font = '8px Arial';
+        ctx.fillText(x.toString(), x * scale - 8, 10);
       }
-
-      // Get text to display
-      let text;
-      if (fieldType === 'static') {
-        text = field.staticValue || 'Texto estático';
-      } else if (fieldType === 'dynamic') {
-        text = SAMPLE_DATA[field.name as keyof typeof SAMPLE_DATA] || field.name;
-      } else if (fieldType === 'qrcode') {
-        text = `QR: ${field.name}`;
-      } else if (fieldType === 'barcode') {
-        text = `Barcode: ${field.name}`;
-      } else {
-        text = '';
+      
+      // Linhas de grade horizontais (a cada 50 pontos)
+      for (let y = 50; y < height; y += 50) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * scale);
+        ctx.lineTo(width * scale, y * scale);
+        ctx.stroke();
+        
+        // Desenhar marcadores de coordenadas
+        ctx.fillStyle = '#d0d0d0';
+        ctx.font = '8px Arial';
+        ctx.fillText(y.toString(), 3, y * scale + 8);
       }
+    }
 
-      if (fieldType === 'qrcode') {
-        // Draw QR code representation
-        const size = 50 * scale;
-        
-        // Draw QR code outline
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        ctx.strokeRect(
-          field.x * scale,
-          field.y * scale,
-          size,
-          size
-        );
-        
-        // Draw QR code pattern
-        ctx.fillStyle = color;
-        // Draw some squares to represent QR code
-        const cellSize = size / 5;
-        for (let i = 0; i < 5; i++) {
-          for (let j = 0; j < 5; j++) {
-            if (Math.random() > 0.5) {
-              ctx.fillRect(
-                field.x * scale + i * cellSize,
-                field.y * scale + j * cellSize,
-                cellSize,
-                cellSize
-              );
-            }
+    // Desenhar campos - apenas desenhar campos habilitados
+    fields
+      .filter(field => field.enabled !== false)
+      .forEach((field, index) => {
+        // Destacar campo selecionado
+        if (selectedFieldIndex === index) {
+          // Desenhar indicador de seleção
+          ctx.strokeStyle = 'blue';
+          ctx.lineWidth = 2;
+          
+          let selectionX = field.x * scale;
+          let selectionY = field.y * scale;
+          let selectionWidth = 0;
+          let selectionHeight = 0;
+          
+          if (field.fieldType === 'line') {
+            selectionWidth = (field.lineWidth || 100) * scale;
+            selectionHeight = (field.lineHeight || 1) * scale;
+          } else if (field.fieldType === 'box') {
+            selectionWidth = (field.boxWidth || 100) * scale;
+            selectionHeight = (field.boxHeight || 50) * scale;
+          } else if (field.fieldType === 'barcode') {
+            selectionWidth = 100 * scale;
+            selectionHeight = (field.barcodeHeight || 50) * scale;
+          } else if (field.fieldType === 'qrcode') {
+            selectionWidth = 50 * scale;
+            selectionHeight = 50 * scale;
+          } else {
+            // Para elementos de texto, estimar a largura
+            const content = processFieldContent(field);
+            ctx.font = `${field.fontStyle === 'bold' ? 'bold' : 'normal'} ${field.fontSize * scale}px Arial`;
+            const textMetrics = ctx.measureText(content);
+            selectionWidth = textMetrics.width + 10;
+            selectionHeight = field.fontSize * scale * 1.5;
           }
-        }
-        
-        // Draw field name under QR code
-        ctx.fillStyle = color;
-        ctx.font = "10px Arial";
-        ctx.fillText(
-          field.name,
-          field.x * scale,
-          (field.y * scale) + size + 10
-        );
-      } else if (fieldType === 'barcode') {
-        // Draw barcode representation
-        const barcodeHeight = (field.barcodeHeight || 30) * scale;
-        const barcodeWidth = 80 * scale;
-        
-        // Draw barcode outline
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 1;
-        ctx.strokeRect(
-          field.x * scale,
-          field.y * scale,
-          barcodeWidth,
-          barcodeHeight
-        );
-        
-        // Draw barcode lines
-        ctx.fillStyle = color;
-        const barCount = 20;
-        const barWidth = barcodeWidth / barCount;
-        
-        for (let i = 0; i < barCount; i++) {
-          if (i % 2 === 0) {
-            ctx.fillRect(
-              field.x * scale + i * barWidth,
-              field.y * scale,
-              barWidth/2,
-              barcodeHeight
-            );
-          }
-        }
-        
-        // Draw field name under barcode
-        ctx.fillStyle = color;
-        ctx.font = "10px Arial";
-        ctx.fillText(
-          field.name,
-          field.x * scale,
-          (field.y * scale) + barcodeHeight + 10
-        );
-      } else if (fieldType === 'line') {
-        // Draw horizontal line
-        const lineWidth = (field.lineWidth || width - 20) * scale;
-        const lineHeight = (field.lineHeight || 1) * scale;
-        
-        ctx.fillStyle = color;
-        ctx.fillRect(
-          field.x * scale,
-          field.y * scale,
-          lineWidth,
-          lineHeight
-        );
-        
-      } else {
-        // Draw field box
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 1;
-        
-        // Set font with style
-        const fontWeight = field.fontStyle === 'bold' ? 'bold' : 'normal';
-        ctx.font = `${fontWeight} ${field.fontSize * scale}px Arial`;
-        
-        const textWidth = ctx.measureText(text).width;
-        
-        ctx.strokeRect(
-          field.x * scale,
-          field.y * scale,
-          textWidth + 10,
-          field.fontSize * 1.2 * scale
-        );
-
-        // Draw field text
-        ctx.fillStyle = field.reversed ? 'white' : color;
-
-        // Calculate text width for alignment
-        let xPos = field.x * scale + 5;
-        
-        if (field.alignment === 'center') {
-          xPos = field.x * scale + ((width * scale - field.x * scale) / 2) - (textWidth / 2);
-        } else if (field.alignment === 'right') {
-          xPos = (width * scale - textWidth - 5);
-        }
-        
-        // Draw background if reversed
-        if (field.reversed) {
-          ctx.fillStyle = color;
-          ctx.fillRect(
-            field.x * scale,
-            (field.y * scale) - (field.fontSize * scale * 0.8),
-            textWidth + 10,
-            field.fontSize * scale * 1.2
+          
+          // Desenhar retângulo de seleção
+          ctx.strokeRect(
+            selectionX - 2, 
+            selectionY - (field.fieldType === 'dynamic' || field.fieldType === 'static' ? field.fontSize * scale * 0.8 : 2), 
+            selectionWidth + 4, 
+            selectionHeight + 4
           );
-          ctx.fillStyle = 'white';
+          
+          // Desenhar alças de controle
+          const handleSize = 6;
+          ctx.fillStyle = 'blue';
+          // 4 cantos
+          ctx.fillRect(selectionX - handleSize/2, selectionY - handleSize/2, handleSize, handleSize);
+          ctx.fillRect(selectionX + selectionWidth - handleSize/2, selectionY - handleSize/2, handleSize, handleSize);
+          ctx.fillRect(selectionX - handleSize/2, selectionY + selectionHeight - handleSize/2, handleSize, handleSize);
+          ctx.fillRect(selectionX + selectionWidth - handleSize/2, selectionY + selectionHeight - handleSize/2, handleSize, handleSize);
         }
         
-        ctx.fillText(text, xPos, (field.y + field.fontSize) * scale);
-      }
+        // Desenhar o campo
+        switch (field.fieldType) {
+          case 'dynamic':
+          case 'static': {
+            // Configurar fonte
+            const fontWeight = field.fontStyle === 'bold' ? 'bold' : 'normal';
+            const fontFamilyMap: Record<string, string> = {
+              'A': 'Arial',
+              'B': 'Verdana',
+              'C': 'Times New Roman',
+              'D': 'Courier New',
+              'E': 'Georgia',
+              'F': 'Trebuchet MS'
+            };
+            
+            const fontFamily = fontFamilyMap[field.fontFamily] || 'Arial';
+            ctx.font = `${fontWeight} ${field.fontSize * scale}px ${fontFamily}`;
+            
+            // Processar o conteúdo (prefixo, sufixo, maiúsculas)
+            const content = processFieldContent(field);
+            
+            // Calcular largura do campo
+            let textWidth =1, fieldWidth;
+            
+            if (field.fullWidth) {
+              // Se for largura total, usar a largura da etiqueta
+              fieldWidth = width * scale - 20 * scale;
+            } else {
+              // Calcular a largura do texto para outros campos
+              textWidth = ctx.measureText(content).width;
+              fieldWidth = textWidth + 10 * scale;
+            }
+            
+            // Configurar alinhamento do texto
+            ctx.textAlign = field.alignment === 'center' ? 'center' : 
+                          field.alignment === 'right' ? 'right' : 'left';
+            
+            // Calcular posição baseada no alinhamento
+            let xPos = field.x * scale;
+            
+            if (field.fullWidth) {
+              // Se for largura total e centralizado, ajustar posição X
+              if (field.alignment === 'center') {
+                xPos = width * scale / 2;
+              } else if (field.alignment === 'right') {
+                xPos = width * scale - 10 * scale;
+              } else {
+                xPos = 10 * scale;
+              }
+            } else if (field.alignment === 'center') {
+              xPos += textWidth / 2;
+            } else if (field.alignment === 'right') {
+              xPos += textWidth;
+            }
+            
+            // Configurar cor do texto e fundo
+            if (field.reversed) {
+              // Desenhar texto reverso (branco em fundo preto)
+              const textWidth = ctx.measureText(content).width;
+              const padding = 3 * scale;
+              ctx.fillStyle = 'black';
+              ctx.fillRect(
+                field.alignment === 'left' ? xPos - padding : 
+                field.alignment === 'center' ? xPos - textWidth / 2 - padding : 
+                xPos - textWidth - padding, 
+                field.y * scale - field.fontSize * scale * 0.8,
+                textWidth + padding * 2,
+                field.fontSize * scale * 1.3
+              );
+              ctx.fillStyle = 'white';
+            } else {
+              ctx.fillStyle = 'black';
+            }
+            
+            // Desenhar o texto
+            ctx.fillText(content, xPos, (field.y + field.fontSize * 0.3) * scale);
+            break;
+          }
+          
+          case 'line': {
+            ctx.strokeStyle = 'black';
+            ctx.fillStyle = 'black';
+            ctx.lineWidth = (field.lineHeight || 1) * scale;
+            
+            // Desenhar linha
+            ctx.beginPath();
+            ctx.moveTo(field.x * scale, field.y * scale);
+            ctx.lineTo((field.x + (field.lineWidth || 100)) * scale, field.y * scale);
+            ctx.stroke();
+            break;
+          }
+          
+          case 'box': {
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = (field.boxBorderWidth || 1) * scale;
+            
+            // Desenhar caixa
+            ctx.strokeRect(
+              field.x * scale, 
+              field.y * scale, 
+              (field.boxWidth || 100) * scale, 
+              (field.boxHeight || 50) * scale
+            );
+            break;
+          }
+          
+          case 'barcode': {
+            const barcodeHeight = (field.barcodeHeight || 50) * scale;
+            const content = processFieldContent(field);
+            
+            // Representação visual simples do código de barras
+            ctx.fillStyle = 'black';
+            ctx.font = `bold ${8 * scale}px Arial`;
+            ctx.textAlign = 'center';
+            
+            // Desenhar representação de código de barras
+            const barWidth = 100 * scale;
+            ctx.fillRect(field.x * scale, field.y * scale, barWidth, barcodeHeight);
+            
+            // Desenhar rótulo com fundo branco
+            const textY = field.y * scale + barcodeHeight + 10 * scale;
+            ctx.fillStyle = 'white';
+            ctx.fillRect(field.x * scale - 5, textY - 8 * scale, barWidth + 10, 12 * scale);
+            
+            ctx.fillStyle = 'black';
+            ctx.fillText(content, field.x * scale + barWidth/2, textY);
+            break;
+          }
+          
+          case 'qrcode': {
+            const qrSize = 50 * scale;
+            const content = processFieldContent(field);
+            
+            // Representação visual simples do QR code
+            ctx.fillStyle = 'black';
+            
+            // Desenhar moldura do QR
+            ctx.fillRect(field.x * scale, field.y * scale, qrSize, qrSize);
+            
+            // Desenhar padrão do QR (simplificado)
+            ctx.fillStyle = 'white';
+            const cellSize = qrSize / 7;
+            for (let i = 1; i < 6; i++) {
+              for (let j = 1; j < 6; j++) {
+                if ((i % 3 !== 0 || j % 3 !== 0) && (i !== 3 || j !== 3)) {
+                  ctx.fillRect(
+                    field.x * scale + i * cellSize, 
+                    field.y * scale + j * cellSize, 
+                    cellSize, cellSize
+                  );
+                }
+              }
+            }
+            
+            // Desenhar padrão central
+            ctx.fillStyle = 'black';
+            ctx.fillRect(
+              field.x * scale + 3 * cellSize - cellSize/2, 
+              field.y * scale + 3 * cellSize - cellSize/2, 
+              cellSize * 2, cellSize * 2
+            );
+            
+            // Desenhar texto de rótulo abaixo do QR code
+            ctx.fillStyle = 'black';
+            ctx.font = `bold ${8 * scale}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.fillText(content, field.x * scale + qrSize/2, field.y * scale + qrSize + 12 * scale);
+            break;
+          }
+        }
+      });
+  }, [fields, scale, width, height, selectedFieldIndex, showGrid]);
 
-      // Draw coordinates
-      ctx.fillStyle = "#666666";
-      ctx.font = "10px Arial";
-      ctx.fillText(
-        `(${field.x}, ${field.y})`,
-        field.x * scale,
-        (field.y - 5) * scale
-      );
+  // Tratar cliques no canvas para selecionar campos
+  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!onSelectField) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    // Obter coordenadas do clique em relação ao canvas
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / scale;
+    const y = (e.clientY - rect.top) / scale;
+    
+    // Encontrar o campo que foi clicado (em ordem reversa para selecionar o campo mais acima primeiro)
+    for (let i = fields.length - 1; i >= 0; i--) {
+      const field = fields[i];
+      if (field.enabled === false) continue;
       
-      // Draw line number and position if available
-      if (field.lineNumber !== undefined && field.linePosition !== undefined) {
-        ctx.fillStyle = "#666666";
-        ctx.font = "8px Arial";
-        ctx.fillText(
-          `L${field.lineNumber}:P${field.linePosition}`,
-          (field.x + 20) * scale,
-          (field.y - 5) * scale
-        );
+      let fieldX = field.x;
+      let fieldY = field.y;
+      let fieldWidth = 0;
+      let fieldHeight = 0;
+      
+      // Calcular dimensões do campo baseado no tipo
+      if (field.fieldType === 'line') {
+        fieldWidth = field.lineWidth || 100;
+        fieldHeight = field.lineHeight || 1;
+      } else if (field.fieldType === 'box') {
+        fieldWidth = field.boxWidth || 100;
+        fieldHeight = field.boxHeight || 50;
+      } else if (field.fieldType === 'barcode') {
+        fieldWidth = 100;
+        fieldHeight = field.barcodeHeight || 50;
+      } else if (field.fieldType === 'qrcode') {
+        fieldWidth = 50;
+        fieldHeight = 50;
+      } else {
+        // Para elementos de texto, usar tamanho da fonte como altura
+        fieldWidth = field.fontSize * 5; // Apenas uma estimativa
+        fieldHeight = field.fontSize;
+        fieldY -= fieldHeight * 0.8; // Ajustar para linha de base do texto
       }
-    });
-  }, [fields, width, height, scale]);
-
-  // Create a list of field types and colors to show in the legend
-  const legendItems = [
-    { id: 'dynamic', name: 'Campos Dinâmicos', color: '#333333' },
-    { id: 'static', name: 'Texto Estático', color: FIELD_COLORS.static },
-    { id: 'qrcode', name: 'QR Code', color: FIELD_COLORS.codigo },
-    { id: 'barcode', name: 'Código de Barras', color: FIELD_COLORS.barcode },
-    { id: 'line', name: 'Linha', color: FIELD_COLORS.line }
-  ];
+      
+      // Verificar se o clique está dentro dos limites do campo
+      if (
+        x >= fieldX && 
+        x <= fieldX + fieldWidth && 
+        y >= fieldY && 
+        y <= fieldY + fieldHeight
+      ) {
+        onSelectField(i);
+        return;
+      }
+    }
+    
+    // Se clicamos fora de qualquer campo
+    onSelectField(null);
+  };
 
   return (
-    <div className="relative bg-white border rounded-lg p-4">
-      <div className="absolute top-2 right-2 text-xs text-gray-500">
-        Scale: {scale}x
-      </div>
-      <canvas
-        ref={canvasRef}
-        width={width * scale}
-        height={height * scale}
-        className="border"
-        style={{
-          width: width,
-          height: height,
-        }}
-      />
-      <div className="mt-2 space-y-1">
-        <p className="text-sm font-medium">Legenda:</p>
-        {legendItems.map((item) => (
-          <div key={item.id} className="flex items-center gap-2 text-sm">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: item.color }}
-            />
-            <span>{item.name}</span>
-          </div>
-        ))}
+    <div className="bg-white p-4 border rounded-lg overflow-auto">
+      <div style={{ 
+        width: width * scale, 
+        height: height * scale, 
+        position: 'relative',
+        margin: '0 auto'
+      }}>
+        <canvas
+          ref={canvasRef}
+          width={width * scale}
+          height={height * scale}
+          onClick={handleCanvasClick}
+          style={{
+            display: 'block',
+            backgroundColor: 'white',
+            boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
+            cursor: onSelectField ? 'pointer' : 'default'
+          }}
+        />
       </div>
     </div>
   );

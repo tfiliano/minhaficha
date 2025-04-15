@@ -6,21 +6,52 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { FieldPosition, saveTemplate, getTemplates } from "../actions";
-import { LoaderCircle, Plus } from "lucide-react";
+import { 
+  FieldPosition, 
+  Template, 
+  saveTemplate, 
+  testPrint, 
+  getTemplates, 
+  generateZplCode,
+  createLabelTemplate
+} from "../actions";
+import { LabelPreview } from "@/components/label-preview";
+import { FieldEditorModal } from "@/components/field-editor-modal/index"; // Corrected import
+import { TemplatePresetDialog } from "@/components/template-presets/index"; // Corrected import
+import { 
+  LoaderCircle, 
+  Trash2, 
+  PlusCircle, 
+  SquareMenu, 
+  Copy, 
+  FileText, 
+  Move, 
+  Edit,
+  Save,
+  Printer,
+  LayoutTemplate
+} from "lucide-react";
 import { useRouter } from "next/navigation";
-import React from 'react';
 
-// Interface para os parâmetros
+// Opções de zoom para a visualização
+const ZOOM_OPTIONS = [
+  { value: "0.5", label: "50%" },
+  { value: "0.75", label: "75%" },
+  { value: "1", label: "100%" },
+  { value: "1.25", label: "125%" },
+  { value: "1.5", label: "150%" },
+  { value: "2", label: "200%" },
+];
+
 interface TemplateEditorParams {
   id?: string;
 }
 
-// Componente de cliente que recebe parâmetros já processados
 export default function TemplateEditorPage({ params }: { params?: TemplateEditorParams }) {
   // Garantir que params seja um objeto mesmo que seja undefined
   const safeParams = params || {};
@@ -29,39 +60,21 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
   const templateId = safeParams.id;
   
   const router = useRouter();
-  const [zpl, setZpl] = useState("");
-  const [templateName, setTemplateName] = useState("");
+  const [zpl, setZpl] = useState<string>("");
+  const [templateName, setTemplateName] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [testing, setTesting] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [scale, setScale] = useState(1);
   const [labelWidth, setLabelWidth] = useState(400);
   const [labelHeight, setLabelHeight] = useState(300);
   const [fields, setFields] = useState<FieldPosition[]>([]);
-  const [currentLine, setCurrentLine] = useState(1);
-  const [availableFields, setAvailableFields] = useState([
-    'produto', 'validade', 'lote', 'sif', 'codigo'
-  ]);
+  const [selectedFieldIndex, setSelectedFieldIndex] = useState<number | null>(null);
+  const [showFieldEditor, setShowFieldEditor] = useState(false);
+  const [newFieldData, setNewFieldData] = useState<FieldPosition | null>(null);
+  const [showTemplatePresets, setShowTemplatePresets] = useState(false);
+  const [showGrid, setShowGrid] = useState(true);
   
-  // Estado para diálogos
-  const [customFieldName, setCustomFieldName] = useState("");
-  const [showCustomFieldDialog, setShowCustomFieldDialog] = useState(false);
-  const [fieldFontSize, setFieldFontSize] = useState(10);
-  const [fieldFontStyle, setFieldFontStyle] = useState<'normal' | 'bold'>('normal');
-  const [fieldAlignment, setFieldAlignment] = useState<'left' | 'center' | 'right'>('left');
-  const [fieldReversed, setFieldReversed] = useState(false);
-  
-  // Texto estático
-  const [showStaticTextDialog, setShowStaticTextDialog] = useState(false);
-  const [staticText, setStaticText] = useState("");
-  const [staticTextAlignment, setStaticTextAlignment] = useState<'left' | 'center' | 'right'>('left');
-
-  // Modo de edição
-  const [editingField, setEditingField] = useState<FieldPosition | null>(null);
-  const [showEditFieldDialog, setShowEditFieldDialog] = useState(false);
-  const [editFieldIndex, setEditFieldIndex] = useState<number | null>(null);
-  const [editLineWidth, setEditLineWidth] = useState<number>(0);
-  const [editLineHeight, setEditLineHeight] = useState<number>(1);
-  const [editLineNumber, setEditLineNumber] = useState<number>(1);
-
   // Log para debugging
   useEffect(() => {
     if (templateId) {
@@ -71,7 +84,7 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
     }
   }, [templateId]);
 
-  // Carrega o template quando o componente monta ou quando templateId muda
+  // Carregar o template quando o componente monta ou quando templateId muda
   useEffect(() => {
     const loadTemplate = async () => {
       try {
@@ -80,63 +93,24 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
           const template = templates.find(t => t.id === templateId);
           
           if (template) {
-            setTemplateName(template.nome || "");
+            console.log("Template carregado:", template);
+            setTemplateName(template.nome);
             setZpl(template.zpl || "");
             setLabelWidth(template.width || 400);
             setLabelHeight(template.height || 300);
             
             if (Array.isArray(template.campos)) {
-              const dynamicFields = template.campos
-                .filter(campo => campo.fieldType === 'dynamic')
-                .map(campo => campo.name);
-                
-              setAvailableFields(prev => {
-                const newFields = [...prev];
-                dynamicFields.forEach(field => {
-                  if (!newFields.includes(field)) {
-                    newFields.push(field);
-                  }
-                });
-                return newFields;
-              });
-              
               setFields(template.campos);
             } else {
+              console.error("Campos do template não são um array:", template.campos);
               setFields([]);
             }
           } else {
             toast.error(`Template não encontrado`);
           }
         } else {
-          // Inicializar com campos padrão para novo template
-          setFields([
-            { 
-              name: "produto", 
-              x: 10, 
-              y: 10, 
-              fontSize: 12,
-              fontStyle: 'normal',
-              reversed: false,
-              alignment: 'left',
-              fontFamily: 'A',
-              fieldType: 'dynamic',
-              lineNumber: 1,
-              linePosition: 1
-            },
-            { 
-              name: "validade", 
-              x: 10, 
-              y: 40, 
-              fontSize: 10,
-              fontStyle: 'normal',
-              reversed: false,
-              alignment: 'left',
-              fontFamily: 'A',
-              fieldType: 'dynamic',
-              lineNumber: 2,
-              linePosition: 1
-            }
-          ]);
+          // Inicializar com campos vazios
+          setFields([]);
         }
       } catch (error) {
         console.error("Erro ao carregar template:", error);
@@ -149,201 +123,261 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
     loadTemplate();
   }, [templateId]);
 
-  // Função para adicionar um campo personalizado
-  const addCustomField = () => {
-    if (!customFieldName.trim()) {
-      toast.error("Nome do campo é obrigatório");
-      return;
-    }
-    
-    if (!availableFields.includes(customFieldName)) {
-      setAvailableFields([...availableFields, customFieldName]);
-    }
-    
+  // Atualizar o ZPL quando os campos mudarem
+  useEffect(() => {
+    const updateZpl = async () => {
+      if (Array.isArray(fields)) {
+        const newZpl = await generateZplCode(fields, labelWidth, labelHeight);
+        setZpl(newZpl);
+      }
+    };
+
+    updateZpl();
+  }, [fields, labelWidth, labelHeight]);
+
+  // Adicionar um novo campo
+  const handleAddField = () => {
     const newField: FieldPosition = {
-      name: customFieldName,
+      name: `campo${Array.isArray(fields) ? fields.length + 1 : 1}`,
       x: 10,
-      y: currentLine * 30,
-      fontSize: fieldFontSize,
-      fontStyle: fieldFontStyle,
-      reversed: fieldReversed,
-      alignment: fieldAlignment,
+      y: Array.isArray(fields) && fields.length > 0 ? Math.max(...fields.map(f => f.y)) + 30 : 10,
+      fontSize: 10,
+      fontStyle: 'normal',
+      reversed: false,
+      alignment: 'left',
       fontFamily: 'A',
       fieldType: 'dynamic',
-      defaultValue: '',
-      lineNumber: currentLine,
-      linePosition: fields.filter(f => f.lineNumber === currentLine).length + 1
+      enabled: true,
+      lineNumber: Array.isArray(fields) ? fields.length + 1 : 1,
+      linePosition: 1
     };
     
-    setFields([...fields, newField]);
-    setCustomFieldName("");
-    setShowCustomFieldDialog(false);
+    setNewFieldData(newField);
+    setShowFieldEditor(true);
   };
 
-  // Função para adicionar texto estático
-  const addStaticText = () => {
-    if (!staticText.trim()) {
-      toast.error("Texto é obrigatório");
+  // Editar um campo existente
+  const handleEditField = (index: number) => {
+    if (Array.isArray(fields) && index >= 0 && index < fields.length) {
+      setSelectedFieldIndex(index);
+      setNewFieldData({...fields[index]});
+      setShowFieldEditor(true);
+    }
+  };
+
+  // Salvar as alterações de um campo (novo ou editado)
+  const handleSaveField = (fieldData: FieldPosition) => {
+    if (selectedFieldIndex !== null && Array.isArray(fields)) {
+      // Editar campo existente
+      const updatedFields = [...fields];
+      updatedFields[selectedFieldIndex] = fieldData;
+      setFields(updatedFields);
+    } else {
+      // Adicionar novo campo
+      setFields(Array.isArray(fields) ? [...fields, fieldData] : [fieldData]);
+    }
+    
+    setShowFieldEditor(false);
+    setNewFieldData(null);
+    setSelectedFieldIndex(null);
+  };
+
+  // Excluir um campo
+  const handleDeleteField = (index: number) => {
+    if (Array.isArray(fields)) {
+      const updatedFields = fields.filter((_, i) => i !== index);
+      setFields(updatedFields);
+      if (selectedFieldIndex === index) {
+        setSelectedFieldIndex(null);
+      }
+    }
+  };
+
+  // Duplicar um campo
+  const handleDuplicateField = (index: number) => {
+    if (Array.isArray(fields) && index >= 0 && index < fields.length) {
+      const fieldToDuplicate = { ...fields[index] };
+      // Atualizar posição e nome para diferenciar da original
+      fieldToDuplicate.y += 20;
+      fieldToDuplicate.name = `${fieldToDuplicate.name}_copia`;
+      fieldToDuplicate.lineNumber += 1;
+      
+      setFields([...fields, fieldToDuplicate]);
+    }
+  };
+
+  // Aplicar um template predefinido
+  const handleApplyTemplate = async (templateFields: FieldPosition[]) => {
+    if (!Array.isArray(templateFields) || templateFields.length === 0) {
+      // Template em branco ou inválido
+      setShowTemplatePresets(false);
       return;
     }
     
-    const newField: FieldPosition = {
-      name: `static_${Date.now()}`,
-      x: 10,
-      y: currentLine * 30,
-      fontSize: 10,
-      fontStyle: 'normal',
-      reversed: false,
-      alignment: staticTextAlignment,
-      fontFamily: 'A',
-      fieldType: 'static',
-      staticValue: staticText,
-      lineNumber: currentLine,
-      linePosition: fields.filter(f => f.lineNumber === currentLine).length + 1
-    };
-    
-    setFields([...fields, newField]);
-    setStaticText("");
-    setShowStaticTextDialog(false);
-  };
-
-  // Função para adicionar códigos
-  const addBarcode = () => {
-    const newField: FieldPosition = {
-      name: 'codigo',
-      x: 10,
-      y: currentLine * 30,
-      fontSize: 10,
-      fontStyle: 'normal',
-      reversed: false,
-      alignment: 'left',
-      fontFamily: 'A',
-      fieldType: 'barcode',
-      barcodeType: 'code128',
-      lineNumber: currentLine,
-      linePosition: fields.filter(f => f.lineNumber === currentLine).length + 1
-    };
-    setFields([...fields, newField]);
-  };
-  
-  const addQRCode = () => {
-    const newField: FieldPosition = {
-      name: 'codigo',
-      x: 10,
-      y: currentLine * 30,
-      fontSize: 10,
-      fontStyle: 'normal',
-      reversed: false,
-      alignment: 'left',
-      fontFamily: 'A',
-      fieldType: 'qrcode',
-      lineNumber: currentLine,
-      linePosition: fields.filter(f => f.lineNumber === currentLine).length + 1
-    };
-    setFields([...fields, newField]);
-  };
-
-  // Adicionar linha horizontal
-  const addHorizontalLine = () => {
-    const newField: FieldPosition = {
-      name: `line_${Date.now()}`,
-      x: 0,
-      y: currentLine * 30,
-      fontSize: 0,
-      fontStyle: 'normal',
-      reversed: false,
-      alignment: 'left',
-      fontFamily: 'A',
-      fieldType: 'line',
-      lineWidth: labelWidth - 20,
-      lineHeight: 1,
-      lineNumber: currentLine,
-      linePosition: fields.filter(f => f.lineNumber === currentLine).length + 1
-    };
-    
-    setFields([...fields, newField]);
-  };
-
-  // Função para abrir diálogo de edição
-  const openEditDialog = (field: FieldPosition, index: number) => {
-    setEditingField({...field});
-    setEditFieldIndex(index);
-    
-    if (field.fieldType === 'line') {
-      setEditLineWidth(field.lineWidth || labelWidth - 20);
-      setEditLineHeight(field.lineHeight || 1);
+    // Confirmar substituição se já existirem campos
+    if (Array.isArray(fields) && fields.length > 0) {
+      if (confirm("Isso substituirá todos os campos existentes. Continuar?")) {
+        setFields(templateFields);
+      }
+    } else {
+      setFields(templateFields);
     }
     
-    setEditLineNumber(field.lineNumber || 1);
-    setShowEditFieldDialog(true);
+    setShowTemplatePresets(false);
   };
 
-  // Função para salvar edição de campo
-  const saveFieldEdit = () => {
-    if (!editingField || editFieldIndex === null) return;
+  // Salvar o template
+// Salvar o template
+const handleSaveTemplate = async () => {
+  if (!templateName.trim()) {
+    toast.error("Nome do template é obrigatório");
+    return;
+  }
+
+  if (!Array.isArray(fields)) {
+    toast.error("Erro: campos não estão em formato válido");
+    return;
+  }
+
+  try {
+    setSaving(true);
     
-    const updatedField = {...editingField};
+    // Criar objeto simples sem métodos ou propriedades complexas
+    const templateData = {
+      id: templateId,
+      nome: templateName,
+      zpl,
+      campos: fields.map(field => ({
+        name: field.name,
+        x: field.x,
+        y: field.y,
+        fontSize: field.fontSize,
+        fontStyle: field.fontStyle,
+        reversed: field.reversed,
+        alignment: field.alignment,
+        fontFamily: field.fontFamily,
+        fieldType: field.fieldType,
+        staticValue: field.staticValue,
+        lineNumber: field.lineNumber,
+        linePosition: field.linePosition,
+        defaultValue: field.defaultValue,
+        barcodeType: field.barcodeType,
+        barcodeHeight: field.barcodeHeight,
+        lineWidth: field.lineWidth,
+        lineHeight: field.lineHeight,
+        boxWidth: field.boxWidth,
+        boxHeight: field.boxHeight,
+        boxBorderWidth: field.boxBorderWidth,
+        enabled: field.enabled,
+        uppercase: field.uppercase,
+        prefix: field.prefix,
+        suffix: field.suffix,
+        dateFormat: field.dateFormat
+      })),
+      width: labelWidth,
+      height: labelHeight
+    };
     
-    if (editingField.fieldType === 'line') {
-      updatedField.lineWidth = editLineWidth;
-      updatedField.lineHeight = editLineHeight;
+    await saveTemplate(templateData);
+    toast.success("Template salvo com sucesso");
+    
+    if (!templateId) {
+      router.push("/admin/templates/etiquetas/list");
     }
-    
-    updatedField.lineNumber = editLineNumber;
-    
-    const updatedFields = [...fields];
-    updatedFields[editFieldIndex] = updatedField;
-    setFields(updatedFields);
-    
-    setShowEditFieldDialog(false);
-    setEditingField(null);
-    setEditFieldIndex(null);
+  } catch (error: any) {
+    console.error("Erro ao salvar template:", error);
+    toast.error(error.message || "Erro ao salvar template");
+  } finally {
+    setSaving(false);
+  }
+};
+
+  // Testar impressão
+  const handleTestPrint = async () => {
+    if (!Array.isArray(fields)) {
+      toast.error("Erro: campos não estão em formato válido para impressão");
+      return;
+    }
+
+    try {
+      setTesting(true);
+      
+      // Criar dados de teste que incluem todos os campos possíveis
+      const testData: Record<string, string> = {};
+      
+      // Adicionar todos os nomes de campos aos dados de teste
+      fields.forEach(field => {
+        if (field.fieldType === 'dynamic') {
+          let testValue = field.defaultValue || field.name.toUpperCase() + ' TESTE';
+          
+          // Aplicar qualquer formatação necessária
+          if (field.uppercase) {
+            testValue = testValue.toUpperCase();
+          }
+          
+          testData[field.name] = testValue;
+        }
+      });
+      
+      // Adicionar dados de teste específicos para campos comuns
+      if ('produto' in testData) testData.produto = "PRODUTO TESTE";
+      if ('validade' in testData) testData.validade = "31/12/2024";
+      if ('lote' in testData) testData.lote = "LOTE-123";
+      if ('sif' in testData) testData.sif = "SIF-456";
+      if ('manipulacao' in testData) testData.manipulacao = "23/08/2024";
+      if ('responsavel' in testData) testData.responsavel = "ADILSON";
+
+      // Imprimir teste
+      const templateTestId = templateId || "temp";
+      await testPrint(templateTestId, testData, templateId ? undefined : zpl);
+      toast.success("Impressão de teste enviada");
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao testar impressão");
+    } finally {
+      setTesting(false);
+    }
   };
 
-  // Função para gerar ZPL
-  const generateZPL = () => {
-    let zpl = `^XA^LL${labelHeight}^FWB`; // Início do ZPL, comprimento da etiqueta e orientação
-    
-    fields.sort((a, b) => {
-      if (a.lineNumber !== b.lineNumber) {
-        return (a.lineNumber || 0) - (b.lineNumber || 0);
-      }
-      return (a.linePosition || 0) - (b.linePosition || 0);
-    }).forEach(field => {
-      if (field.fieldType === 'dynamic') {
-        zpl += `^FO${field.x},${(field.lineNumber - 1) * 30 + 10}^A0,${field.fontSize},${field.fontSize}^FD{${field.name}}^FS`;
-      } else if (field.fieldType === 'static') {
-        zpl += `^FO${field.x},${(field.lineNumber - 1) * 30 + 10}^A0,${field.fontSize},${field.fontSize}^FD${field.staticValue}^FS`;
-      } else if (field.fieldType === 'barcode') {
-        zpl += `^FO${field.x},${(field.lineNumber - 1) * 30 + 10}^BCN,${field.barcodeHeight || 50},Y,N,N^FD{${field.name}}^FS`;
-      } else if (field.fieldType === 'qrcode') {
-        zpl += `^FO${field.x},${(field.lineNumber - 1) * 30 + 10}^BQ,2,2^FD{${field.name}}^FS`;
-      } else if (field.fieldType === 'line') {
-        zpl += `^FO${field.x},${(field.lineNumber - 1) * 30 + 10}^GB${field.lineWidth},${field.lineHeight},${field.lineHeight}^FS`;
-      }
-    });
-    
-    zpl += "^XZ"; // Fim do ZPL
-    return zpl;
-  };
-
-  useEffect(() => {
-    const newZpl = generateZPL();
-    setZpl(newZpl);
-  }, [fields, labelWidth, labelHeight]);
+  if (loading) {
+    return (
+      <div className="container mx-auto p-4">
+        <Title>Editor de Template de Etiqueta</Title>
+        <div className="flex justify-center items-center h-64">
+          <LoaderCircle className="w-6 h-6 animate-spin" />
+          <span className="ml-2">Carregando...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <Title>Editor de Template de Etiqueta {templateId ? '(Editando)' : '(Novo)'}</Title>
-        <Button variant="outline" onClick={() => router.push("/admin/templates/etiquetas/list")}>
-          Voltar
-        </Button>
+        <Title>
+          {templateId ? `Editando Template: ${templateName}` : 'Novo Template de Etiqueta'}
+        </Title>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowTemplatePresets(true)}
+          >
+            <LayoutTemplate className="h-4 w-4 mr-2" />
+            Modelos Prontos
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => router.push("/admin/templates/etiquetas/list")}
+          >
+            Voltar
+          </Button>
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
         <div className="space-y-4">
+          {/* Configurações básicas */}
           <Card className="p-4">
+            <h2 className="text-lg font-semibold mb-4">Configurações Básicas</h2>
             <div className="mb-4">
               <Label>Nome do Template</Label>
               <Input
@@ -353,577 +387,252 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
               />
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 mb-4">
+            <div className="mb-4 grid grid-cols-2 gap-4">
+              <div>
+                <Label>Largura (mm)</Label>
+                <Input
+                  type="number"
+                  value={labelWidth}
+                  onChange={(e) => setLabelWidth(parseInt(e.target.value))}
+                />
+              </div>
+              <div>
+                <Label>Altura (mm)</Label>
+                <Input
+                  type="number"
+                  value={labelHeight}
+                  onChange={(e) => setLabelHeight(parseInt(e.target.value))}
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between">
               <Button
-                onClick={() => setShowCustomFieldDialog(true)}
                 variant="outline"
-                size="sm"
+                onClick={handleAddField}
               >
-                + Campo Personalizado
+                <PlusCircle className="h-4 w-4 mr-2" /> 
+                Adicionar Campo
               </Button>
-              <Button
-                onClick={() => setShowStaticTextDialog(true)}
-                variant="outline"
-                size="sm"
-              >
-                + Texto Estático
-              </Button>
-              <Button
-                onClick={addBarcode}
-                variant="outline"
-                size="sm"
-              >
-                + Código de Barras
-              </Button>
-              <Button
-                onClick={addQRCode}
-                variant="outline"
-                size="sm"
-              >
-                + QR Code
-              </Button>
-              <Button
-                onClick={addHorizontalLine}
-                variant="outline"
-                size="sm"
-              >
-                + Linha Horizontal
-              </Button>
+              
+              <div className="space-x-2">
+                <Button 
+                  variant="outline" 
+                  onClick={handleTestPrint}
+                  disabled={testing || !Array.isArray(fields) || fields.length === 0}
+                >
+                  <Printer className="h-4 w-4 mr-2" />
+                  {testing ? "Enviando..." : "Testar Impressão"}
+                </Button>
+                <Button 
+                  disabled={saving || !templateName || !Array.isArray(fields)}
+                  onClick={handleSaveTemplate}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  {saving ? "Salvando..." : "Salvar Template"}
+                </Button>
+              </div>
             </div>
           </Card>
 
+          {/* Lista de campos */}
           <Card className="p-4">
-            <Button 
-              disabled={saving}
-              onClick={async () => {
-                if (!templateName.trim()) {
-                  toast.error("Nome do template é obrigatório");
-                  return;
-                }
-                
-                if (fields.length === 0) {
-                  toast.error("Adicione pelo menos um campo ao template");
-                  return;
-                }
-                
-                try {
-                  setSaving(true);
-                  
-                  const templateData = {
-                    id: templateId,
-                    nome: templateName,
-                    zpl: zpl,
-                    campos: fields,
-                    width: labelWidth,
-                    height: labelHeight
-                  };
-                  
-                  await saveTemplate(templateData);
-                  
-                  toast.success("Template salvo com sucesso");
-                  
-                  if (!templateId) {
-                    router.push("/admin/templates/etiquetas/list");
-                  }
-                } catch (error: any) {
-                  toast.error(error.message || "Erro ao salvar template");
-                } finally {
-                  setSaving(false);
-                }
-              }}
-              className="w-full"
-            >
-              {saving ? "Salvando..." : "Salvar Template"}
-            </Button>
-          </Card>
-
-          <Card className="p-4">
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold mb-2">Configuração de Linhas</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Linha Atual</Label>
-                    <Input 
-                      type="number" 
-                      min="1" 
-                      value={currentLine} 
-                      onChange={(e) => setCurrentLine(parseInt(e.target.value) || 1)}
-                    />
-                  </div>
-                  <div>
-                    <Label>Tamanho da Etiqueta</Label>
-                    <div className="flex gap-2">
-                      <Input 
-                        type="number" 
-                        min="100" 
-                        value={labelWidth} 
-                        onChange={(e) => setLabelWidth(parseInt(e.target.value) || 400)}
-                        placeholder="Largura"
+            <h2 className="text-lg font-semibold mb-4">Campos do Template</h2>
+            <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+              {!Array.isArray(fields) || fields.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <FileText className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                  <p>Nenhum campo adicionado.</p>
+                  <p className="text-sm">
+                    Clique em "Adicionar Campo" ou use um dos modelos prontos
+                  </p>
+                </div>
+              ) : (
+                fields.map((field, index) => (
+                  <div 
+                    key={index} 
+                    className={`
+                      flex items-center justify-between p-3 rounded 
+                      ${selectedFieldIndex === index ? 'bg-primary/10 border border-primary' : 'bg-secondary/20 hover:bg-secondary/30 border border-transparent'}
+                      cursor-pointer transition-colors
+                    `}
+                    onClick={() => setSelectedFieldIndex(index)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id={`field-enabled-${index}`}
+                        checked={field.enabled}
+                        onCheckedChange={(checked) => {
+                          const updatedFields = [...fields];
+                          updatedFields[index] = { 
+                            ...updatedFields[index], 
+                            enabled: checked === true 
+                          };
+                          setFields(updatedFields);
+                        }}
+                        onClick={(e) => e.stopPropagation()}  // Evitar seleção ao clicar no checkbox
                       />
-                      <Input 
-                        type="number" 
-                        min="100" 
-                        value={labelHeight} 
-                        onChange={(e) => setLabelHeight(parseInt(e.target.value) || 300)}
-                        placeholder="Altura"
-                      />
+                      <div>
+                        <div className="font-medium flex items-center">
+                          {(() => {
+                            switch (field.fieldType) {
+                              case 'dynamic': return <SquareMenu className="h-3 w-3 mr-1 text-blue-500" />;
+                              case 'static': return <FileText className="h-3 w-3 mr-1 text-green-500" />;
+                              case 'barcode': return <Copy className="h-3 w-3 mr-1 text-orange-500" />;
+                              case 'qrcode': return <div className="h-3 w-3 mr-1 bg-violet-500 rounded-sm" />;
+                              case 'line': return <div className="h-0.5 w-3 mr-1 bg-gray-500" />;
+                              case 'box': return <div className="h-3 w-3 mr-1 border border-gray-500" />;
+                              default: return null;
+                            }
+                          })()}
+                          {field.name}
+                        </div>
+                        <div className="text-xs text-muted-foreground flex flex-wrap gap-1">
+                          <span>x:{field.x} y:{field.y}</span>
+                          {field.fieldType === 'static' && (
+                            <span className="italic">"{field.staticValue}"</span>
+                          )}
+                          {field.reversed && (
+                            <span className="px-1 bg-black text-white text-[10px] rounded">
+                              Reverso
+                            </span>
+                          )}
+                          {field.uppercase && (
+                            <span className="px-1 border text-[10px] rounded">
+                              MAIÚSC
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditField(index);
+                        }}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-blue-500"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDuplicateField(index);
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteField(index);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                </div>
-              </div>
-              
-              <Separator />
-              
-              <div className="mt-4">
-                <h3 className="text-lg font-semibold mb-2">Campos do Template</h3>
-                <div className="space-y-2 max-h-80 overflow-y-auto">
-                  {fields.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Nenhum campo adicionado</p>
-                  ) : (
-                    fields
-                      .sort((a, b) => {
-                        if (a.lineNumber !== b.lineNumber) {
-                          return (a.lineNumber || 0) - (b.lineNumber || 0);
-                        }
-                        return (a.linePosition || 0) - (b.linePosition || 0);
-                      })
-                      .map((field, index) => (
-                        <div 
-                          key={index} 
-                          className="flex items-center justify-between p-2 bg-secondary/20 rounded cursor-pointer hover:bg-secondary/30"
-                          onClick={() => openEditDialog(field, index)}
-                        >
-                          <div className="flex-1">
-                            <span className="font-medium">
-                              L{field.lineNumber || 1} - {field.name}
-                            </span>
-                            <span className="text-xs ml-1 text-muted-foreground">
-                              ({field.fieldType})
-                            </span>
-                            {field.fieldType === 'static' && (
-                              <span className="text-xs ml-1 italic">
-                                "{field.staticValue}"
-                              </span>
-                            )}
-                            {field.reversed && (
-                              <span className="text-xs ml-1 px-1 bg-black text-white rounded">
-                                Reverso
-                              </span>
-                            )}
-                            <span className="text-xs ml-1">
-                              {field.fontSize}px {field.fontStyle === 'bold' ? 'Negrito' : ''}
-                            </span>
-                          </div>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-7 px-2"
-                              onClick={(e) => {
-                                e.stopPropagation();  // Impedir que abra o diálogo de edição
-                                openEditDialog(field, index);
-                              }}
-                            >
-                              Editar
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              className="h-7 px-2"
-                              onClick={(e) => {
-                                e.stopPropagation();  // Impedir que abra o diálogo de edição
-                                setFields(fields.filter((_, i) => i !== index));
-                              }}
-                            >
-                              Remover
-                            </Button>
-                          </div>
-                        </div>
-                      ))
-                  )}
-                </div>
-              </div>
+                ))
+              )}
             </div>
           </Card>
         </div>
-        
+
         <div className="space-y-4">
+          {/* Prévia do template */}
           <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-4">Visualização do Template</h3>
-            <div className="border p-4 rounded-md bg-white relative" 
-              style={{ 
-                width: `${labelWidth}px`, 
-                height: `${labelHeight}px`,
-                margin: '0 auto',
-                overflow: 'hidden'
-              }}
-            >
-              {fields.map((field, index) => {
-                const lineHeight = 30;
-                const y = field.lineNumber ? (field.lineNumber - 1) * lineHeight + 20 : field.y;
-                
-                let x = 10;
-                if (field.alignment === 'center') x = labelWidth / 2;
-                else if (field.alignment === 'right') x = labelWidth - 20;
-                
-                if (field.fieldType === 'line') {
-                  return (
-                    <div 
-                      key={index} 
-                      style={{
-                        position: 'absolute',
-                        left: `${field.x}px`,
-                        top: `${y}px`,
-                        width: `${field.lineWidth}px`,
-                        height: `${field.lineHeight}px`,
-                        backgroundColor: 'black',
-                      }}
-                    />
-                  );
-                }
-                
-                let content = "";
-                if (field.fieldType === 'static') content = field.staticValue || "";
-                else if (field.fieldType === 'barcode') content = "[Código de Barras]";
-                else if (field.fieldType === 'qrcode') content = "[QR Code]";
-                else content = `{${field.name}}`;
-                
-                const style: React.CSSProperties = {
-                  position: 'absolute',
-                  left: `${x}px`,
-                  top: `${y}px`,
-                  fontSize: `${field.fontSize}px`,
-                  fontWeight: field.fontStyle === 'bold' ? 'bold' : 'normal',
-                  textAlign: field.alignment,
-                  transform: field.alignment === 'center' ? 'translateX(-50%)' : 
-                          field.alignment === 'right' ? 'translateX(-100%)' : 'none',
-                  backgroundColor: field.reversed ? 'black' : 'transparent',
-                  color: field.reversed ? 'white' : 'black',
-                  padding: field.reversed ? '2px 4px' : 0,
-                };
-                
-                return <div key={index} style={style}>{content}</div>;
-              })}
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Visualização</h2>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="show-grid"
+                    checked={showGrid}
+                    onCheckedChange={(checked) => setShowGrid(checked === true)}
+                  />
+                  <Label htmlFor="show-grid">Mostrar grade</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label>Zoom</Label>
+                  <div className="w-28">
+                    <Select
+                      value={scale.toString()}
+                      onValueChange={(value) => setScale(parseFloat(value))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Zoom" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ZOOM_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
             </div>
+            <LabelPreview 
+              fields={Array.isArray(fields) ? fields : []}
+              scale={scale}
+              width={labelWidth}
+              height={labelHeight}
+              onSelectField={setSelectedFieldIndex}
+              selectedFieldIndex={selectedFieldIndex}
+              showGrid={showGrid}
+            />
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              Clique nos elementos para selecioná-los ou editar suas propriedades
+            </p>
           </Card>
+
+          {/* Código ZPL */}
           <Card className="p-4">
-            <h3 className="text-lg font-semibold mb-4">ZPL Gerado</h3>
-            <pre className="bg-gray-100 p-2 rounded-md overflow-x-auto">{zpl}</pre>
+            <h2 className="text-lg font-semibold mb-4">Código ZPL</h2>
+            <Textarea
+              value={zpl}
+              onChange={(e) => setZpl(e.target.value)}
+              className="h-[200px] font-mono text-xs"
+            />
+            <p className="text-xs text-muted-foreground mt-2">
+              O código ZPL é gerado automaticamente com base nos campos configurados.
+              Edições manuais podem ser sobrescritas ao atualizar campos.
+            </p>
           </Card>
         </div>
       </div>
       
-      {/* Modal de campo personalizado */}
-      {showCustomFieldDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg p-6 w-96 max-w-full">
-            <h3 className="text-lg font-semibold mb-4">Adicionar Campo Personalizado</h3>
-            <div className="space-y-4">
-              <div>
-                <Label>Nome do Campo</Label>
-                <Input 
-                  value={customFieldName} 
-                  onChange={(e) => setCustomFieldName(e.target.value)} 
-                  placeholder="Ex: endereco"
-                />
-              </div>
-              
-              <div>
-                <Label>Tamanho da Fonte</Label>
-                <Input 
-                  type="number" 
-                  min="6" 
-                  max="24" 
-                  value={fieldFontSize} 
-                  onChange={(e) => setFieldFontSize(parseInt(e.target.value) || 10)} 
-                />
-              </div>
-              
-              <div>
-                <Label>Estilo da Fonte</Label>
-                <Select
-                  value={fieldFontStyle}
-                  onValueChange={(value) => 
-                    setFieldFontStyle(value as 'normal' | 'bold')
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o estilo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="bold">Negrito</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label>Alinhamento</Label>
-                <Select
-                  value={fieldAlignment}
-                  onValueChange={(value) => 
-                    setFieldAlignment(value as 'left' | 'center' | 'right')
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o alinhamento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="left">Esquerda</SelectItem>
-                    <SelectItem value="center">Centro</SelectItem>
-                    <SelectItem value="right">Direita</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="field-reversed" 
-                  checked={fieldReversed} 
-                  onCheckedChange={(checked) => setFieldReversed(checked === true)} 
-                />
-                <Label htmlFor="field-reversed">Texto Reverso (branco em fundo preto)</Label>
-              </div>
-              
-              <div className="flex justify-between">
-                <Button 
-                  variant="outline"
-                  onClick={() => setShowCustomFieldDialog(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button onClick={addCustomField}>
-                  Adicionar
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal de texto estático */}
-      {showStaticTextDialog && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg p-6 w-96 max-w-full">
-            <h3 className="text-lg font-semibold mb-4">Adicionar Texto Estático</h3>
-            <div className="space-y-4">
-              <div>
-                <Label>Texto</Label>
-                <Input 
-                  value={staticText} 
-                  onChange={(e) => setStaticText(e.target.value)} 
-                  placeholder="Ex: Data de Manipulação:"
-                />
-              </div>
-              
-              <div>
-                <Label>Tamanho da Fonte</Label>
-                <Input 
-                  type="number" 
-                  min="6" 
-                  max="24" 
-                  value={fieldFontSize} 
-                  onChange={(e) => setFieldFontSize(parseInt(e.target.value) || 10)} 
-                />
-              </div>
-              
-              <div>
-                <Label>Estilo da Fonte</Label>
-                <Select
-                  value={fieldFontStyle}
-                  onValueChange={(value) => 
-                    setFieldFontStyle(value as 'normal' | 'bold')
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o estilo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="normal">Normal</SelectItem>
-                    <SelectItem value="bold">Negrito</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label>Alinhamento</Label>
-                <Select
-                  value={staticTextAlignment}
-                  onValueChange={(value) => 
-                    setStaticTextAlignment(value as 'left' | 'center' | 'right')
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o alinhamento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="left">Esquerda</SelectItem>
-                    <SelectItem value="center">Centro</SelectItem>
-                    <SelectItem value="right">Direita</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="static-reversed" 
-                  checked={fieldReversed} 
-                  onCheckedChange={(checked) => setFieldReversed(checked === true)} 
-                />
-                <Label htmlFor="static-reversed">Texto Reverso (branco em fundo preto)</Label>
-              </div>
-              
-              <div className="flex justify-between">
-                <Button 
-                  variant="outline"
-                  onClick={() => setShowStaticTextDialog(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button onClick={addStaticText}>
-                  Adicionar
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Modal de edição de campo */}
+      {showFieldEditor && newFieldData && (
+        <FieldEditorModal
+          field={newFieldData}
+          onSave={handleSaveField}
+          onCancel={() => {
+            setShowFieldEditor(false);
+            setNewFieldData(null);
+            setSelectedFieldIndex(null);
+          }}
+          isNew={selectedFieldIndex === null}
+        />
       )}
       
-      {/* Modal de edição de campo */}
-      {showEditFieldDialog && editingField && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-background rounded-lg p-6 w-96 max-w-full">
-            <h3 className="text-lg font-semibold mb-4">Editar Campo</h3>
-            <div className="space-y-4">
-              {editingField.fieldType === 'dynamic' && (
-                <div>
-                  <Label>Nome do Campo</Label>
-                  <Input 
-                    value={editingField.name} 
-                    onChange={(e) => setEditingField({...editingField, name: e.target.value})}
-                  />
-                </div>
-              )}
-              
-              {editingField.fieldType === 'static' && (
-                <div>
-                  <Label>Texto</Label>
-                  <Input 
-                    value={editingField.staticValue || ''} 
-                    onChange={(e) => setEditingField({...editingField, staticValue: e.target.value})}
-                  />
-                </div>
-              )}
-              
-              <div>
-                <Label>Linha</Label>
-                <Input 
-                  type="number" 
-                  min="1" 
-                  value={editLineNumber} 
-                  onChange={(e) => setEditLineNumber(parseInt(e.target.value) || 1)}
-                />
-              </div>
-              
-              {editingField.fieldType === 'line' ? (
-                <>
-                  <div>
-                    <Label>Largura da Linha</Label>
-                    <Input 
-                      type="number" 
-                      min="10" 
-                      value={editLineWidth} 
-                      onChange={(e) => setEditLineWidth(parseInt(e.target.value) || 100)}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label>Altura da Linha</Label>
-                    <Input 
-                      type="number" 
-                      min="1" 
-                      max="10" 
-                      value={editLineHeight} 
-                      onChange={(e) => setEditLineHeight(parseInt(e.target.value) || 1)}
-                    />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div>
-                    <Label>Tamanho da Fonte</Label>
-                    <Input 
-                      type="number" 
-                      min="6" 
-                      max="24" 
-                      value={editingField.fontSize} 
-                      onChange={(e) => setEditingField({...editingField, fontSize: parseInt(e.target.value) || 10})}
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label>Estilo da Fonte</Label>
-                    <Select
-                      value={editingField.fontStyle}
-                      onValueChange={(value) => 
-                        setEditingField({...editingField, fontStyle: value as 'normal' | 'bold'})
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o estilo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="normal">Normal</SelectItem>
-                        <SelectItem value="bold">Negrito</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label>Alinhamento</Label>
-                    <Select
-                      value={editingField.alignment}
-                      onValueChange={(value) => 
-                        setEditingField({...editingField, alignment: value as 'left' | 'center' | 'right'})
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o alinhamento" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="left">Esquerda</SelectItem>
-                        <SelectItem value="center">Centro</SelectItem>
-                        <SelectItem value="right">Direita</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="edit-reversed" 
-                      checked={editingField.reversed} 
-                      onCheckedChange={(checked) => setEditingField({...editingField, reversed: checked === true})}
-                    />
-                    <Label htmlFor="edit-reversed">Texto Reverso (branco em fundo preto)</Label>
-                  </div>
-                </>
-              )}
-              
-              <div className="flex justify-between">
-                <Button 
-                  variant="outline"
-                  onClick={() => setShowEditFieldDialog(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button onClick={saveFieldEdit}>
-                  Salvar
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Modal de templates predefinidos */}
+      {showTemplatePresets && (
+        <TemplatePresetDialog
+          onSelect={handleApplyTemplate}
+          onCancel={() => setShowTemplatePresets(false)}
+        />
       )}
     </div>
   );
