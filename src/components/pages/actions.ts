@@ -58,7 +58,7 @@ export async function gerarEtiqueta(obj: EtiquetaData) {
         produto: obj.produto_nome?.split(" ").join("  "),
         validade: format(new Date(obj.validade!), "EEEEEE dd/MM/yyyy", {
           locale: ptBR,
-        }),
+        }).toUpperCase(),
         lote: obj.lote,
         sif: obj.sif,
         manipulacao: format(new Date(), "dd/MM/yyyy"),
@@ -75,8 +75,9 @@ export async function gerarEtiqueta(obj: EtiquetaData) {
       };
 
       // Add any other fields from object that might be used in the template
-      Object.entries(obj).forEach(([key, value]) => {
+      Object.entries(data).forEach(([key, value]) => {
         if (typeof value === "string" || typeof value === "number") {
+          //@ts-ignore
           data[key] = String(value);
         }
       });
@@ -84,10 +85,7 @@ export async function gerarEtiqueta(obj: EtiquetaData) {
       // Replace all dynamic placeholders
       Object.entries(data).forEach(([key, value]) => {
         if (command) {
-          command = command.replace(
-            `{${key}}`,
-            key !== "produto" ? sanitizeZPL(value) : value || ""
-          );
+          command = command.replace(`{${key}}`, sanitizeZPL(value) || "");
         }
       });
     }

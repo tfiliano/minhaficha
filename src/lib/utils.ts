@@ -21,5 +21,6 @@ export function sanitizeZPL(text?: string) {
     .normalize("NFD") // Separa letras de acentos
     .replace(/[\u0300-\u036f]/g, "") // Remove acentos
     .replace(/[^a-zA-Z0-9\s.,;:\/\-_=+!?]/g, "") // Remove caracteres fora do padrão
-    .replace(/\s+/g, " "); // Normaliza espaços múltiplos
+    .replace(/\s+/g, "  ") // Normaliza espaços múltiplos
+    .trim();
 }
