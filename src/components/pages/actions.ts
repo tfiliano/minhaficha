@@ -106,16 +106,11 @@ export async function gerarEtiqueta(obj: EtiquetaData) {
   delete obj.sif;
   delete obj.temperatura;
   delete obj.template_id;
-
+  delete obj.impressora;
   // Set status as pending for the print service to pick up
   obj.status = "pending";
   if (command) {
     obj.command = command;
-  }
-
-  if (process.env.NODE_ENV === "development") {
-    throw console.log(obj);
-    return;
   }
 
   const { data, error } = await supabase.from("etiquetas").insert(obj);
