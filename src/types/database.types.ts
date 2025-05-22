@@ -12,54 +12,72 @@ export type Database = {
       etiquetas: {
         Row: {
           armazenamento_id: string | null
+          codigo_produto: string | null
           command: string | null
+          completed_at: string | null
           created_at: string
+          error_message: string | null
           fornecedor_id: string | null
           grupo_id: string | null
           id: string
-          impressora: string | null
           impressora_id: string | null
           loja_id: string | null
           lote: string | null
+          operador: string | null
           operador_id: string | null
+          processing_started_at: string | null
           produto_id: string | null
+          produto_nome: string | null
           quantidade: number | null
+          retry_count: number | null
           SIF: string | null
           status: string | null
           validade: string | null
         }
         Insert: {
           armazenamento_id?: string | null
+          codigo_produto?: string | null
           command?: string | null
+          completed_at?: string | null
           created_at?: string
+          error_message?: string | null
           fornecedor_id?: string | null
           grupo_id?: string | null
           id?: string
-          impressora?: string | null
           impressora_id?: string | null
           loja_id?: string | null
           lote?: string | null
+          operador?: string | null
           operador_id?: string | null
+          processing_started_at?: string | null
           produto_id?: string | null
+          produto_nome?: string | null
           quantidade?: number | null
+          retry_count?: number | null
           SIF?: string | null
           status?: string | null
           validade?: string | null
         }
         Update: {
           armazenamento_id?: string | null
+          codigo_produto?: string | null
           command?: string | null
+          completed_at?: string | null
           created_at?: string
+          error_message?: string | null
           fornecedor_id?: string | null
           grupo_id?: string | null
           id?: string
-          impressora?: string | null
           impressora_id?: string | null
           loja_id?: string | null
           lote?: string | null
+          operador?: string | null
           operador_id?: string | null
+          processing_started_at?: string | null
           produto_id?: string | null
+          produto_nome?: string | null
           quantidade?: number | null
+          retry_count?: number | null
           SIF?: string | null
           status?: string | null
           validade?: string | null

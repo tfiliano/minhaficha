@@ -30,22 +30,13 @@ interface IEtiqueta {
   operador_id?: string | null;
   operador?: string | null;
   produto_id?: string | null;
-  impressora?: string;
+  impressora_id?: string;
   quantidade?: number;
   template_id?: string;
 }
 
-interface Template {
-  id: string;
-  nome: string;
-  zpl: string;
-  campos: Array<{
-    name: string;
-    x: number;
-    y: number;
-    fontSize: number;
-  }>;
-}
+// Importar a interface diretamente do módulo actions
+import type { Template, FieldPosition } from "./actions";
 
 const INIT_ETIQUETA: IEtiqueta = {
   validade: "",
@@ -66,6 +57,8 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
   );
   const [templates, setTemplates] = useState<Template[]>([]);
   const [formData, setFormData] = useState<IEtiqueta | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [dynamicFields, setDynamicFields] = useState<Record<string, string>>({});
   const router = useRouter();
 
   function getParam(property: string) {
@@ -98,6 +91,7 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
         // If there's only one template, select it automatically
         if (templatesData.length === 1) {
           setValue("template_id", templatesData[0].id);
+          setSelectedTemplate(templatesData[0]);
         }
       } catch (error) {
         console.error("Error loading data:", error);
@@ -106,6 +100,26 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
     };
     loadData();
   }, [setValue]);
+
+  // Carregar o template selecionado quando o template_id mudar
+  useEffect(() => {
+    const templateId = watch("template_id");
+    if (templateId) {
+      const template = templates.find(t => t.id === templateId);
+      if (template) {
+        setSelectedTemplate(template);
+        
+        // Inicializar campos dinâmicos vazios para todos os campos do template
+        const initialFields: Record<string, string> = {};
+        template.campos
+          .filter(campo => campo.fieldType === 'dynamic')
+          .forEach(campo => {
+            initialFields[campo.name] = '';
+          });
+        setDynamicFields(initialFields);
+      }
+    }
+  }, [watch("template_id"), templates]);
 
   const onSubmit: SubmitHandler<IEtiqueta> = async (formValue) => {
     if (!formValue.template_id) {
@@ -124,7 +138,8 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
       setLoading(true);
       setLoadingText("Enviando para impressão...");
 
-      await gerarEtiqueta({
+      // Preparar os dados para envio
+      const requestData: Record<string, any> = {
         ...formData,
         loja_id: produto.loja_id,
         impressora: printer,
@@ -133,6 +148,9 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
         codigo_produto: produto.codigo,
       });
 
+      await gerarEtiqueta(requestData);
+
+      toast.success('Etiqueta enviada para impressão com sucesso!');
       router.replace("/");
     } catch (error: any) {
       toast.error(error?.message || "Erro ao gerar etiqueta");
@@ -186,6 +204,7 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
           </Select>
         </div>
 
+        {/* Campos padrão */}
         <Table>
           <TableBody>
             <TableRow>
@@ -219,6 +238,38 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
             </TableRow>
           </TableBody>
         </Table>
+        
+        {/* Campos dinâmicos baseados no template selecionado */}
+        {selectedTemplate && selectedTemplate.campos.some(c => c.fieldType === 'dynamic') && (
+          <div className="mt-6">
+            <h3 className="text-lg font-semibold mb-2">Campos do Template</h3>
+            <Table>
+              <TableBody>
+                {selectedTemplate.campos
+                  .filter(campo => campo.fieldType === 'dynamic') 
+                  .sort((a, b) => (a.lineNumber || 0) - (b.lineNumber || 0))
+                  .map((campo, idx) => (
+                    <TableRow key={`${campo.name}-${idx}`}>
+                      <TableCell className="font-medium">{campo.name}</TableCell>
+                      <TableCell>
+                        <Input
+                          type="text"
+                          value={dynamicFields[campo.name] || ''}
+                          onChange={(e) => {
+                            setDynamicFields({
+                              ...dynamicFields,
+                              [campo.name]: e.target.value
+                            });
+                          }}
+                          placeholder={campo.defaultValue || `Valor para ${campo.name}`}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
 
         <Button className="m-8" type="submit">
           Concluir
