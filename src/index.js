@@ -1,6 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
-import { config } from 'dotenv';
-import net from 'net';
+import { createClient } from "@supabase/supabase-js";
+import { config } from "dotenv";
+import net from "net";
 
 config();
 
@@ -15,29 +15,29 @@ const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL) || 5000;
 async function sendToPrinter(ip, port, zpl) {
   return new Promise((resolve, reject) => {
     const client = new net.Socket();
-    let responseData = '';
+    let responseData = "";
 
     client.connect(port, ip, () => {
       console.log(`Connected to printer at ${ip}:${port}`);
       client.write(zpl);
     });
 
-    client.on('data', (data) => {
+    client.on("data", (data) => {
       responseData += data.toString();
     });
 
-    client.on('close', () => {
+    client.on("close", () => {
       resolve(responseData);
     });
 
-    client.on('error', (error) => {
+    client.on("error", (error) => {
       reject(error);
     });
 
     // Set a timeout
     setTimeout(() => {
       client.destroy();
-      reject(new Error('Print timeout'));
+      reject(new Error("Print timeout"));
     }, 10000);
   });
 }
@@ -49,31 +49,32 @@ async function processPrintJob(job) {
 
     // Update status to printing
     await supabase
-      .from('etiquetas')
-      .update({ status: 'printing' })
-      .eq('id', job.id);
+      .from("etiquetas")
+      .update({ status: "printing" })
+      .eq("id", job.id);
 
     // Get printer details
     if (!job.impressora_id) {
-      throw new Error('No printer assigned to job');
+      throw new Error("No printer assigned to job");
     }
 
     const { data: printer, error: printerError } = await supabase
-      .from('impressoras')
-      .select('*')
-      .eq('id', job.impressora_id)
+      .from("impressoras")
+      .select("*")
+      .eq("id", job.impressora_id)
       .single();
 
-    if (printerError) throw new Error(`Printer not found: ${printerError.message}`);
+    if (printerError)
+      throw new Error(`Printer not found: ${printerError.message}`);
 
     // Send to printer
-    await sendToPrinter(printer.ip, printer.port || 9100, job.command);
+    await sendToPrinter(printer.ip, printer.porta || 9100, job.command);
 
     // Update status to completed
     await supabase
-      .from('etiquetas')
-      .update({ status: 'completed' })
-      .eq('id', job.id);
+      .from("etiquetas")
+      .update({ status: "completed" })
+      .eq("id", job.id);
 
     console.log(`Job ${job.id} completed successfully`);
   } catch (error) {
@@ -81,12 +82,12 @@ async function processPrintJob(job) {
 
     // Update status to failed
     await supabase
-      .from('etiquetas')
-      .update({ 
-        status: 'failed',
-        error_message: error.message
+      .from("etiquetas")
+      .update({
+        status: "failed",
+        error_message: error.message,
       })
-      .eq('id', job.id);
+      .eq("id", job.id);
   }
 }
 
@@ -95,10 +96,10 @@ async function pollPrintQueue() {
   try {
     // Get pending print jobs
     const { data: jobs, error } = await supabase
-      .from('etiquetas')
-      .select('*')
-      .eq('status', 'pending')
-      .order('created_at');
+      .from("etiquetas")
+      .select("*")
+      .eq("status", "pending")
+      .order("created_at");
 
     if (error) throw error;
 
@@ -107,7 +108,7 @@ async function pollPrintQueue() {
       await processPrintJob(job);
     }
   } catch (error) {
-    console.error('Error polling print queue:', error);
+    console.error("Error polling print queue:", error);
   }
 
   // Schedule next poll
@@ -115,11 +116,11 @@ async function pollPrintQueue() {
 }
 
 // Start polling
-console.log('Print service starting...');
+console.log("Print service starting...");
 pollPrintQueue();
 
 // Handle process termination
-process.on('SIGINT', async () => {
-  console.log('Shutting down print service...');
+process.on("SIGINT", async () => {
+  console.log("Shutting down print service...");
   process.exit(0);
 });
