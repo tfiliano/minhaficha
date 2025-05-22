@@ -14,3 +14,12 @@ export const removeDuplicatesInArrayObj = <T>(arr: T[], key: keyof T): T[] =>
       ])
     ).values()
   ) as T[];
+
+export function sanitizeZPL(text?: string) {
+  if (!text) return null;
+  return text
+    .normalize("NFD") // Separa letras de acentos
+    .replace(/[\u0300-\u036f]/g, "") // Remove acentos
+    .replace(/[^a-zA-Z0-9\s.,;:\/\-_=+!?]/g, "") // Remove caracteres fora do padrão
+    .replace(/\s+/g, " "); // Normaliza espaços múltiplos
+}

@@ -1,6 +1,9 @@
 "use server";
 
+import { sanitizeZPL } from "@/lib/utils";
 import { createClient } from "@/utils/supabase";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface EtiquetaData {
   template_id?: string;
@@ -36,19 +39,47 @@ export async function gerarEtiqueta(obj: EtiquetaData) {
       .eq("id", obj.template_id)
       .single();
 
+    const { data: loja } = (await supabase
+      .from("lojas")
+      .select()
+      .eq("id", obj.loja_id)
+      .maybeSingle()) as any;
+
+    const { data: local } = await supabase
+      .from("produtos")
+      .select("id,local:locais_armazenamento(armazenamento)")
+      .eq("id", obj.produto_id)
+      .maybeSingle();
+
     if (template) {
       // Replace placeholders in ZPL
       command = template.zpl;
       const data = {
-        produto: obj.produto_nome,
-        validade: obj.validade,
+        produto: obj.produto_nome?.split(" ").join("  "),
+        validade: format(new Date(obj.validade!), "EEEEEE dd/MM/yyyy", {
+          locale: ptBR,
+        }),
         lote: obj.lote,
-        sif: obj.SIF,
+        sif: obj.sif,
+        manipulacao: format(new Date(), "dd/MM/yyyy"),
+        armazenamento: local?.local?.armazenamento,
+        codigo_produto: obj.codigo_produto,
+        operador: obj.operador,
+        cnpj: loja!.registration_number,
+        cep: loja!.address.cep,
+        endereco: loja!.address?.street,
+        cidade: loja!.address?.city,
+        estado: loja!.address?.state,
+        bairro: loja!.address?.neighborhood,
+        nome_loja: loja!.nome,
       };
 
       Object.entries(data).forEach(([key, value]) => {
         if (command) {
-          command = command.replace(`{${key}}`, value || "");
+          command = command.replace(
+            `{${key}}`,
+            key !== "produto" ? sanitizeZPL(value) : value || ""
+          );
         }
       });
     }
@@ -72,6 +103,11 @@ export async function gerarEtiqueta(obj: EtiquetaData) {
   obj.status = "pending";
   if (command) {
     obj.command = command;
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    throw console.log(obj);
+    return;
   }
 
   const { data, error } = await supabase.from("etiquetas").insert(obj);

@@ -1,9 +1,12 @@
-import { Builder } from "@/components/form-builder";
+import { Builder, FormBuilderRef } from "@/components/form-builder";
 import { useRouter } from "@/hooks/use-router";
+import { getDocumentCompany } from "@/lib/brasil/get-document-company";
+import { getPostalCode } from "@/lib/brasil/get-postal-code";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
 import { executeQuery } from "@/lib/supabase-helper";
 import { Tables } from "@/types/database.types";
 import { createBrowserClient } from "@/utils/supabase-client";
+import { useRef } from "react";
 import { toast } from "sonner";
 import { EntityFormHandler, ModeFormHandlerProp } from "..";
 
@@ -13,7 +16,7 @@ export type LojaProps = {
   loja?: Loja & { usuarios: any[] };
 };
 
-const formBuilder = () =>
+const formBuilder = (formRef: any) =>
   ({
     columns: [
       {
@@ -21,8 +24,19 @@ const formBuilder = () =>
           {
             fields: [
               {
+                name: "registration_number",
+                label: "CNPJ",
+                placeholder: "Documento da loja",
+                type: "tel",
+                onChangeCapture: getDocumentCompany(formRef),
+              },
+            ],
+          },
+          {
+            fields: [
+              {
                 name: "codigo",
-                label: "Codigio",
+                label: "Código",
                 placeholder: "Digite o codigo",
                 type: "text",
                 required: true,
@@ -36,6 +50,76 @@ const formBuilder = () =>
               },
             ],
           },
+          {
+            fields: [
+              {
+                name: "address.cep",
+                label: "CEP",
+                placeholder: "CEP",
+                type: "text",
+                onChangeCapture: getPostalCode(formRef),
+              },
+            ],
+          },
+          {
+            fields: [
+              {
+                name: "address.street",
+                label: "Endereço",
+                placeholder: "Endereço",
+                type: "text",
+              },
+            ],
+          },
+          {
+            fields: [
+              {
+                name: "address.number",
+                label: "Numero",
+                placeholder: "N°",
+                type: "number",
+                itemClass: "w-[86px]",
+              },
+              {
+                name: "address.neighborhood",
+                label: "Bairro",
+                placeholder: "Bairro",
+                type: "text",
+                itemClass: "w-full",
+              },
+            ],
+            className: "flex",
+          },
+          {
+            fields: [
+              {
+                name: "address.complement",
+                label: "Complemento",
+                placeholder: "Complemento",
+                type: "text",
+                required: false,
+              },
+            ],
+          },
+          {
+            fields: [
+              {
+                name: "address.city",
+                label: "Cidade",
+                placeholder: "Cidade",
+                type: "text",
+                itemClass: "w-full",
+              },
+              {
+                name: "address.state",
+                label: "Estado",
+                placeholder: "UF",
+                type: "text",
+                itemClass: "w-[56px]",
+              },
+            ],
+            className: "flex",
+          },
         ],
       },
     ],
@@ -44,6 +128,8 @@ const formBuilder = () =>
 function LojaForm({ mode, loja }: LojaProps & ModeFormHandlerProp) {
   const supabase = createBrowserClient();
   const router = useRouter();
+  const formRef = useRef<FormBuilderRef | undefined>(undefined);
+
   const handleSubmit = async (data: Loja) => {
     const query =
       mode === "update"
@@ -69,10 +155,11 @@ function LojaForm({ mode, loja }: LojaProps & ModeFormHandlerProp) {
 
   return (
     <EntityFormHandler<Loja>
+      formRef={formRef}
       mode={mode}
       entity={loja}
       tableCollection="lojas"
-      builder={formBuilder()}
+      builder={formBuilder(formRef)}
       onSubmit={handleSubmit}
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
     />

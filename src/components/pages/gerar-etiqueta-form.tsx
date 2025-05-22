@@ -28,6 +28,7 @@ interface IEtiqueta {
   lote: string;
   sif: string;
   operador_id?: string | null;
+  operador?: string | null;
   produto_id?: string | null;
   impressora?: string;
   quantidade?: number;
@@ -76,7 +77,7 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
       ...INIT_ETIQUETA,
       operador_id: getParam("operadorId"),
       produto_id: getParam("produtoId"),
-
+      operador: getParam("operador"),
       validade: produto.dias_validade
         ? addDays(new Date(), produto.dias_validade).toISOString().split("T")[0]
         : undefined,
@@ -125,9 +126,11 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
 
       await gerarEtiqueta({
         ...formData,
+        loja_id: produto.loja_id,
         impressora: printer,
         quantidade: quantity,
         produto_nome: produto.nome,
+        codigo_produto: produto.codigo,
       });
 
       router.replace("/");

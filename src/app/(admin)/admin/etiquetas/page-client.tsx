@@ -29,8 +29,8 @@ export function EtiquetasPageClient({
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase();
     return (
-      normalizar(etiqueta.SIF!).includes(normalizar(busca)) ||
-      normalizar(etiqueta.SIF!).includes(normalizar(busca))
+      normalizar(etiqueta.SIF || "").includes(normalizar(busca)) ||
+      normalizar(etiqueta.SIF || "").includes(normalizar(busca))
     );
   });
 

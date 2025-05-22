@@ -22,7 +22,7 @@ export default async function Produtos(props: Props) {
   //   }
   const supabase = await createClient();
   const { data: etiquetas } = await supabase.from("etiquetas").select("*");
-
+  console.log({ etiquetas });
   return (
     <AnimationTransitionPage>
       <ContentGrid>
