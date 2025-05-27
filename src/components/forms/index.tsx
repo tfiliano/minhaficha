@@ -51,6 +51,7 @@ type EntityFormHandlerProps<T> = {
   submitLabel: string;
   tableCollection?: TableCollection;
   keyProp?: string;
+  formRef?: any;
 };
 
 export function EntityFormHandler<T>({
@@ -61,12 +62,14 @@ export function EntityFormHandler<T>({
   submitLabel,
   tableCollection,
   keyProp,
+  formRef,
 }: EntityFormHandlerProps<T>) {
   const router = useRouter();
 
   return (
     <FormContent>
       <FormBuilder2
+        ref={formRef}
         builder={builder}
         onSubmit={onSubmit}
         submitLabel={submitLabel}

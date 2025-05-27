@@ -28,6 +28,7 @@ interface IEtiqueta {
   lote: string;
   sif: string;
   operador_id?: string | null;
+  operador?: string | null;
   produto_id?: string | null;
   impressora_id?: string;
   quantidade?: number;
@@ -35,7 +36,7 @@ interface IEtiqueta {
 }
 
 // Importar a interface diretamente do módulo actions
-import type { Template, FieldPosition } from "./actions";
+import type { Template } from "./actions";
 
 const INIT_ETIQUETA: IEtiqueta = {
   validade: "",
@@ -56,8 +57,12 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
   );
   const [templates, setTemplates] = useState<Template[]>([]);
   const [formData, setFormData] = useState<IEtiqueta | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
-  const [dynamicFields, setDynamicFields] = useState<Record<string, string>>({});
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
+    null
+  );
+  const [dynamicFields, setDynamicFields] = useState<Record<string, string>>(
+    {}
+  );
   const router = useRouter();
 
   function getParam(property: string) {
@@ -69,7 +74,7 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
       ...INIT_ETIQUETA,
       operador_id: getParam("operadorId"),
       produto_id: getParam("produtoId"),
-
+      operador: getParam("operador"),
       validade: produto.dias_validade
         ? addDays(new Date(), produto.dias_validade).toISOString().split("T")[0]
         : undefined,
@@ -104,16 +109,16 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
   useEffect(() => {
     const templateId = watch("template_id");
     if (templateId) {
-      const template = templates.find(t => t.id === templateId);
+      const template = templates.find((t) => t.id === templateId);
       if (template) {
         setSelectedTemplate(template);
-        
+
         // Inicializar campos dinâmicos vazios para todos os campos do template
         const initialFields: Record<string, string> = {};
         template.campos
-          .filter(campo => campo.fieldType === 'dynamic')
-          .forEach(campo => {
-            initialFields[campo.name] = '';
+          .filter((campo) => campo.fieldType === "dynamic")
+          .forEach((campo) => {
+            initialFields[campo.name] = "";
           });
         setDynamicFields(initialFields);
       }
@@ -140,21 +145,16 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
       // Preparar os dados para envio
       const requestData: Record<string, any> = {
         ...formData,
-        impressora_id: printer,
+        loja_id: produto.loja_id,
+        impressora: printer,
         quantidade: quantity,
         produto_nome: produto.nome,
+        codigo_produto: produto.codigo,
       };
-
-      // Adicionar os campos dinâmicos à requisição
-      Object.entries(dynamicFields).forEach(([key, value]) => {
-        if (value) {
-          requestData[key] = value;
-        }
-      });
 
       await gerarEtiqueta(requestData);
 
-      toast.success('Etiqueta enviada para impressão com sucesso!');
+      toast.success("Etiqueta enviada para impressão com sucesso!");
       router.replace("/");
     } catch (error: any) {
       toast.error(error?.message || "Erro ao gerar etiqueta");
@@ -242,38 +242,80 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
             </TableRow>
           </TableBody>
         </Table>
-        
+
         {/* Campos dinâmicos baseados no template selecionado */}
-        {selectedTemplate && selectedTemplate.campos.some(c => c.fieldType === 'dynamic') && (
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold mb-2">Campos do Template</h3>
-            <Table>
-              <TableBody>
-                {selectedTemplate.campos
-                  .filter(campo => campo.fieldType === 'dynamic') 
-                  .sort((a, b) => (a.lineNumber || 0) - (b.lineNumber || 0))
-                  .map((campo, idx) => (
-                    <TableRow key={`${campo.name}-${idx}`}>
-                      <TableCell className="font-medium">{campo.name}</TableCell>
-                      <TableCell>
-                        <Input
-                          type="text"
-                          value={dynamicFields[campo.name] || ''}
-                          onChange={(e) => {
-                            setDynamicFields({
-                              ...dynamicFields,
-                              [campo.name]: e.target.value
-                            });
-                          }}
-                          placeholder={campo.defaultValue || `Valor para ${campo.name}`}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+        {selectedTemplate &&
+          selectedTemplate.campos.some((c) => c.fieldType === "dynamic") && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-2">Campos do Template</h3>
+              <Table>
+                <TableBody>
+                  {selectedTemplate.campos
+                    .filter((campo) => campo.fieldType === "dynamic")
+                    .sort((a, b) => (a.lineNumber || 0) - (b.lineNumber || 0))
+                    .map((campo, idx) => (
+                      <TableRow key={`${campo.name}-${idx}`}>
+                        <TableCell className="font-medium">
+                          {campo.name}
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="text"
+                            value={dynamicFields[campo.name] || ""}
+                            onChange={(e) => {
+                              setDynamicFields({
+                                ...dynamicFields,
+                                [campo.name]: e.target.value,
+                              });
+                            }}
+                            placeholder={
+                              campo.defaultValue || `Valor para ${campo.name}`
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+
+        {/* Campos dinâmicos baseados no template selecionado */}
+        {selectedTemplate &&
+          selectedTemplate.campos.some((c) => c.fieldType === "dynamic") && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-2">Campos do Template</h3>
+              <Table>
+                <TableBody>
+                  {selectedTemplate.campos
+                    .filter((campo) => campo.fieldType === "dynamic")
+                    .sort((a, b) => (a.lineNumber || 0) - (b.lineNumber || 0))
+                    .map((campo, idx) => (
+                      <TableRow key={`${campo.name}-${idx}`}>
+                        <TableCell className="font-medium">
+                          {campo.name}
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="text"
+                            value={dynamicFields[campo.name] || ""}
+                            onChange={(e) => {
+                              setDynamicFields({
+                                ...dynamicFields,
+                                [campo.name]: e.target.value,
+                              });
+                            }}
+                            placeholder={
+                              campo.defaultValue || `Valor para ${campo.name}`
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
 
         <Button className="m-8" type="submit">
           Concluir
