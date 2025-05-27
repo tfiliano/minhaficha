@@ -1,42 +1,44 @@
 "use client";
 
+import { FieldEditorModal } from "@/components/field-editor-modal/index"; // Corrected import
+import { LabelPreview } from "@/components/label-preview";
 import { Title } from "@/components/layout";
+import { TemplatePresetDialog } from "@/components/template-presets/index"; // Corrected import
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { toast } from "sonner";
-import { useEffect, useState } from "react";
-import { 
-  FieldPosition, 
-  Template, 
-  saveTemplate, 
-  testPrint, 
-  getTemplates, 
-  generateZplCode,
-  createLabelTemplate
-} from "../actions";
-import { LabelPreview } from "@/components/label-preview";
-import { FieldEditorModal } from "@/components/field-editor-modal/index"; // Corrected import
-import { TemplatePresetDialog } from "@/components/template-presets/index"; // Corrected import
-import { 
-  LoaderCircle, 
-  Trash2, 
-  PlusCircle, 
-  SquareMenu, 
-  Copy, 
-  FileText, 
-  Move, 
+import {
+  Copy,
   Edit,
-  Save,
+  FileText,
+  LayoutTemplate,
+  LoaderCircle,
+  PlusCircle,
   Printer,
-  LayoutTemplate
+  Save,
+  SquareMenu,
+  Trash2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import {
+  generateZplCode,
+  getTemplates,
+  saveTemplate,
+  testPrint,
+} from "../actions";
+import { FieldPosition } from "../types";
 
 // Opções de zoom para a visualização
 const ZOOM_OPTIONS = [
@@ -52,13 +54,13 @@ interface TemplateEditorParams {
   id?: string;
 }
 
-export default function TemplateEditorPage({ params }: { params?: TemplateEditorParams }) {
+export default function TemplateEditorPage({ params }: any) {
   // Garantir que params seja um objeto mesmo que seja undefined
   const safeParams = params || {};
-  
+
   // Obtém o ID do template com segurança
   const templateId = safeParams.id;
-  
+
   const router = useRouter();
   const [zpl, setZpl] = useState<string>("");
   const [templateName, setTemplateName] = useState<string>("");
@@ -69,12 +71,14 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
   const [labelWidth, setLabelWidth] = useState(400);
   const [labelHeight, setLabelHeight] = useState(300);
   const [fields, setFields] = useState<FieldPosition[]>([]);
-  const [selectedFieldIndex, setSelectedFieldIndex] = useState<number | null>(null);
+  const [selectedFieldIndex, setSelectedFieldIndex] = useState<number | null>(
+    null
+  );
   const [showFieldEditor, setShowFieldEditor] = useState(false);
   const [newFieldData, setNewFieldData] = useState<FieldPosition | null>(null);
   const [showTemplatePresets, setShowTemplatePresets] = useState(false);
   const [showGrid, setShowGrid] = useState(true);
-  
+
   // Log para debugging
   useEffect(() => {
     if (templateId) {
@@ -90,19 +94,22 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
       try {
         if (templateId) {
           const templates = await getTemplates();
-          const template = templates.find(t => t.id === templateId);
-          
+          const template = templates.find((t) => t.id === templateId);
+
           if (template) {
             console.log("Template carregado:", template);
             setTemplateName(template.nome);
             setZpl(template.zpl || "");
             setLabelWidth(template.width || 400);
             setLabelHeight(template.height || 300);
-            
+
             if (Array.isArray(template.campos)) {
               setFields(template.campos);
             } else {
-              console.error("Campos do template não são um array:", template.campos);
+              console.error(
+                "Campos do template não são um array:",
+                template.campos
+              );
               setFields([]);
             }
           } else {
@@ -119,7 +126,7 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
         setLoading(false);
       }
     };
-    
+
     loadTemplate();
   }, [templateId]);
 
@@ -140,18 +147,21 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
     const newField: FieldPosition = {
       name: `campo${Array.isArray(fields) ? fields.length + 1 : 1}`,
       x: 10,
-      y: Array.isArray(fields) && fields.length > 0 ? Math.max(...fields.map(f => f.y)) + 30 : 10,
+      y:
+        Array.isArray(fields) && fields.length > 0
+          ? Math.max(...fields.map((f) => f.y)) + 30
+          : 10,
       fontSize: 10,
-      fontStyle: 'normal',
+      fontStyle: "normal",
       reversed: false,
-      alignment: 'left',
-      fontFamily: 'A',
-      fieldType: 'dynamic',
+      alignment: "left",
+      fontFamily: "A",
+      fieldType: "dynamic",
       enabled: true,
       lineNumber: Array.isArray(fields) ? fields.length + 1 : 1,
-      linePosition: 1
+      linePosition: 1,
     };
-    
+
     setNewFieldData(newField);
     setShowFieldEditor(true);
   };
@@ -160,7 +170,7 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
   const handleEditField = (index: number) => {
     if (Array.isArray(fields) && index >= 0 && index < fields.length) {
       setSelectedFieldIndex(index);
-      setNewFieldData({...fields[index]});
+      setNewFieldData({ ...fields[index] });
       setShowFieldEditor(true);
     }
   };
@@ -176,7 +186,7 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
       // Adicionar novo campo
       setFields(Array.isArray(fields) ? [...fields, fieldData] : [fieldData]);
     }
-    
+
     setShowFieldEditor(false);
     setNewFieldData(null);
     setSelectedFieldIndex(null);
@@ -201,7 +211,7 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
       fieldToDuplicate.y += 20;
       fieldToDuplicate.name = `${fieldToDuplicate.name}_copia`;
       fieldToDuplicate.lineNumber += 1;
-      
+
       setFields([...fields, fieldToDuplicate]);
     }
   };
@@ -213,7 +223,7 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
       setShowTemplatePresets(false);
       return;
     }
-    
+
     // Confirmar substituição se já existirem campos
     if (Array.isArray(fields) && fields.length > 0) {
       if (confirm("Isso substituirá todos os campos existentes. Continuar?")) {
@@ -222,75 +232,75 @@ export default function TemplateEditorPage({ params }: { params?: TemplateEditor
     } else {
       setFields(templateFields);
     }
-    
+
     setShowTemplatePresets(false);
   };
 
   // Salvar o template
-// Salvar o template
-const handleSaveTemplate = async () => {
-  if (!templateName.trim()) {
-    toast.error("Nome do template é obrigatório");
-    return;
-  }
-
-  if (!Array.isArray(fields)) {
-    toast.error("Erro: campos não estão em formato válido");
-    return;
-  }
-
-  try {
-    setSaving(true);
-    
-    // Criar objeto simples sem métodos ou propriedades complexas
-    const templateData = {
-      id: templateId,
-      nome: templateName,
-      zpl,
-      campos: fields.map(field => ({
-        name: field.name,
-        x: field.x,
-        y: field.y,
-        fontSize: field.fontSize,
-        fontStyle: field.fontStyle,
-        reversed: field.reversed,
-        alignment: field.alignment,
-        fontFamily: field.fontFamily,
-        fieldType: field.fieldType,
-        staticValue: field.staticValue,
-        lineNumber: field.lineNumber,
-        linePosition: field.linePosition,
-        defaultValue: field.defaultValue,
-        barcodeType: field.barcodeType,
-        barcodeHeight: field.barcodeHeight,
-        lineWidth: field.lineWidth,
-        lineHeight: field.lineHeight,
-        boxWidth: field.boxWidth,
-        boxHeight: field.boxHeight,
-        boxBorderWidth: field.boxBorderWidth,
-        enabled: field.enabled,
-        uppercase: field.uppercase,
-        prefix: field.prefix,
-        suffix: field.suffix,
-        dateFormat: field.dateFormat
-      })),
-      width: labelWidth,
-      height: labelHeight
-    };
-    
-    await saveTemplate(templateData);
-    toast.success("Template salvo com sucesso");
-    
-    if (!templateId) {
-      router.push("/admin/templates/etiquetas/list");
+  // Salvar o template
+  const handleSaveTemplate = async () => {
+    if (!templateName.trim()) {
+      toast.error("Nome do template é obrigatório");
+      return;
     }
-  } catch (error: any) {
-    console.error("Erro ao salvar template:", error);
-    toast.error(error.message || "Erro ao salvar template");
-  } finally {
-    setSaving(false);
-  }
-};
+
+    if (!Array.isArray(fields)) {
+      toast.error("Erro: campos não estão em formato válido");
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      // Criar objeto simples sem métodos ou propriedades complexas
+      const templateData = {
+        id: templateId,
+        nome: templateName,
+        zpl,
+        campos: fields.map((field) => ({
+          name: field.name,
+          x: field.x,
+          y: field.y,
+          fontSize: field.fontSize,
+          fontStyle: field.fontStyle,
+          reversed: field.reversed,
+          alignment: field.alignment,
+          fontFamily: field.fontFamily,
+          fieldType: field.fieldType,
+          staticValue: field.staticValue,
+          lineNumber: field.lineNumber,
+          linePosition: field.linePosition,
+          defaultValue: field.defaultValue,
+          barcodeType: field.barcodeType,
+          barcodeHeight: field.barcodeHeight,
+          lineWidth: field.lineWidth,
+          lineHeight: field.lineHeight,
+          boxWidth: field.boxWidth,
+          boxHeight: field.boxHeight,
+          boxBorderWidth: field.boxBorderWidth,
+          enabled: field.enabled,
+          uppercase: field.uppercase,
+          prefix: field.prefix,
+          suffix: field.suffix,
+          dateFormat: field.dateFormat,
+        })),
+        width: labelWidth,
+        height: labelHeight,
+      };
+
+      await saveTemplate(templateData);
+      toast.success("Template salvo com sucesso");
+
+      if (!templateId) {
+        router.push("/admin/templates/etiquetas/list");
+      }
+    } catch (error: any) {
+      console.error("Erro ao salvar template:", error);
+      toast.error(error.message || "Erro ao salvar template");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   // Testar impressão
   const handleTestPrint = async () => {
@@ -301,31 +311,32 @@ const handleSaveTemplate = async () => {
 
     try {
       setTesting(true);
-      
+
       // Criar dados de teste que incluem todos os campos possíveis
       const testData: Record<string, string> = {};
-      
+
       // Adicionar todos os nomes de campos aos dados de teste
-      fields.forEach(field => {
-        if (field.fieldType === 'dynamic') {
-          let testValue = field.defaultValue || field.name.toUpperCase() + ' TESTE';
-          
+      fields.forEach((field) => {
+        if (field.fieldType === "dynamic") {
+          let testValue =
+            field.defaultValue || field.name.toUpperCase() + " TESTE";
+
           // Aplicar qualquer formatação necessária
           if (field.uppercase) {
             testValue = testValue.toUpperCase();
           }
-          
+
           testData[field.name] = testValue;
         }
       });
-      
+
       // Adicionar dados de teste específicos para campos comuns
-      if ('produto' in testData) testData.produto = "PRODUTO TESTE";
-      if ('validade' in testData) testData.validade = "31/12/2024";
-      if ('lote' in testData) testData.lote = "LOTE-123";
-      if ('sif' in testData) testData.sif = "SIF-456";
-      if ('manipulacao' in testData) testData.manipulacao = "23/08/2024";
-      if ('responsavel' in testData) testData.responsavel = "ADILSON";
+      if ("produto" in testData) testData.produto = "PRODUTO TESTE";
+      if ("validade" in testData) testData.validade = "31/12/2024";
+      if ("lote" in testData) testData.lote = "LOTE-123";
+      if ("sif" in testData) testData.sif = "SIF-456";
+      if ("manipulacao" in testData) testData.manipulacao = "23/08/2024";
+      if ("responsavel" in testData) testData.responsavel = "ADILSON";
 
       // Imprimir teste
       const templateTestId = templateId || "temp";
@@ -354,30 +365,34 @@ const handleSaveTemplate = async () => {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <Title>
-          {templateId ? `Editando Template: ${templateName}` : 'Novo Template de Etiqueta'}
+          {templateId
+            ? `Editando Template: ${templateName}`
+            : "Novo Template de Etiqueta"}
         </Title>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setShowTemplatePresets(true)}
           >
             <LayoutTemplate className="h-4 w-4 mr-2" />
             Modelos Prontos
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => router.push("/admin/templates/etiquetas/list")}
           >
             Voltar
           </Button>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
         <div className="space-y-4">
           {/* Configurações básicas */}
           <Card className="p-4">
-            <h2 className="text-lg font-semibold mb-4">Configurações Básicas</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              Configurações Básicas
+            </h2>
             <div className="mb-4">
               <Label>Nome do Template</Label>
               <Input
@@ -407,24 +422,23 @@ const handleSaveTemplate = async () => {
             </div>
 
             <div className="flex justify-between">
-              <Button
-                variant="outline"
-                onClick={handleAddField}
-              >
-                <PlusCircle className="h-4 w-4 mr-2" /> 
+              <Button variant="outline" onClick={handleAddField}>
+                <PlusCircle className="h-4 w-4 mr-2" />
                 Adicionar Campo
               </Button>
-              
+
               <div className="space-x-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={handleTestPrint}
-                  disabled={testing || !Array.isArray(fields) || fields.length === 0}
+                  disabled={
+                    testing || !Array.isArray(fields) || fields.length === 0
+                  }
                 >
                   <Printer className="h-4 w-4 mr-2" />
                   {testing ? "Enviando..." : "Testar Impressão"}
                 </Button>
-                <Button 
+                <Button
                   disabled={saving || !templateName || !Array.isArray(fields)}
                   onClick={handleSaveTemplate}
                 >
@@ -444,16 +458,20 @@ const handleSaveTemplate = async () => {
                   <FileText className="h-8 w-8 mx-auto mb-2 opacity-30" />
                   <p>Nenhum campo adicionado.</p>
                   <p className="text-sm">
-                    Clique em "Adicionar Campo" ou use um dos modelos prontos
+                    Clique em Adicionar Campo ou use um dos modelos prontos
                   </p>
                 </div>
               ) : (
                 fields.map((field, index) => (
-                  <div 
-                    key={index} 
+                  <div
+                    key={index}
                     className={`
                       flex items-center justify-between p-3 rounded 
-                      ${selectedFieldIndex === index ? 'bg-primary/10 border border-primary' : 'bg-secondary/20 hover:bg-secondary/30 border border-transparent'}
+                      ${
+                        selectedFieldIndex === index
+                          ? "bg-primary/10 border border-primary"
+                          : "bg-secondary/20 hover:bg-secondary/30 border border-transparent"
+                      }
                       cursor-pointer transition-colors
                     `}
                     onClick={() => setSelectedFieldIndex(index)}
@@ -464,33 +482,54 @@ const handleSaveTemplate = async () => {
                         checked={field.enabled}
                         onCheckedChange={(checked) => {
                           const updatedFields = [...fields];
-                          updatedFields[index] = { 
-                            ...updatedFields[index], 
-                            enabled: checked === true 
+                          updatedFields[index] = {
+                            ...updatedFields[index],
+                            enabled: checked === true,
                           };
                           setFields(updatedFields);
                         }}
-                        onClick={(e) => e.stopPropagation()}  // Evitar seleção ao clicar no checkbox
+                        onClick={(e) => e.stopPropagation()} // Evitar seleção ao clicar no checkbox
                       />
                       <div>
                         <div className="font-medium flex items-center">
                           {(() => {
                             switch (field.fieldType) {
-                              case 'dynamic': return <SquareMenu className="h-3 w-3 mr-1 text-blue-500" />;
-                              case 'static': return <FileText className="h-3 w-3 mr-1 text-green-500" />;
-                              case 'barcode': return <Copy className="h-3 w-3 mr-1 text-orange-500" />;
-                              case 'qrcode': return <div className="h-3 w-3 mr-1 bg-violet-500 rounded-sm" />;
-                              case 'line': return <div className="h-0.5 w-3 mr-1 bg-gray-500" />;
-                              case 'box': return <div className="h-3 w-3 mr-1 border border-gray-500" />;
-                              default: return null;
+                              case "dynamic":
+                                return (
+                                  <SquareMenu className="h-3 w-3 mr-1 text-blue-500" />
+                                );
+                              case "static":
+                                return (
+                                  <FileText className="h-3 w-3 mr-1 text-green-500" />
+                                );
+                              case "barcode":
+                                return (
+                                  <Copy className="h-3 w-3 mr-1 text-orange-500" />
+                                );
+                              case "qrcode":
+                                return (
+                                  <div className="h-3 w-3 mr-1 bg-violet-500 rounded-sm" />
+                                );
+                              case "line":
+                                return (
+                                  <div className="h-0.5 w-3 mr-1 bg-gray-500" />
+                                );
+                              case "box":
+                                return (
+                                  <div className="h-3 w-3 mr-1 border border-gray-500" />
+                                );
+                              default:
+                                return null;
                             }
                           })()}
                           {field.name}
                         </div>
                         <div className="text-xs text-muted-foreground flex flex-wrap gap-1">
-                          <span>x:{field.x} y:{field.y}</span>
-                          {field.fieldType === 'static' && (
-                            <span className="italic">"{field.staticValue}"</span>
+                          <span>
+                            x:{field.x} y:{field.y}
+                          </span>
+                          {field.fieldType === "static" && (
+                            <span className="italic">{field.staticValue}</span>
                           )}
                           {field.reversed && (
                             <span className="px-1 bg-black text-white text-[10px] rounded">
@@ -583,7 +622,7 @@ const handleSaveTemplate = async () => {
                 </div>
               </div>
             </div>
-            <LabelPreview 
+            <LabelPreview
               fields={Array.isArray(fields) ? fields : []}
               scale={scale}
               width={labelWidth}
@@ -593,7 +632,8 @@ const handleSaveTemplate = async () => {
               showGrid={showGrid}
             />
             <p className="text-xs text-muted-foreground mt-2 text-center">
-              Clique nos elementos para selecioná-los ou editar suas propriedades
+              Clique nos elementos para selecioná-los ou editar suas
+              propriedades
             </p>
           </Card>
 
@@ -606,13 +646,14 @@ const handleSaveTemplate = async () => {
               className="h-[200px] font-mono text-xs"
             />
             <p className="text-xs text-muted-foreground mt-2">
-              O código ZPL é gerado automaticamente com base nos campos configurados.
-              Edições manuais podem ser sobrescritas ao atualizar campos.
+              O código ZPL é gerado automaticamente com base nos campos
+              configurados. Edições manuais podem ser sobrescritas ao atualizar
+              campos.
             </p>
           </Card>
         </div>
       </div>
-      
+
       {/* Modal de edição de campo */}
       {showFieldEditor && newFieldData && (
         <FieldEditorModal
@@ -626,7 +667,7 @@ const handleSaveTemplate = async () => {
           isNew={selectedFieldIndex === null}
         />
       )}
-      
+
       {/* Modal de templates predefinidos */}
       {showTemplatePresets && (
         <TemplatePresetDialog

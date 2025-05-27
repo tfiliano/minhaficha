@@ -1,21 +1,26 @@
 "use client";
 
-import React, { useState } from 'react';
+import { createLabelTemplate } from "@/app/(admin)/admin/templates/etiquetas/actions";
+import { FieldPosition } from "@/app/(admin)/admin/templates/etiquetas/types";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { LoaderCircle } from "lucide-react";
-import { createLabelTemplate } from "@/app/(admin)/admin/templates/etiquetas/actions";
-import type { FieldPosition } from "@/app/(admin)/admin/templates/etiquetas/actions";
+import { useState } from "react";
 
 interface TemplatePresetDialogProps {
   onSelect: (template: FieldPosition[]) => void;
   onCancel: () => void;
 }
 
-export function TemplatePresetDialog({ onSelect, onCancel }: TemplatePresetDialogProps) {
+export function TemplatePresetDialog({
+  onSelect,
+  onCancel,
+}: TemplatePresetDialogProps) {
   const [loading, setLoading] = useState<string | null>(null);
-  
-  const handleTemplateSelect = async (type: 'produto' | 'envio' | 'inventario' | 'personalizado') => {
+
+  const handleTemplateSelect = async (
+    type: "produto" | "envio" | "inventario" | "personalizado"
+  ) => {
     try {
       setLoading(type);
       // Agora lidamos corretamente com a função assíncrona
@@ -31,14 +36,16 @@ export function TemplatePresetDialog({ onSelect, onCancel }: TemplatePresetDialo
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-background rounded-lg p-6 w-[700px] max-w-[95vw]">
-        <h3 className="text-lg font-semibold mb-4">Selecione um Modelo de Etiqueta</h3>
-        
+        <h3 className="text-lg font-semibold mb-4">
+          Selecione um Modelo de Etiqueta
+        </h3>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card 
+          <Card
             className="p-4 hover:border-primary cursor-pointer flex flex-col items-center text-center h-48 relative"
-            onClick={() => handleTemplateSelect('produto')}
+            onClick={() => handleTemplateSelect("produto")}
           >
-            {loading === 'produto' && (
+            {loading === "produto" && (
               <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
                 <LoaderCircle className="h-6 w-6 animate-spin" />
               </div>
@@ -57,12 +64,12 @@ export function TemplatePresetDialog({ onSelect, onCancel }: TemplatePresetDialo
               Similar ao exemplo da imagem
             </p>
           </Card>
-          
-          <Card 
+
+          <Card
             className="p-4 hover:border-primary cursor-pointer flex flex-col items-center text-center h-48 relative"
-            onClick={() => handleTemplateSelect('envio')}
+            onClick={() => handleTemplateSelect("envio")}
           >
-            {loading === 'envio' && (
+            {loading === "envio" && (
               <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
                 <LoaderCircle className="h-6 w-6 animate-spin" />
               </div>
@@ -81,12 +88,12 @@ export function TemplatePresetDialog({ onSelect, onCancel }: TemplatePresetDialo
               Para etiquetas de remessa/entrega
             </p>
           </Card>
-          
-          <Card 
+
+          <Card
             className="p-4 hover:border-primary cursor-pointer flex flex-col items-center text-center h-48 relative"
-            onClick={() => handleTemplateSelect('inventario')}
+            onClick={() => handleTemplateSelect("inventario")}
           >
-            {loading === 'inventario' && (
+            {loading === "inventario" && (
               <div className="absolute inset-0 bg-background/80 flex items-center justify-center">
                 <LoaderCircle className="h-6 w-6 animate-spin" />
               </div>
@@ -108,8 +115,8 @@ export function TemplatePresetDialog({ onSelect, onCancel }: TemplatePresetDialo
               Para controle de estoque e catalogação
             </p>
           </Card>
-          
-          <Card 
+
+          <Card
             className="p-4 hover:border-primary cursor-pointer flex flex-col items-center text-center h-48"
             onClick={() => onSelect([])}
           >
@@ -126,7 +133,7 @@ export function TemplatePresetDialog({ onSelect, onCancel }: TemplatePresetDialo
             </p>
           </Card>
         </div>
-        
+
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onCancel}>
             Cancelar

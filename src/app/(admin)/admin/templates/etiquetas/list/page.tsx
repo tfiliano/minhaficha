@@ -1,14 +1,6 @@
 "use client";
 
 import { Title } from "@/components/layout";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { getTemplates, deleteTemplate } from "../actions";
-import { useEffect, useState } from "react";
-import { LoaderCircle, Pencil, Trash2 } from "lucide-react";
-import { toast } from "sonner";
-import Link from "next/link";
-import type { Json } from "@/types/database.types";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +11,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import type { Json } from "@/types/database.types";
+import { LoaderCircle, Pencil, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { deleteTemplate, getTemplates } from "../actions";
 
 interface Template {
   id: string;
@@ -33,7 +33,9 @@ export default function TemplateListPage() {
   const [loading, setLoading] = useState(true);
   const [templates, setTemplates] = useState<Template[]>([]);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [templateToDelete, setTemplateToDelete] = useState<Template | null>(null);
+  const [templateToDelete, setTemplateToDelete] = useState<Template | null>(
+    null
+  );
 
   useEffect(() => {
     loadTemplates();
@@ -41,7 +43,7 @@ export default function TemplateListPage() {
 
   const loadTemplates = async () => {
     try {
-      const data = await getTemplates() as Template[];
+      const data = (await getTemplates()) as any[];
       setTemplates(data);
     } catch (error: any) {
       toast.error(error.message || "Erro ao carregar templates");
@@ -101,11 +103,14 @@ export default function TemplateListPage() {
                 <div>
                   <h3 className="font-medium">{template.nome}</h3>
                   <p className="text-sm text-muted-foreground">
-                    {template.width}mm x {template.height}mm • {template.campos.length} campos
+                    {template.width}mm x {template.height}mm •{" "}
+                    {template.campos.length} campos
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Link href={`/admin/templates/etiquetas/editor/${template.id}`}>
+                  <Link
+                    href={`/admin/templates/etiquetas/editor/${template.id}`}
+                  >
                     <Button variant="ghost" size="icon">
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -133,8 +138,8 @@ export default function TemplateListPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Template</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir o template &quot;{templateToDelete?.nome}&quot;?
-              Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir o template &quot;
+              {templateToDelete?.nome}&quot;? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
