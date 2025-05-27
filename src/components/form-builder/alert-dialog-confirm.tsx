@@ -33,7 +33,7 @@ export function AlertDialogConfirm({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-          <AlertDialogAction onClick={handleAction}>
+          <AlertDialogAction onClick={handleAction} variant="destructive">
             Continuar
           </AlertDialogAction>
         </AlertDialogFooter>

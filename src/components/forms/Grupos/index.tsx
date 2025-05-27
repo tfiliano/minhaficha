@@ -83,7 +83,7 @@ function GrupoForm({ mode, grupo }: GrupoProps & ModeFormHandlerProp) {
 
     if (success) {
       toast.success(message);
-      if (mode === "create") router.push("/admin/grupos" + `/${result!.id}`);
+      if (mode === "create") router.push("/admin/grupos");
       executeRevalidationPath("/admin/grupos");
     } else {
       toast.error(message);
@@ -96,6 +96,7 @@ function GrupoForm({ mode, grupo }: GrupoProps & ModeFormHandlerProp) {
       entity={grupo}
       builder={formBuilder}
       onSubmit={handleSubmit}
+      tableCollection="grupos"
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
     />
   );

@@ -29,7 +29,6 @@ export function SelectForm({
 }: SelectFormProps) {
   if (isSelectField(field)) {
     let onValueChangeTransformer = formField.onChange;
-
     if (field.copy && builder && setBuilder) {
       if (field.copy.onEvent === "onchange") {
         const { columnId, ignores, changePropName, rows } = field.copy;
@@ -56,24 +55,32 @@ export function SelectForm({
       }
     }
 
-    const onValueChange = (e: any) => {
-      if (field.valueAs === "number") {
-        onValueChangeTransformer(+e);
-      } else if (field.valueAs === "boolean") {
-        onValueChangeTransformer(e === "true");
-      } else {
-        onValueChangeTransformer(e);
-      }
-    };
-
     return (
-      <Select onValueChange={onValueChange} value={formField.value?.toString()}>
+      <Select 
+        onValueChange={(e) => {
+          if (e === "__empty__") {
+            onValueChangeTransformer(null);
+          } else if (field.valueAs === "number") {
+            onValueChangeTransformer(+e);
+          } else if (field.valueAs === "boolean") {
+            onValueChangeTransformer(e === "true");
+          } else {
+            onValueChangeTransformer(e);
+          }
+        }}
+        value={formField.value ? formField.value.toString() : "__empty__"}
+      >
         <SelectTrigger>
           <SelectValue placeholder="Selecione" />
         </SelectTrigger>
         <SelectContent>
+          {!field.required && (
+            <SelectItem key="clear" value="__empty__">
+              Limpar seleção
+            </SelectItem>
+          )}
           {field.options.map((option) => (
-            <SelectItem key={uuid()} value={option.value.toString()}>
+            <SelectItem key={uuid()} value={option.value?.toString() || "__empty__"}>
               {option.label}
             </SelectItem>
           ))}

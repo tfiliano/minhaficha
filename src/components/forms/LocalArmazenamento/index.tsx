@@ -71,8 +71,7 @@ function LocalArmazenamentoForm({
 
     if (success) {
       toast.success(message);
-      if (mode === "create")
-        router.push("/admin/armazenamentos" + `${result!.id}`);
+      if (mode === "create") router.push("/admin/armazenamentos");
       executeRevalidationPath("/admin/armazenamentos");
     } else {
       toast.error(message);
@@ -85,6 +84,7 @@ function LocalArmazenamentoForm({
       entity={localArmazenamento}
       builder={formBuilder}
       onSubmit={handleSubmit}
+      tableCollection="locais_armazenamento"
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
     />
   );

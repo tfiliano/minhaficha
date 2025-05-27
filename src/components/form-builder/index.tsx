@@ -4,10 +4,33 @@ export function isTextareaField(field: Field): field is TextareaField {
   return field.type === "textarea";
 }
 
-export const onBlurActions: any = {};
+type OnBlurAction = {
+  action: (value: string, resetForm: UseFormReset<FieldValues>) => void;
+};
+
+class BlurActionRegistry {
+  public actions: { [key: string]: OnBlurAction["action"] } = {};
+
+  register(handle: OnBlurAction["action"]) {
+    this.actions[handle.name] = handle;
+  }
+
+  getAction(name: string): OnBlurAction["action"] | undefined {
+    return this.actions[name];
+  }
+
+  execute(name: string, value: string, resetForm: UseFormReset<FieldValues>) {
+    const action = this.getAction(name);
+    if (action) {
+      action(value, resetForm);
+    }
+  }
+}
+
+export const blurActionRegistry = new BlurActionRegistry();
 
 export type Option = {
-  value: string | number;
+  value: string | number | null;
   label: string;
 };
 
@@ -40,13 +63,31 @@ import { PublicSchema } from "@/types/database.types";
 import { get } from "lodash";
 import { Loader2 } from "lucide-react";
 import React, { FocusEvent, forwardRef, type JSX } from "react";
-import { UseFormReturn, useFormContext } from "react-hook-form";
+import {
+  FieldValues,
+  UseFormReset,
+  UseFormReturn,
+  useFormContext,
+} from "react-hook-form";
 import { Button } from "../ui/button";
 import { FieldMask } from "./@masks";
 import { AddOptionComponentType } from "./add-option-component-list";
 import { FormBuilder2 as FormBuilderV2 } from "./form-builder-2";
 import { ServiceLoadOptionsType } from "./services-loadOptions";
 import { ServiceSearchType } from "./services-search";
+
+// Debounce function
+function debounce(func: (...args: any[]) => void, wait: number) {
+  let timeout: NodeJS.Timeout;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
 
 type BaseField = {
   name: string;
@@ -57,12 +98,13 @@ type BaseField = {
   component?: (...props: any) => JSX.Element;
   itemClass?: string;
   onWheel?: (event: any) => void;
+  onChange?: (event: any) => void;
   required?: boolean;
   onChangeFieldsForm?: boolean;
   onBlur?: (
     event: FocusEvent<HTMLInputElement, Element> | FocusEvent<Element, Element>
   ) => void;
-  onActionBlur?: keyof typeof onBlurActions;
+  onActionBlur?: keyof typeof blurActionRegistry.actions;
   width?: string;
   isFullRow?: boolean;
   mask?: FieldMask;
@@ -72,6 +114,7 @@ export interface InputField extends BaseField {
   type?: React.HTMLInputTypeAttribute;
   step?: string | number;
   onChangeCapture?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onDebouncedChange?: (event: React.ChangeEvent<HTMLInputElement>) => void; // New property
 }
 
 export interface TextareaField extends BaseField {
@@ -108,7 +151,7 @@ export interface RadioField extends BaseField {
 
 export interface SelectField extends BaseField {
   type: "select";
-  options: { value: string | number | boolean; label: string }[];
+  options: { value: string | number | boolean | null; label: string }[];
   valueAs?: "number" | "string" | "boolean";
   copy?: {
     onEvent: "onchange" | "click";
@@ -212,8 +255,11 @@ export function copyAndAddRow({
     ignores: string[] | undefined,
     qty: number | undefined
   ): Column[] => {
+    console.log("columns", columns)
     return columns.map((column) => {
+      console.log("each column", column)
       if (column.id === columnId) {
+        console.log("column ", column)
         let quantity = qty || 0;
         if (isNaN(quantity)) quantity = 1;
 
@@ -384,3 +430,20 @@ export function FormMessageError({ name }: { name: string }) {
 export { type FormBuilderRef } from "./form-builder-2";
 
 export const FormBuilder2 = forwardRef(FormBuilderV2);
+
+// Example usage in a component
+function InputComponent({ field }: { field: InputField }) {
+  const debouncedOnChange = field.onDebouncedChange
+    ? debounce(field.onDebouncedChange, 300) // 300ms debounce
+    : undefined;
+
+  return (
+    <input
+      type={field.type}
+      step={field.step}
+      onChangeCapture={field.onChangeCapture}
+      onChange={debouncedOnChange}
+      // ...other props
+    />
+  );
+}

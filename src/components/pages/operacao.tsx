@@ -1,7 +1,7 @@
 import { AnimationTransitionPage } from "../animation";
 import { CardButton, ContentGrid, Title } from "../layout";
 
-export function Operacao() {
+export function Operacao({ tipoUsuario }: any) {
   const operacaos = [
     //     1 entra insumos
     // 2 produção
@@ -36,7 +36,9 @@ export function Operacao() {
             }}
           />
         ))}
-        <CardButton title="Admin" url="admin" />
+        {["admin", "master"].includes(tipoUsuario) && (
+          <CardButton title="Admin" url="admin" />
+        )}
       </ContentGrid>
     </AnimationTransitionPage>
   );

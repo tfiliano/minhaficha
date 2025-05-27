@@ -12,14 +12,17 @@ export function BackButton() {
 
   if (params.size === 0 && !pathname.includes("/admin")) return <></>;
 
-  if (pathname === "/admin") return <></>;
+  const handleBack = () => {
+    if (pathname === "/admin") router.replace("/");
+    else router.back();
+  };
 
   return (
     <Button
       size="icon"
       variant="outline"
       className="absolute left-4"
-      onClick={() => router.back()}
+      onClick={handleBack}
     >
       <ChevronLeft />
     </Button>

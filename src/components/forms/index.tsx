@@ -9,7 +9,14 @@ import { Produto } from "./produtos";
 import { FormBuilder2 } from "@/components/form-builder";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "@/hooks/use-router";
+import { PublicSchema } from "@/types/database.types";
 import { Etiquetas } from "./Etiquetas";
+import { Impressora } from "./Impressoras";
+import { Loja } from "./Loja";
+import { ButtonRemoveItem } from "./remove-item-table";
+import { Setores } from "./Setores";
+import { SIF } from "./SIF";
+import { Usuarios } from "./Usuario";
 
 export const Forms = {
   Produto,
@@ -18,6 +25,11 @@ export const Forms = {
   Operadores,
   Fabricantes,
   Etiquetas,
+  Impressora,
+  SIF,
+  Loja,
+  Usuarios,
+  Setores,
 };
 
 export function FormContent({ children }: PropsWithChildren) {
@@ -25,7 +37,11 @@ export function FormContent({ children }: PropsWithChildren) {
 }
 
 type ModeFormHandler = "create" | "update";
-export type ModeFormHandlerProp = { mode: ModeFormHandler };
+
+export type TableCollection = keyof (PublicSchema["Tables"] &
+  PublicSchema["Views"]);
+
+export type ModeFormHandlerProp = { mode: ModeFormHandler; keyProp?: string };
 
 type EntityFormHandlerProps<T> = {
   mode: ModeFormHandler;
@@ -33,6 +49,9 @@ type EntityFormHandlerProps<T> = {
   builder: any;
   onSubmit: (data: T) => Promise<void>;
   submitLabel: string;
+  tableCollection?: TableCollection;
+  keyProp?: string;
+  formRef?: any;
 };
 
 export function EntityFormHandler<T>({
@@ -41,12 +60,16 @@ export function EntityFormHandler<T>({
   builder,
   onSubmit,
   submitLabel,
+  tableCollection,
+  keyProp,
+  formRef,
 }: EntityFormHandlerProps<T>) {
   const router = useRouter();
 
   return (
     <FormContent>
       <FormBuilder2
+        ref={formRef}
         builder={builder}
         onSubmit={onSubmit}
         submitLabel={submitLabel}
@@ -62,6 +85,13 @@ export function EntityFormHandler<T>({
           </Button>
         }
       />
+      {mode === "update" && tableCollection && (
+        <ButtonRemoveItem<T>
+          entity={entity}
+          tableCollection={tableCollection}
+          keyProp={keyProp}
+        />
+      )}
     </FormContent>
   );
 }

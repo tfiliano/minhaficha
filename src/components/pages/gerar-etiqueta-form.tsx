@@ -1,93 +1,163 @@
 "use client";
 
-import { SubmitHandler, useForm } from "react-hook-form";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-
-import { toast } from "sonner";
-
-import { IEntradaInsumo, saveRecebimento } from "@/app/entrada-insumo/actions";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { useRouter } from "@/hooks/use-router";
 import { cn } from "@/lib/utils";
+import { addDays } from "date-fns";
 import { LoaderCircle } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { gerarEtiqueta, getImpressoras, getTemplates } from "./actions";
+import { PrintDialog } from "./print-dialog";
 
-const INIT_RECEBIMENTO = {
-  // peso_bruto: 2.5,
-  // data_recebimento: new Date(),
-  // fornecedor: "ZEH",
-  // nota_fiscal: "001",
-  // sif: "SIF 01",
-  // temperatura: "28.5",
-  // lote: "LOTE 01",
-  // validade: new Date(),
-  // //operador: "MARIA",
-  // conformidade_transporte: "C",
-  // conformidade_embalagem: "N",
-  // conformidade_produtos: "C",
-  // observacoes: "OBSERVACAO",
-  // //produto_nome: "CONTRA",
-  peso_bruto: null,
-  data_recebimento: null,
-  fornecedor: "",
-  nota_fiscal: "",
-  sif: "",
-  temperatura: "",
-  lote: "",
+interface IEtiqueta {
+  validade: string;
+  fornecedor: string;
+  lote: string;
+  sif: string;
+  operador_id?: string | null;
+  operador?: string | null;
+  produto_id?: string | null;
+  impressora_id?: string;
+  quantidade?: number;
+  template_id?: string;
+}
+
+// Importar a interface diretamente do módulo actions
+import type { Template } from "./actions";
+
+const INIT_ETIQUETA: IEtiqueta = {
   validade: "",
-  // operador: "",
-  conformidade_transporte: "",
-  conformidade_embalagem: "",
-  conformidade_produtos: "",
-  observacoes: "",
-  // produto_nome: ""
+  fornecedor: "",
+  lote: "",
+  sif: "",
+  operador_id: null,
+  produto_id: null,
 };
 
 export function GerarEtiquetaForm({ produto }: { produto: any }) {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
+  const [showPrintDialog, setShowPrintDialog] = useState(false);
+  const [printers, setPrinters] = useState<Array<{ id: string; nome: string }>>(
+    []
+  );
+  const [templates, setTemplates] = useState<Template[]>([]);
+  const [formData, setFormData] = useState<IEtiqueta | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(
+    null
+  );
+  const [dynamicFields, setDynamicFields] = useState<Record<string, string>>(
+    {}
+  );
   const router = useRouter();
-  // const params = new URLSearchParams(searchParams);
 
   function getParam(property: string) {
     return searchParams.get(property);
   }
 
-  const [recebimento, setRecebimento] = useState<IEntradaInsumo | null>(null);
-
-  const { register, handleSubmit, watch, setValue } = useForm<IEntradaInsumo>({
+  const { register, handleSubmit, setValue, watch } = useForm<IEtiqueta>({
     defaultValues: {
-      ...INIT_RECEBIMENTO,
+      ...INIT_ETIQUETA,
       operador_id: getParam("operadorId"),
-      produto: getParam("produto"),
       produto_id: getParam("produtoId"),
+      operador: getParam("operador"),
+      validade: produto.dias_validade
+        ? addDays(new Date(), produto.dias_validade).toISOString().split("T")[0]
+        : undefined,
     },
   });
 
-  const onSubmit: SubmitHandler<IEntradaInsumo> = async (formValue) => {
+  useEffect(() => {
+    // Fetch available printers and templates
+    const loadData = async () => {
+      try {
+        const [printersData, templatesData] = await Promise.all([
+          getImpressoras(),
+          getTemplates(),
+        ]);
+        setPrinters(printersData);
+        setTemplates(templatesData);
+
+        // If there's only one template, select it automatically
+        if (templatesData.length === 1) {
+          setValue("template_id", templatesData[0].id);
+          setSelectedTemplate(templatesData[0]);
+        }
+      } catch (error) {
+        console.error("Error loading data:", error);
+        toast.error("Erro ao carregar dados");
+      }
+    };
+    loadData();
+  }, [setValue]);
+
+  // Carregar o template selecionado quando o template_id mudar
+  useEffect(() => {
+    const templateId = watch("template_id");
+    if (templateId) {
+      const template = templates.find((t) => t.id === templateId);
+      if (template) {
+        setSelectedTemplate(template);
+
+        // Inicializar campos dinâmicos vazios para todos os campos do template
+        const initialFields: Record<string, string> = {};
+        template.campos
+          .filter((campo) => campo.fieldType === "dynamic")
+          .forEach((campo) => {
+            initialFields[campo.name] = "";
+          });
+        setDynamicFields(initialFields);
+      }
+    }
+  }, [watch("template_id"), templates]);
+
+  const onSubmit: SubmitHandler<IEtiqueta> = async (formValue) => {
+    if (!formValue.template_id) {
+      toast.error("Selecione um template de etiqueta");
+      return;
+    }
+
+    setFormData(formValue);
+    setShowPrintDialog(true);
+  };
+
+  const handlePrint = async (printer: string, quantity: number) => {
+    if (!formData) return;
+
     try {
-      //PRECISEI REALIZAR UM DELETE EM ALGUMS CAMPOS QUE NÃO ESTAO NA TABLE DO SUPABASE;
-      // OPERADOR
-      // PRODUTO_NAME
       setLoading(true);
-      console.log("TODO: salvar etiqueta e mandar imprimir")
-    //   const response = await saveRecebimento({ ...formValue });
+      setLoadingText("Enviando para impressão...");
 
-    //   if (response.error) throw response.error;
+      // Preparar os dados para envio
+      const requestData: Record<string, any> = {
+        ...formData,
+        loja_id: produto.loja_id,
+        impressora: printer,
+        quantidade: quantity,
+        produto_nome: produto.nome,
+        codigo_produto: produto.codigo,
+      };
 
+      await gerarEtiqueta(requestData);
+
+      toast.success("Etiqueta enviada para impressão com sucesso!");
       router.replace("/");
     } catch (error: any) {
-      toast.error(error?.message);
+      toast.error(error?.message || "Erro ao gerar etiqueta");
     } finally {
       setLoading(false);
     }
@@ -106,11 +176,11 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
         <LoaderCircle className="animate-spin" />
         {loadingText || "Processando..."}
       </div>
+
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex flex-col max-w-3xl w-full mx-auto"
       >
-
         <Table>
           <TableBody>
             <TableRow>
@@ -119,12 +189,37 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
           </TableBody>
         </Table>
 
+        <div className="mb-4">
+          <Label>Template de Impressão</Label>
+          <Select
+            value={watch("template_id")}
+            onValueChange={(value) => setValue("template_id", value)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione um template" />
+            </SelectTrigger>
+            <SelectContent>
+              {templates.map((template) => (
+                <SelectItem key={template.id} value={template.id}>
+                  {template.nome}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Campos padrão */}
         <Table>
           <TableBody>
             <TableRow>
               <TableCell className="font-medium">Validade</TableCell>
               <TableCell>
-                <Input type="Date" {...register("validade")} />
+                <Input
+                  type="Date"
+                  {...register("validade")}
+                  readOnly={!!produto.dias_validade}
+                  disabled={!!produto.dias_validade}
+                />
               </TableCell>
             </TableRow>
             <TableRow>
@@ -148,67 +243,54 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
           </TableBody>
         </Table>
 
+        {/* Campos dinâmicos baseados no template selecionado */}
+        {selectedTemplate &&
+          selectedTemplate.campos.some((c) => c.fieldType === "dynamic") && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-2">Campos do Template</h3>
+              <Table>
+                <TableBody>
+                  {selectedTemplate.campos
+                    .filter((campo) => campo.fieldType === "dynamic")
+                    .sort((a, b) => (a.lineNumber || 0) - (b.lineNumber || 0))
+                    .map((campo, idx) => (
+                      <TableRow key={`${campo.name}-${idx}`}>
+                        <TableCell className="font-medium">
+                          {campo.name}
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="text"
+                            value={dynamicFields[campo.name] || ""}
+                            onChange={(e) => {
+                              setDynamicFields({
+                                ...dynamicFields,
+                                [campo.name]: e.target.value,
+                              });
+                            }}
+                            placeholder={
+                              campo.defaultValue || `Valor para ${campo.name}`
+                            }
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+
         <Button className="m-8" type="submit">
           Concluir
         </Button>
       </form>
 
-      {/* <Drawer
-        open={!!producao}
-        onOpenChange={(e) => {
-          if (e === false) setProducao(null);
-        }}
-      >
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Confirmação</DrawerTitle>
-            <DrawerDescription>
-              Verifique os dados antes de confirmar
-            </DrawerDescription>
-          </DrawerHeader>
-          <div>
-            {producao && (
-              <>
-                <Table>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>{producao!.produto_nome}</TableCell>
-                      <TableCell>-</TableCell>
-                      <TableCell>{producao!.peso_bruto} Kg</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>PRODUTO</TableHead>
-                      <TableHead>UN</TableHead>
-                      <TableHead>PESO</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {producao!.items.map((item, index) => (
-                      <TableRow key={item.id}>
-                        <TableCell>{item.nome}</TableCell>
-                        <TableCell>{item.quantidade}</TableCell>
-                        <TableCell>{item.peso}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </>
-            )}
-          </div>
-          <DrawerFooter>
-            <Button onClick={onSubmitFormAfterConfirmation}>Enviar</Button>
-            <DrawerClose>
-              <Button variant="outline" className="w-full">
-                Cancelar
-              </Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer> */}
+      <PrintDialog
+        open={showPrintDialog}
+        onClose={() => setShowPrintDialog(false)}
+        onConfirm={handlePrint}
+        printers={printers}
+      />
     </>
   );
 }

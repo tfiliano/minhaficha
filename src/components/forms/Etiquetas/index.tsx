@@ -119,6 +119,7 @@ function EtiquetaForm({
       entity={etiqueta}
       builder={formBuilder(fabricantes)}
       onSubmit={handleSubmit}
+      tableCollection="etiquetas"
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}
     />
   );

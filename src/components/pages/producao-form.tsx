@@ -16,7 +16,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 
-import { Inputs, saveProducao } from "@/app/producao/actions";
+import { Inputs, saveProducao } from "@/app/(app)/producao/actions";
 import {
   Table,
   TableBody,
@@ -36,7 +36,10 @@ const INIT_PRODUCAO = {
   peso_bruto: null,
   peso_perda: 0,
   fator_correcao: 0,
+  quantidade: 1,
   produto_nome: "",
+  produto_id: null,
+  grupo_id: null,
   operador: "",
 };
 
@@ -66,6 +69,8 @@ export function ProducaoForm({
       operador: getParam("operador"),
       setor: getParam("setor"),
       produto: getParam("produto"),
+      produto_id: getParam("produtoId"),
+      grupo_id: produto.grupo_id,
       produto_nome: getParam("produtoDesc"),
     },
   });
@@ -174,6 +179,13 @@ export function ProducaoForm({
             <TableRow>
               <TableCell className="font-medium">{produto.nome}</TableCell>
               <TableCell>
+                  <Input
+                    type="number"
+                    pattern="^[$\-\s]*[\d\,]*?([\.]\d{0,10})?\s*$"
+                    {...register("quantidade", { valueAsNumber: true, })}
+                  />
+                </TableCell>
+              <TableCell>
                 <Input
                   type="number"
                   placeholder={""}
@@ -279,7 +291,7 @@ export function ProducaoForm({
                   <TableBody>
                     <TableRow>
                       <TableCell>{producao!.produto_nome}</TableCell>
-                      <TableCell>-</TableCell>
+                      <TableCell>{producao!.quantidade}</TableCell>
                       <TableCell>{producao!.peso_bruto} Kg</TableCell>
                     </TableRow>
                   </TableBody>
