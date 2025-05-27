@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "check": "next check",
     "generate:types": "npx supabase gen types typescript --project-id 'hnhhoqjmydmdjkvqmidf' --schema public > src/types/database.types.ts"
   },
   "dependencies": {
