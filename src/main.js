@@ -133,13 +133,40 @@ if (!gotTheLock) {
     }
   });
 }
-
+const { Printer } = require("@plantae-tech/inkpresser");
 // Function to send ZPL to printer
-async function sendToPrinter(ip, port, zpl) {
+async function sendToPrinter(print) {
+
+  const { nome, ip, port, zpl, tipo_de_conexao } = print;
   // Use mock printer service in test mode
   if (TEST_MODE) {
     console.log(`[TEST MODE] Sending to mock printer at ${ip}:${port}`);
-    return mockPrinterService.sendToPrinter(ip, port, zpl);
+
+    if (tipo_de_conexao === "ip") {
+      return mockPrinterService.sendToPrinter(ip, port, zpl);
+    } else {
+     
+      const printerr = new Printer({
+        name: nome,
+      });
+      return await printerr.printRaw(Buffer.from(zpl), "teste");
+    }
+
+
+  }
+
+  if(tipo_de_conexao === "name"){
+    return new Promise(async(resolve,reject) => {
+      try {
+        const printerr = new Printer({
+          name: nome,
+        });
+        const result =  await printerr.printRaw(Buffer.from(zpl), "teste");
+        resolve(result)
+      } catch (error) {
+        reject(error)
+      }
+    })
   }
 
   return new Promise((resolve, reject) => {
@@ -173,7 +200,7 @@ async function sendToPrinter(ip, port, zpl) {
 
 // Configuration for print retry
 const RETRY_CONFIG = {
-  maxRetries: 3,
+  maxRetries: 1,
   initialDelay: 5000, // 5 seconds
   backoffFactor: 2, // Exponential backoff
   maxPrintingState: 300000, // 5 minutes max in printing state
@@ -182,6 +209,8 @@ const RETRY_CONFIG = {
 // Function to process a single print job with retries
 async function processPrintJob(job, attemptNumber = 1) {
   try {
+
+   
     console.log(`Processing job ${job.id} (attempt ${attemptNumber})`);
 
     // Update status to printing
@@ -208,7 +237,13 @@ async function processPrintJob(job, attemptNumber = 1) {
       throw new Error(`Impressora não encontrada: ${printerError.message}`);
 
     // Send to printer
-    await sendToPrinter(printer.ip, printer.porta || 9100, job.command);
+    await sendToPrinter({
+      nome: printer.nome,
+      ip: printer.ip,
+      port: printer.porta || 9100,
+      zpl: job.command,
+      tipo_de_conexao: printer.tipo_de_conexao
+    });
 
     // Update status to completed
     await supabase
@@ -234,9 +269,8 @@ async function processPrintJob(job, attemptNumber = 1) {
     // If within retry limit, attempt retry
     if (attemptNumber < RETRY_CONFIG.maxRetries) {
       console.log(
-        `Scheduling retry ${attemptNumber + 1} for job ${job.id} in ${
-          RETRY_CONFIG.initialDelay *
-          Math.pow(RETRY_CONFIG.backoffFactor, attemptNumber - 1)
+        `Scheduling retry ${attemptNumber + 1} for job ${job.id} in ${RETRY_CONFIG.initialDelay *
+        Math.pow(RETRY_CONFIG.backoffFactor, attemptNumber - 1)
         }ms`
       );
 
@@ -248,8 +282,8 @@ async function processPrintJob(job, attemptNumber = 1) {
           last_error: error.message,
           next_retry_at: new Date(
             Date.now() +
-              RETRY_CONFIG.initialDelay *
-                Math.pow(RETRY_CONFIG.backoffFactor, attemptNumber - 1)
+            RETRY_CONFIG.initialDelay *
+            Math.pow(RETRY_CONFIG.backoffFactor, attemptNumber - 1)
           ).toISOString(),
         })
         .eq("id", job.id);
@@ -580,11 +614,13 @@ ipcMain.handle("test-printer", async (event, printerId) => {
 ^XZ`;
 
     // Send test command to printer
-    const response = await sendToPrinter(
-      printer.ip,
-      printer.porta || 9100,
-      testZpl
-    );
+    const response = await sendToPrinter({
+      nome: printer.nome,
+      ip: printer.ip,
+      port: printer.porta || 9100,
+      zpl: testZpl,
+      tipo_de_conexao: printer.tipo_de_conexao
+    });
 
     return { success: true, message: "Teste enviado com sucesso!" };
   } catch (error) {
@@ -596,9 +632,17 @@ ipcMain.handle("test-printer", async (event, printerId) => {
 // Printer CRUD operations
 ipcMain.handle("add-printer", async (event, printerData) => {
   try {
-    // Validate required fields
-    if (!printerData.nome || !printerData.ip) {
-      throw new Error("Nome e IP são obrigatórios");
+
+    if (printerData.tipo_de_conexao === "name") {
+      // Validate required fields
+      if (!printerData.nome) {
+        throw new Error("Nome é obrigatório");
+      }
+    } else {
+      // Validate required fields
+      if (!printerData.nome || !printerData.ip) {
+        throw new Error("Nome e IP são obrigatórios");
+      }
     }
 
     // Add printer to database
@@ -610,6 +654,8 @@ ipcMain.handle("add-printer", async (event, printerData) => {
           ip: printerData.ip,
           porta: printerData.port || 9100,
           created_at: new Date().toISOString(),
+          tipo_de_conexao: printerData.tipo_de_conexao || "ip",
+
         },
       ])
       .select();
@@ -745,6 +791,18 @@ ipcMain.handle("generate-zpl-preview", async (event, zpl) => {
   }
 });
 
+ipcMain.handle("get-printers-name", async (event) => {
+  try {
+    const { PrintManager } = require("@plantae-tech/inkpresser");
+    const printerManager = new PrintManager();
+    const prints = await printerManager.getPrinters();
+    return prints;
+  } catch (error) {
+    console.error("Error fetching printers:", error);
+    return { success: false, error: error.message };
+  }
+});
+
 // Adicione limpeza adequada
 app.on("before-quit", () => {
   console.log("Aplicativo sendo encerrado...");
@@ -759,3 +817,5 @@ app.on("before-quit", () => {
     mainWindow.destroy();
   }
 });
+
+

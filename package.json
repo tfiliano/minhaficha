@@ -8,11 +8,10 @@
   "license": "ISC",
   "scripts": {
     "start": "electron .",
-    "dev": "NODE_ENV=development electron .",
+    "dev": "cross-env TEST_MODE=true NODE_ENV=development electron .",
     "build": "electron-builder",
     "build:win": "node scripts/prepare-nsis.js && electron-builder --win --x64 --config.nsis.differentialPackage=false",
     "build:win-files": "electron-builder --win --x64 --dir",
-    "postinstall": "node scripts/setup-nsis.js",
     "prepare-rebuild": "node scripts/force-kill.js && node scripts/prepare-nsis.js",
     "rebuild": "npm run prepare-rebuild && electron-builder --win --x64 --force",
     "test": "node start-test-mode.js"
@@ -53,12 +52,14 @@
     }
   },
   "dependencies": {
+    "@plantae-tech/inkpresser": "^1.1.1",
     "@supabase/supabase-js": "^2.39.3",
     "dotenv": "^16.4.4",
     "net": "^1.0.2"
   },
   "devDependencies": {
-    "electron": "^29.4.6",
+    "cross-env": "^7.0.3",
+    "electron": "^27.3.11",
     "electron-builder": "^24.9.1"
   }
 }

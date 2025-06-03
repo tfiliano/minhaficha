@@ -60,11 +60,20 @@ function formatDate(dateString) {
 const printerModal = document.getElementById("printer-modal");
 const printerModalTitle = document.getElementById("printer-modal-title");
 const printerForm = document.getElementById("printer-form");
+const selectPrinterForm = document.getElementById("select-printer-form");
 const printerId = document.getElementById("printer-id");
 const printerName = document.getElementById("printer-name");
 const printerIp = document.getElementById("printer-ip");
 const printerPort = document.getElementById("printer-port");
 const addPrinterBtn = document.getElementById("add-printer-btn");
+
+// Modal de adição de impressora
+const selectTabBtn = document.getElementById('select-printer-tab');
+const addTabBtn = document.getElementById('add-printer-tab');
+const selectSection = document.getElementById('select-printer-section');
+const addSection = document.getElementById('add-printer-section');
+const useSelectedPrinterBtn = document.getElementById('use-selected-printer');
+const printerList = document.getElementById('printer-list');
 
 const deletePrinterModal = document.getElementById("delete-printer-modal");
 const deletePrinterId = document.getElementById("delete-printer-id");
@@ -134,7 +143,7 @@ async function loadPrinters() {
             </button>
             <button class="btn btn-sm" onclick="editPrinter('${printer.id}', '${
           printer.nome
-        }', '${printer.ip}', ${printer.porta || 9100})">
+        }', '${printer.ip}', ${printer.porta || 9100},'${printer.tipo_de_conexao}')">
               Editar
             </button>
             <button class="btn btn-sm btn-danger" onclick="showDeletePrinterModal('${
@@ -159,6 +168,24 @@ async function loadPrinters() {
     // Hide loading
     printersLoading.style.display = "none";
   }
+}
+
+async function loadPrintersName() {
+  const printers = await window.api.getPrintersName();
+  console.log(printers);
+  printerList.innerHTML = "";
+
+  const optionsSelect = document.createElement("option");
+  optionsSelect.value = "";
+  optionsSelect.textContent = "Selecione...";
+  printerList.appendChild(optionsSelect);
+
+  printers.forEach(printer => {
+    const option = document.createElement("option");
+    option.value = printer.name;
+    option.textContent = printer.name;
+    printerList.appendChild(option);
+  });
 }
 
 // Load print queue
@@ -356,21 +383,36 @@ addPrinterBtn.addEventListener("click", () => {
 
   // Show modal
   showModal(printerModal);
+  loadPrintersName();
 });
 
 // Edit printer
-window.editPrinter = (id, name, ip, port) => {
+window.editPrinter = (id, name, ip, port, tipo_de_conexao) => {
   // Set form values
   printerId.value = id;
   printerName.value = name;
   printerIp.value = ip;
   printerPort.value = port;
 
+
   // Set modal title
   printerModalTitle.textContent = "Editar Impressora";
 
+  
+
   // Show modal
   showModal(printerModal);
+ 
+  loadPrintersName()
+  setTimeout(() => {
+    if(tipo_de_conexao !== "name"){
+      addTabBtn.click()
+     }else{
+      selectTabBtn.click()
+      printerList.value = name;
+     }
+    
+   },50)
 };
 
 // Show delete printer modal
@@ -411,6 +453,43 @@ printerForm.addEventListener("submit", async (e) => {
     alert(`Erro: ${error.message}`);
   }
 });
+
+selectPrinterForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const selectedPrinter = printerList.value;
+
+  const id = printerId.value;
+
+  const printerData = {
+    nome: selectedPrinter,
+    ip: null,
+    port:null,
+    tipo_de_conexao: "name",	
+  };
+
+  try {
+    let result;
+
+    if (id) {
+      // Update existing printer
+      result = await window.api.updatePrinter(id, printerData);
+    } else {
+      console.log(printerData);
+      // Add new printer
+      result = await window.api.addPrinter(printerData);
+    }
+
+    if (result.success) {
+      hideModal(printerModal);
+      loadPrinters();
+    } else {
+      alert(`Erro: ${result.error}`);
+    }
+  } catch (error) {
+    alert(`Erro: ${error.message}`);
+  }
+
+})
 
 // Confirm delete printer
 confirmDeletePrinterBtn.addEventListener("click", async () => {
@@ -623,6 +702,8 @@ window.showChangePrinterModal = async (jobId) => {
     if (job.error) {
       throw new Error(job.error);
     }
+    
+   
 
     // Populate printer selection dropdown
     printers.forEach((printer) => {
@@ -739,3 +820,18 @@ if (localStorage.getItem("testMode") === "true") {
 
   document.body.appendChild(testModeIndicator);
 }
+
+
+selectTabBtn.onclick = () => {
+  selectTabBtn.classList.add('active');
+  addTabBtn.classList.remove('active');
+  selectSection.style.display = 'block';
+  addSection.style.display = 'none';
+};
+
+addTabBtn.onclick = () => {
+  addTabBtn.classList.add('active');
+  selectTabBtn.classList.remove('active');
+  addSection.style.display = 'block';
+  selectSection.style.display = 'none';
+};

@@ -20,7 +20,10 @@ contextBridge.exposeInMainWorld(
     cancelJob: (jobId) => ipcRenderer.invoke('cancel-job', jobId),
     changePrinter: (jobId, printerId) => ipcRenderer.invoke('change-printer', { jobId, printerId }),
     reprocessJob: (jobId) => ipcRenderer.invoke('reprocess-job', jobId),
-    
+
+    //Printer operations List
+    getPrintersName: () => ipcRenderer.invoke('get-printers-name'),
+
     // Event listeners
     onJobStatusUpdate: (callback) => {
       ipcRenderer.on('job-status-update', (_, data) => callback(data));

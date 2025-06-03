@@ -12,7 +12,8 @@ const supabase = createClient(
 const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL) || 5000;
 
 // Function to send ZPL to printer
-async function sendToPrinter(ip, port, zpl) {
+async function sendToPrinter(print) {
+  const { nome, ip, port, zpl, tipo_de_conexao } = print;
   return new Promise((resolve, reject) => {
     const client = new net.Socket();
     let responseData = "";
@@ -68,7 +69,13 @@ async function processPrintJob(job) {
       throw new Error(`Printer not found: ${printerError.message}`);
 
     // Send to printer
-    await sendToPrinter(printer.ip, printer.porta || 9100, job.command);
+    await sendToPrinter({
+      nome: printer.nome,
+      ip: printer.ip,
+      port: printer.porta || 9100,
+      zpl: job.command,
+      tipo_de_conexao: printer.tipo_de_conexao
+    });
 
     // Update status to completed
     await supabase

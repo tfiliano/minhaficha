@@ -320,7 +320,7 @@
       font-weight: 500;
     }
     
-    .form-group input {
+    .form-group input, .form-group select {
       width: 100%;
       padding: 8px 12px;
       border: 1px solid var(--border-color);
@@ -390,32 +390,61 @@
     <div id="printer-modal" class="modal" style="display: none;">
       <div class="modal-content">
         <div class="modal-header">
-          <h2 id="printer-modal-title">Adicionar Impressora</h2>
+          <h2 id="printer-modal-title">Gerenciar Impressoras</h2>
           <span class="close-modal">&times;</span>
         </div>
         <div class="modal-body">
-          <form id="printer-form">
-            <input type="hidden" id="printer-id">
-            <div class="form-group">
-              <label for="printer-name">Nome</label>
-              <input type="text" id="printer-name" required>
-            </div>
-            <div class="form-group">
-              <label for="printer-ip">Endereço IP</label>
-              <input type="text" id="printer-ip" required>
-            </div>
-            <div class="form-group">
-              <label for="printer-port">Porta</label>
-              <input type="number" id="printer-port" value="9100">
-            </div>
-            <div class="form-actions">
-              <button type="button" class="btn btn-danger close-modal-btn">Cancelar</button>
-              <button type="submit" class="btn">Salvar</button>
-            </div>
-          </form>
+    
+          <!-- Botões de Alternância -->
+          <div class="printer-options">
+            <button type="button" id="select-printer-tab" class="btn active">Selecionar Impressora</button>
+            <button type="button" id="add-printer-tab" class="btn">Adicionar Impressora</button>
+          </div>
+    
+          <!-- Seção: Selecionar Impressora -->
+          <div id="select-printer-section" class="printer-section">
+            <form id="select-printer-form">
+              <div class="form-group">
+                <label for="printer-list">Escolha uma impressora</label>
+                <select id="printer-list" class="form-control">
+                 
+                  <!-- Dinamicamente preenchido via JS, se necessário -->
+                </select>
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn btn-danger close-modal-btn">Cancelar</button>
+                <button type="submit" class="btn" id="use-selected-printer">Usar Impressora</button>
+              </div>
+            </form>
+          </div>
+    
+          <!-- Seção: Adicionar Impressora -->
+          <div id="add-printer-section" class="printer-section" style="display: none;">
+            <form id="printer-form">
+              <input type="hidden" id="printer-id">
+              <div class="form-group">
+                <label for="printer-name">Nome</label>
+                <input type="text" id="printer-name" required>
+              </div>
+              <div class="form-group">
+                <label for="printer-ip">Endereço IP</label>
+                <input type="text" id="printer-ip" required>
+              </div>
+              <div class="form-group">
+                <label for="printer-port">Porta</label>
+                <input type="number" id="printer-port" value="9100">
+              </div>
+              <div class="form-actions">
+                <button type="button" class="btn btn-danger close-modal-btn">Cancelar</button>
+                <button type="submit" class="btn">Salvar</button>
+              </div>
+            </form>
+          </div>
+    
         </div>
       </div>
     </div>
+    
     
     <!-- Modal for confirming printer deletion -->
     <div id="delete-printer-modal" class="modal" style="display: none;">
