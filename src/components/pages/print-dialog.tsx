@@ -26,7 +26,12 @@ interface PrintDialogProps {
   printers: Array<{ id: string; nome: string }>;
 }
 
-export function PrintDialog({ open, onClose, onConfirm, printers }: PrintDialogProps) {
+export function PrintDialog({
+  open,
+  onClose,
+  onConfirm,
+  printers,
+}: PrintDialogProps) {
   const [selectedPrinter, setSelectedPrinter] = useState<string>("");
   const [quantity, setQuantity] = useState<number>(1);
 
@@ -48,10 +53,7 @@ export function PrintDialog({ open, onClose, onConfirm, printers }: PrintDialogP
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <label htmlFor="printer">Impressora</label>
-            <Select
-              value={selectedPrinter}
-              onValueChange={setSelectedPrinter}
-            >
+            <Select value={selectedPrinter} onValueChange={setSelectedPrinter}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione uma impressora" />
               </SelectTrigger>

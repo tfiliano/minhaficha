@@ -146,7 +146,7 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
       const requestData: Record<string, any> = {
         ...formData,
         loja_id: produto.loja_id,
-        impressora: printer,
+        impressora_id: printer,
         quantidade: quantity,
         produto_nome: produto.nome,
         codigo_produto: produto.codigo,
