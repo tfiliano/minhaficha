@@ -2,8 +2,6 @@ export const normalizeCnpj = (value: string) => {
   // Remove todos os caracteres não numéricos
   const cleanedValue = String(value).replace(/\D/g, "");
 
-  console.log({ cleanedValue });
-
   // Se o valor estiver vazio, retorna uma string vazia
   const limitedValue = cleanedValue.substring(0, 14);
 

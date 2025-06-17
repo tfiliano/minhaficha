@@ -2,82 +2,173 @@ import { createClient } from "@/utils/supabase";
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 
-export async function GET(request: Request) {
+// Tipos explícitos
+type ProducaoItem = {
+  nome: string;
+  peso: number;
+  quantidade: number;
+  peso_medio: number;
+};
+
+type Producao = {
+  created_at: string;
+  peso_bruto: number;
+  peso_liquido: number;
+  peso_perda: number;
+  fator_correcao: number;
+  produto?: { nome: string };
+  grupo?: { nome: string };
+  items?: ProducaoItem[];
+};
+
+type Agrupado = Record<
+  string,
+  {
+    subproduto: string;
+    quantidade: number;
+    peso: number;
+    peso_medio_total: number;
+  }[]
+>;
+
+export async function POST(request: Request) {
   try {
+    const { items, dateRange } = await request.json();
+
     const supabase = await createClient();
 
-    // Get all production records
-    const { data: producoes, error } = await supabase
+    let query = supabase
       .from("producoes")
-      .select(`
-        *,
-        produto:produtos (
-          nome
-        ),
-        grupo:grupos (
-          nome
-        )
-      `)
+      .select(
+        `
+    *,
+    produto:produtos ( id, nome ),
+    grupo:grupos ( nome )
+  `
+      )
+      .gte("created_at", dateRange.from)
+      .lte("created_at", dateRange.to)
       .order("created_at", { ascending: false });
+
+    if (items && items.length > 0) {
+      query = query.in("produto_id", items);
+    }
+
+    const { data: producoes, error } = await query;
 
     if (error) throw error;
 
-    // Transform data for Excel
-    const excelData = producoes.map((producao) => {
-      const items = producao.items as Array<{
-        nome: string;
-        peso: number;
-        porcoes: number;
-        peso_medio: number;
-      }> | null;
+    const agrupado: Agrupado = {};
 
-      return {
-        "Data": new Date(producao.created_at).toLocaleDateString("pt-BR"),
-        "Produto": producao.produto?.nome || "",
-        "Grupo": producao.grupo?.nome || "",
-        "Peso Bruto": producao.peso_bruto || 0,
-        "Peso Líquido": producao.peso_liquido || 0,
-        "Perda": producao.peso_perda || 0,
-        "Fator Correção": producao.fator_correcao || 0,
-        "Items": items ? items.map(item => `${item.nome}: ${item.peso}kg (${item.porcoes} porções)`).join("\n") : "",
-      };
+    // Agrupamento por grupo e subproduto
+    for (const producao of producoes as unknown as Producao[]) {
+      const grupoNome = producao.grupo?.nome || "Sem Grupo";
+      const items = producao.items ?? [];
+
+      for (const item of items) {
+        agrupado[grupoNome] = agrupado[grupoNome] || [];
+
+        const existente = agrupado[grupoNome].find(
+          (i) => i.subproduto === item.nome
+        );
+
+        if (existente) {
+          existente.quantidade += item.quantidade;
+          existente.peso += item.peso;
+          existente.peso_medio_total += item.peso_medio;
+        } else {
+          agrupado[grupoNome].push({
+            subproduto: item.nome,
+            quantidade: item.quantidade,
+            peso: item.peso,
+            peso_medio_total: item.peso_medio,
+          });
+        }
+      }
+    }
+
+    const excelData: any[] = [];
+
+    let totalQuantidade = 0;
+    let totalPeso = 0;
+    let totalPesoMedioAcumulado = 0;
+    let totalGrupos = 0;
+
+    for (const [grupo, subprodutos] of Object.entries(agrupado)) {
+      const grupoQuantidade = subprodutos.reduce(
+        (acc, item) => acc + item.quantidade,
+        0
+      );
+      const grupoPeso = subprodutos.reduce((acc, item) => acc + item.peso, 0);
+      const grupoPesoMedio =
+        subprodutos.reduce((acc, item) => acc + item.peso_medio_total, 0) /
+        subprodutos.length;
+
+      // Linha de grupo
+      excelData.push({
+        Grupo: grupo,
+        Subproduto: "",
+        Quantidade: grupoQuantidade,
+        Peso: grupoPeso.toFixed(3),
+        "Peso Médio": grupoPesoMedio.toFixed(3),
+      });
+
+      totalQuantidade += grupoQuantidade;
+      totalPeso += grupoPeso;
+      totalPesoMedioAcumulado += grupoPesoMedio;
+      totalGrupos += 1;
+
+      // Linhas dos subprodutos
+      for (const item of subprodutos) {
+        excelData.push({
+          Grupo: "",
+          Subproduto: item.subproduto,
+          Quantidade: item.quantidade,
+          Peso: item.peso.toFixed(3),
+          "Peso Médio": item.peso_medio_total.toFixed(3),
+        });
+      }
+    }
+
+    // Total geral
+    excelData.push({
+      Grupo: "Total Geral",
+      Subproduto: "",
+      Quantidade: totalQuantidade,
+      Peso: totalPeso.toFixed(3),
+      "Peso Médio": (totalPesoMedioAcumulado / totalGrupos).toFixed(3),
     });
 
-    // Create workbook and worksheet
+    // Geração do Excel
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(excelData);
 
-    // Set column widths
-    const colWidths = [
-      { wch: 12 },  // Data
-      { wch: 30 },  // Produto
-      { wch: 20 },  // Grupo
-      { wch: 12 },  // Peso Bruto
-      { wch: 12 },  // Peso Líquido
-      { wch: 12 },  // Perda
-      { wch: 12 },  // Fator Correção
-      { wch: 40 },  // Items
+    ws["!cols"] = [
+      { wch: 30 }, // Grupo
+      { wch: 40 }, // Subproduto
+      { wch: 15 }, // Quantidade
+      { wch: 15 }, // Peso
+      { wch: 20 }, // Peso Médio
     ];
-    ws["!cols"] = colWidths;
 
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Produções");
+    XLSX.utils.book_append_sheet(wb, ws, "Resumo Produções");
 
-    // Generate buffer
-    const buf = XLSX.write(wb, { type: "buffer", bookType: "xlsx" });
-
-    // Return response with Excel file
-    return new NextResponse(buf, {
-      headers: {
-        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": "attachment; filename=producoes.xlsx"
-      }
+    const buffer = XLSX.write(wb, {
+      type: "buffer",
+      bookType: "xlsx",
     });
 
+    return new NextResponse(buffer, {
+      headers: {
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": "attachment; filename=producoes.xlsx",
+      },
+    });
   } catch (error: any) {
-    console.error("Error generating Excel:", error);
+    console.error("Erro ao gerar Excel:", error);
     return NextResponse.json(
-      { error: error.message || "Error generating Excel file" },
+      { error: error.message || "Erro interno ao gerar Excel" },
       { status: 500 }
     );
   }
