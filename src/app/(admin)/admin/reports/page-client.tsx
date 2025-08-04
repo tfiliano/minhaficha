@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon, FileSpreadsheet, Loader2, Printer } from "lucide-react";
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { DateRange } from "react-day-picker";
 import { toast } from "sonner";
@@ -82,6 +83,7 @@ export default function ReportsPageClient({
     setSelectedItems,
     endpoint,
     filename,
+    type = "export",
   }: {
     title: string;
     description: string;
@@ -90,6 +92,7 @@ export default function ReportsPageClient({
     setSelectedItems: (options: Option[]) => void;
     endpoint: string;
     filename: string;
+    type?: "link" | "export";
   }) => {
     const [date, setDate] = useState<DateRange | undefined>({
       from: new Date(),
@@ -114,82 +117,98 @@ export default function ReportsPageClient({
               <p className="text-sm text-muted-foreground">{description}</p>
             </div>
           </div>
-          <div>
-            <Label>Produto pai</Label>
-            <MultipleSelector
-              commandProps={{ label: "Selecione produtos" }}
-              value={selectedItems}
-              defaultOptions={items}
-              placeholder="Selecione um produto..."
-              hideClearAllButton
-              emptyIndicator={
-                <p className="text-center text-sm">Sem produtos</p>
-              }
-              onChange={setSelectedItems}
-            />
-          </div>
-          <div>
-            <div>
-              <div className="mb-4">
-                <Label>Data</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="group bg-background hover:bg-background border-input w-full justify-between px-3 font-normal outline-offset-0 outline-none focus-visible:outline-[3px]"
-                    >
-                      <span
-                        className={cn(
-                          "truncate",
-                          !date && "text-muted-foreground"
-                        )}
-                      >
-                        {date?.from ? (
-                          date.to ? (
-                            <>
-                              {format(date.from, "LLL dd, y", { locale: ptBR })}{" "}
-                              - {format(date.to, "LLL dd, y", { locale: ptBR })}
-                            </>
-                          ) : (
-                            format(date.from, "LLL dd, y", { locale: ptBR })
-                          )
-                        ) : (
-                          "Pick a date range"
-                        )}
-                      </span>
-                      <CalendarIcon
-                        size={16}
-                        className="text-muted-foreground/80 group-hover:text-foreground shrink-0 transition-colors"
-                        aria-hidden="true"
-                      />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-2" align="start">
-                    <Calendar
-                      locale={ptBR}
-                      mode="range"
-                      selected={date}
-                      onSelect={setDate}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-            <Button
-              disabled={isPending}
-              onClick={onSubmit}
-              className="flex gap-2 items-center justify-center"
-            >
-              {isPending ? (
-                <>
-                  <Loader2 className="animate-spin" size={16} />
-                  Preparando...
-                </>
-              ) : (
-                "Exportar Excel"
-              )}
+
+          {type === "link" && (
+            <Button asChild>
+              <Link href="/admin/reports/dashboard">Acessar</Link>
             </Button>
-          </div>
+          )}
+
+          {type !== "link" && (
+            <>
+              <div>
+                <Label>Produto pai</Label>
+                <MultipleSelector
+                  commandProps={{ label: "Selecione produtos" }}
+                  value={selectedItems}
+                  defaultOptions={items}
+                  placeholder="Selecione um produto..."
+                  hideClearAllButton
+                  emptyIndicator={
+                    <p className="text-center text-sm">Sem produtos</p>
+                  }
+                  onChange={setSelectedItems}
+                />
+              </div>
+              <div>
+                <div>
+                  <div className="mb-4">
+                    <Label>Data</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="group bg-background hover:bg-background border-input w-full justify-between px-3 font-normal outline-offset-0 outline-none focus-visible:outline-[3px]"
+                        >
+                          <span
+                            className={cn(
+                              "truncate",
+                              !date && "text-muted-foreground"
+                            )}
+                          >
+                            {date?.from ? (
+                              date.to ? (
+                                <>
+                                  {format(date.from, "LLL dd, y", {
+                                    locale: ptBR,
+                                  })}{" "}
+                                  -{" "}
+                                  {format(date.to, "LLL dd, y", {
+                                    locale: ptBR,
+                                  })}
+                                </>
+                              ) : (
+                                format(date.from, "LLL dd, y", { locale: ptBR })
+                              )
+                            ) : (
+                              "Pick a date range"
+                            )}
+                          </span>
+                          <CalendarIcon
+                            size={16}
+                            className="text-muted-foreground/80 group-hover:text-foreground shrink-0 transition-colors"
+                            aria-hidden="true"
+                          />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-2" align="start">
+                        <Calendar
+                          locale={ptBR}
+                          mode="range"
+                          selected={date}
+                          onSelect={setDate}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                <Button
+                  disabled={isPending}
+                  onClick={onSubmit}
+                  className="flex gap-2 items-center justify-center"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="animate-spin" size={16} />
+                      Preparando...
+                    </>
+                  ) : (
+                    "Exportar Excel"
+                  )}
+                </Button>
+              </div>
+            </>
+          )}
         </div>
       </Card>
     );
@@ -200,7 +219,18 @@ export default function ReportsPageClient({
       <Title>Relatórios</Title>
 
       <div className="flex gap-4 items-center justify-center">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
+          <ExportCard
+            title="Relatório de Produção"
+            description="Painel de relatório de Produção"
+            type="link"
+            icon={FileSpreadsheet}
+            selectedItems={itemsProducao}
+            setSelectedItems={setItemsProducao}
+            endpoint="/api/reports/producao/excel"
+            filename="relatorio_producao.xlsx"
+          />
+
           <ExportCard
             title="Produção"
             description="Exportar dados de produção"
