@@ -14,8 +14,8 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, FileSpreadsheet, Printer } from "lucide-react";
-import { useState } from "react";
+import { CalendarIcon, FileSpreadsheet, Loader2, Printer } from "lucide-react";
+import { useState, useTransition } from "react";
 import { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 
@@ -96,6 +96,14 @@ export default function ReportsPageClient({
       to: new Date(),
     });
 
+    const [isPending, startTransition] = useTransition();
+
+    function onSubmit() {
+      startTransition(async () => {
+        await handleExportReport(endpoint, selectedItems, filename, date);
+      });
+    }
+
     return (
       <Card className="p-6 transition-colors">
         <div className="flex flex-col gap-4">
@@ -168,11 +176,18 @@ export default function ReportsPageClient({
               </div>
             </div>
             <Button
-              onClick={() =>
-                handleExportReport(endpoint, selectedItems, filename, date)
-              }
+              disabled={isPending}
+              onClick={onSubmit}
+              className="flex gap-2 items-center justify-center"
             >
-              Exportar Excel
+              {isPending ? (
+                <>
+                  <Loader2 className="animate-spin" size={16} />
+                  Preparando...
+                </>
+              ) : (
+                "Exportar Excel"
+              )}
             </Button>
           </div>
         </div>
