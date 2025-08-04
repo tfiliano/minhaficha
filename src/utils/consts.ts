@@ -1,1 +1,3 @@
-export const VERSION_APP = "v0.1.14";
+import pkg from "../../package.json";
+
+export const VERSION_APP = `v${pkg.version}`;
