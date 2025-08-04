@@ -33,7 +33,7 @@ type Agrupado = Record<
 
 export async function POST(request: Request) {
   try {
-    const { items, dateRange } = await request.json();
+    const { items, dateRange, type } = await request.json();
 
     const supabase = await createClient();
 
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
         Subproduto: "",
         Quantidade: grupoQuantidade,
         Peso: grupoPeso.toFixed(3),
-        "Peso Médio": 0,
+        "Peso Médio": grupoPeso / grupoQuantidade,
       });
 
       totalQuantidade += grupoQuantidade;
@@ -120,13 +120,14 @@ export async function POST(request: Request) {
 
       // Linhas dos subprodutos
       for (const item of subprodutos) {
-        excelData.push({
+        const obj = {
           Grupo: "",
           Subproduto: item.subproduto,
           Quantidade: item.quantidade,
           Peso: item.peso.toFixed(3),
-          "Peso Médio": 0,
-        });
+          "Peso Médio": item.peso / item.quantidade,
+        };
+        excelData.push(obj);
       }
     }
 
@@ -136,8 +137,11 @@ export async function POST(request: Request) {
       Subproduto: "",
       Quantidade: totalQuantidade,
       Peso: totalPeso.toFixed(3),
-      "Peso Médio": 0,
+      "Peso Médio": totalPeso / totalQuantidade,
     });
+
+    if (type === "dashboard")
+      return NextResponse.json(excelData, { status: 200 });
 
     // Geração do Excel
     const wb = XLSX.utils.book_new();
