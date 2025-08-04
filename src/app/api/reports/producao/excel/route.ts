@@ -110,7 +110,7 @@ export async function POST(request: Request) {
         Subproduto: "",
         Quantidade: grupoQuantidade,
         Peso: grupoPeso.toFixed(3),
-        "Peso Médio": grupoPesoMedio.toFixed(3),
+        "Peso Médio": 0,
       });
 
       totalQuantidade += grupoQuantidade;
@@ -125,7 +125,7 @@ export async function POST(request: Request) {
           Subproduto: item.subproduto,
           Quantidade: item.quantidade,
           Peso: item.peso.toFixed(3),
-          "Peso Médio": item.peso_medio_total.toFixed(3),
+          "Peso Médio": 0,
         });
       }
     }
@@ -136,7 +136,7 @@ export async function POST(request: Request) {
       Subproduto: "",
       Quantidade: totalQuantidade,
       Peso: totalPeso.toFixed(3),
-      "Peso Médio": (totalPesoMedioAcumulado / totalGrupos).toFixed(3),
+      "Peso Médio": 0,
     });
 
     // Geração do Excel
@@ -150,6 +150,41 @@ export async function POST(request: Request) {
       { wch: 15 }, // Peso
       { wch: 20 }, // Peso Médio
     ];
+
+    for (let i = 0; i < excelData.length; i++) {
+      const rowIndex = i + 2; // começa na linha 2 (linha 1 é o cabeçalho)
+      const cellAddress = `E${rowIndex}`;
+
+      ws[cellAddress] = {
+        f: `=IF(C${rowIndex}=0,0,D${rowIndex}/C${rowIndex})`,
+      };
+    }
+
+    for (let R = 1; R < excelData.length + 1; R++) {
+      for (let C = 0; C <= 4; C++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+        if (!ws[cellAddress]) continue;
+
+        ws[`E${R + 2}`] = {
+          f: `=IF(C${R + 2}=0,0,D${R + 2}/C${R + 2})`,
+        };
+
+        if (C === 2) {
+          ws[cellAddress].t = "n";
+          ws[cellAddress].z = "0"; // sem casas decimais
+          ws[cellAddress].s = { alignment: { horizontal: "right" } };
+        } else if (C === 3 || C === 4) {
+          // Peso e Peso Médio – 3 casas decimais
+          ws[cellAddress].t = "n";
+          ws[cellAddress].z = "0.000";
+          ws[cellAddress].s = { alignment: { horizontal: "right" } };
+        } else {
+          // Grupo e Subproduto – texto alinhado à esquerda
+          ws[cellAddress].t = "s";
+          ws[cellAddress].s = { alignment: { horizontal: "left" } };
+        }
+      }
+    }
 
     XLSX.utils.book_append_sheet(wb, ws, "Resumo Produções");
 
