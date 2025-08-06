@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface PrintDialogProps {
   open: boolean;
@@ -40,6 +40,12 @@ export function PrintDialog({
     onConfirm(selectedPrinter, quantity);
     onClose();
   };
+
+  useEffect(() => {
+    if (printers.length) {
+      setSelectedPrinter(printers[0].id);
+    }
+  }, [printers]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
