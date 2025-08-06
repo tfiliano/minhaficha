@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { addDays } from "date-fns";
 import { LoaderCircle } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
@@ -65,6 +65,8 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
   );
   const router = useRouter();
 
+  const [isPending, startTransition] = useTransition();
+
   function getParam(property: string) {
     return searchParams.get(property);
   }
@@ -91,18 +93,14 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
         ]);
         setPrinters(printersData);
         setTemplates(templatesData);
-
-        // If there's only one template, select it automatically
-        if (templatesData.length === 1) {
-          setValue("template_id", templatesData[0].id);
-          setSelectedTemplate(templatesData[0]);
-        }
       } catch (error) {
         console.error("Error loading data:", error);
         toast.error("Erro ao carregar dados");
       }
     };
-    loadData();
+    startTransition(() => {
+      loadData();
+    });
   }, [setValue]);
 
   // Carregar o template selecionado quando o template_id mudar
@@ -124,6 +122,13 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
       }
     }
   }, [watch("template_id"), templates]);
+
+  useEffect(() => {
+    if (templates.length) {
+      setValue("template_id", templates[0].id);
+      setSelectedTemplate(templates[0]);
+    }
+  }, [templates]);
 
   const onSubmit: SubmitHandler<IEtiqueta> = async (formValue) => {
     if (!formValue.template_id) {
@@ -162,6 +167,19 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
       setLoading(false);
     }
   };
+
+  if (isPending) {
+    return (
+      <div
+        className={cn(
+          "fixed top-0 w-screen h-screen z-50 bg-background/90 text-center flex flex-col items-center justify-center"
+        )}
+      >
+        <LoaderCircle className="animate-spin" />
+        {loadingText || "Carregando dados..."}
+      </div>
+    );
+  }
 
   return (
     <>
