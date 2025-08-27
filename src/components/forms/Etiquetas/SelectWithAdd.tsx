@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Select,
   SelectContent,
@@ -34,15 +34,22 @@ interface SelectWithAddProps {
 }
 
 export function SelectWithAdd({
-  fabricantes,
+  fabricantes: fabricantesInitial,
   value,
   onValueChange,
   onFabricantesUpdate,
 }: SelectWithAddProps) {
+  const [fabricantes, setFabricantes] = useState(fabricantesInitial);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [novoFabricante, setNovoFabricante] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
   const supabase = createBrowserClient();
+
+  // Atualiza a lista quando recebe novos fabricantes do componente pai
+  useEffect(() => {
+    setFabricantes(fabricantesInitial);
+  }, [fabricantesInitial]);
 
   const handleAddFabricante = async () => {
     if (!novoFabricante.trim()) {
@@ -60,9 +67,25 @@ export function SelectWithAdd({
 
       if (error) throw error;
 
-      // Atualiza a lista de fabricantes
-      const novaLista = [...fabricantes, data];
-      onFabricantesUpdate(novaLista);
+      // Recarrega a lista completa do banco para garantir sincronização
+      const { data: fabricantesAtualizados, error: fetchError } = await supabase
+        .from("fabricantes")
+        .select("*")
+        .order('nome', { ascending: true });
+
+      if (fetchError) {
+        console.error('Erro ao recarregar fabricantes:', fetchError);
+        // Fallback: usa a lista local
+        const novaLista = [...fabricantes, data].sort((a, b) => 
+          (a.nome || '').localeCompare(b.nome || '')
+        );
+        setFabricantes(novaLista);
+        onFabricantesUpdate(novaLista);
+      } else {
+        // Usa a lista atualizada do banco
+        setFabricantes(fabricantesAtualizados || []);
+        onFabricantesUpdate(fabricantesAtualizados || []);
+      }
       
       // Seleciona o novo fabricante
       onValueChange(data.id);
@@ -70,6 +93,11 @@ export function SelectWithAdd({
       toast.success("Fabricante adicionado com sucesso!");
       setNovoFabricante("");
       setIsDialogOpen(false);
+      
+      // Re-abre o select para mostrar o novo item após um pequeno delay
+      setTimeout(() => {
+        setIsSelectOpen(true);
+      }, 200);
     } catch (error) {
       console.error("Erro ao adicionar fabricante:", error);
       toast.error("Erro ao adicionar fabricante");
@@ -80,27 +108,52 @@ export function SelectWithAdd({
 
   return (
     <>
-      <Select value={value} onValueChange={onValueChange}>
+      <Select 
+        value={value} 
+        onValueChange={onValueChange}
+        open={isSelectOpen}
+        onOpenChange={setIsSelectOpen}
+      >
         <SelectTrigger className="h-12 sm:h-14 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-lg px-4 sm:px-5 text-base sm:text-lg font-medium text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 shadow-sm hover:border-slate-400 dark:hover:border-slate-500">
-          <SelectValue placeholder="Selecione um fabricante" />
+          <SelectValue placeholder="Selecione um fabricante">
+            {value && fabricantes.find(f => f.id === value)?.nome}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 sm:max-h-60">
           <div 
-            className="flex items-center gap-2 px-3 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 cursor-pointer border-b border-slate-200 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800"
-            onClick={() => setIsDialogOpen(true)}
+            className="flex items-center justify-between gap-2 px-3 py-3 text-sm font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20 cursor-pointer border-b border-slate-200 dark:border-slate-700 sticky top-0 bg-white dark:bg-slate-800 z-10"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setIsDialogOpen(true);
+              setIsSelectOpen(false);
+            }}
           >
-            <Plus className="h-4 w-4" />
-            Adicionar novo fabricante
+            <div className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Adicionar novo fabricante
+            </div>
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              {fabricantes.length} {fabricantes.length === 1 ? 'item' : 'itens'}
+            </span>
           </div>
-          {fabricantes.map((fabricante) => (
-            <SelectItem 
-              key={fabricante.id} 
-              value={fabricante.id}
-              className="text-slate-900 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-blue-900/20 py-3 px-4 cursor-pointer font-medium transition-colors"
-            >
-              {fabricante.nome}
-            </SelectItem>
-          ))}
+          {fabricantes.length === 0 ? (
+            <div className="px-3 py-4 text-center text-sm text-slate-500 dark:text-slate-400">
+              Nenhum fabricante cadastrado.
+              <br />
+              Clique acima para adicionar.
+            </div>
+          ) : (
+            fabricantes.map((fabricante, index) => (
+              <SelectItem 
+                key={`${fabricante.id}-${index}`} 
+                value={fabricante.id}
+                className="text-slate-900 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-blue-900/20 py-3 px-4 cursor-pointer font-medium transition-colors"
+              >
+                {fabricante.nome || 'Sem nome'}
+              </SelectItem>
+            ))
+          )}
         </SelectContent>
       </Select>
 
