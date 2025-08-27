@@ -15,24 +15,15 @@ const formBuilder = (fabricantes: Fabricante[], onFabricantesUpdate?: (fabricant
   ({
     columns: [
       {
+        title: "📦 Informações do Produto",
+        description: "Dados essenciais para rastreamento e identificação",
         rows: [
-          {
-            fields: [
-              {
-                name: "validade",
-                label: "Validade",
-                placeholder: "Validade",
-                type: "date",
-                required: true,
-              },
-            ],
-          },
           {
             fields: [
               {
                 name: "fornecedor_id",
                 label: "Fabricante",
-                placeholder: "Selecione ou adicione",
+                placeholder: "Selecione ou adicione um fabricante",
                 type: "text",
                 required: true,
                 component: ({ formField }: any) => (
@@ -51,31 +42,38 @@ const formBuilder = (fabricantes: Fabricante[], onFabricantesUpdate?: (fabricant
               {
                 name: "lote",
                 label: "Lote",
-                placeholder: "Digite o LOTE",
+                placeholder: "Ex: LT2024001",
                 type: "text",
                 required: true,
+                icon: "Layers",
               },
-            ],
-          },
-          {
-            fields: [
               {
                 name: "SIF",
                 label: "S.I.F",
-                placeholder: "Digite o S.I.F",
+                placeholder: "Ex: SIF/DIPOA 0001",
                 type: "text",
                 required: true,
+                icon: "Hash",
               },
             ],
           },
           {
             fields: [
               {
+                name: "validade",
+                label: "Data de Validade",
+                placeholder: "Selecione a data de validade",
+                type: "date",
+                required: true,
+                icon: "Calendar",
+              },
+              {
                 name: "quantidade",
                 label: "Quantidade",
-                placeholder: "Digite a quantidade",
+                placeholder: "Ex: 100",
                 type: "number",
                 required: true,
+                icon: "Package",
               },
             ],
           },
