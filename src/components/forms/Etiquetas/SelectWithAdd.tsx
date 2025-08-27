@@ -59,18 +59,34 @@ export function SelectWithAdd({
 
     setIsLoading(true);
     try {
+      // Get loja_id from cookie for client-side operation
+      const lojaId = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('minhaficha_loja_id='))
+        ?.split('=')[1];
+      
+      if (!lojaId) {
+        toast.error("Erro: loja não identificada");
+        return;
+      }
+
       const { data, error } = await supabase
         .from("fabricantes")
-        .insert({ nome: novoFabricante.trim() })
+        .insert({ 
+          nome: novoFabricante.trim(),
+          loja_id: lojaId // Explicitly set loja_id for client-side insert
+        })
         .select()
         .single();
 
       if (error) throw error;
 
       // Recarrega a lista completa do banco para garantir sincronização
+      // O filtro por loja_id é aplicado automaticamente pelo cliente na query
       const { data: fabricantesAtualizados, error: fetchError } = await supabase
         .from("fabricantes")
         .select("*")
+        .eq('loja_id', lojaId) // Explicitly filter by loja_id on client-side
         .order('nome', { ascending: true });
 
       if (fetchError) {
