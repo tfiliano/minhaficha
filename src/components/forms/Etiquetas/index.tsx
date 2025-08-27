@@ -1,3 +1,5 @@
+"use client";
+
 import { Builder } from "@/components/form-builder";
 import { useRouter } from "@/hooks/use-router";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
@@ -6,8 +8,10 @@ import { Tables } from "@/types/database.types";
 import { createBrowserClient } from "@/utils/supabase-client";
 import { toast } from "sonner";
 import { EntityFormHandler, ModeFormHandlerProp } from "..";
+import { SelectWithAdd } from "./SelectWithAdd";
+import { useState } from "react";
 
-const formBuilder = (fabricantes: Fabricante[]) =>
+const formBuilder = (fabricantes: Fabricante[], onFabricantesUpdate?: (fabricantes: Fabricante[]) => void) =>
   ({
     columns: [
       {
@@ -28,13 +32,17 @@ const formBuilder = (fabricantes: Fabricante[]) =>
               {
                 name: "fornecedor_id",
                 label: "Fabricante",
-                placeholder: "Selecione",
-                type: "select",
+                placeholder: "Selecione ou adicione",
+                type: "text",
                 required: true,
-                options: fabricantes.map((fabricante) => ({
-                  value: fabricante.id,
-                  label: fabricante.nome,
-                })),
+                component: ({ formField }: any) => (
+                  <SelectWithAdd
+                    fabricantes={fabricantes}
+                    value={formField.value}
+                    onValueChange={formField.onChange}
+                    onFabricantesUpdate={onFabricantesUpdate || (() => {})}
+                  />
+                ),
               },
             ],
           },
@@ -87,10 +95,16 @@ export type EtiquetaProps = {
 function EtiquetaForm({
   mode,
   etiqueta,
-  fabricantes,
+  fabricantes: fabricantesInitial,
 }: EtiquetaProps & ModeFormHandlerProp) {
+  const [fabricantes, setFabricantes] = useState(fabricantesInitial);
   const supabase = createBrowserClient();
   const router = useRouter();
+  
+  const handleFabricantesUpdate = (novosFabricantes: Fabricante[]) => {
+    setFabricantes(novosFabricantes);
+  };
+  
   const handleSubmit = async (data: Etiqueta) => {
     const query =
       mode === "update"
@@ -117,7 +131,7 @@ function EtiquetaForm({
     <EntityFormHandler<Etiqueta>
       mode={mode}
       entity={etiqueta}
-      builder={formBuilder(fabricantes)}
+      builder={formBuilder(fabricantes, handleFabricantesUpdate)}
       onSubmit={handleSubmit}
       tableCollection="etiquetas"
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}

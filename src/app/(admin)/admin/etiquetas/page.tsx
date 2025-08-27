@@ -21,7 +21,17 @@ export default async function Produtos(props: Props) {
   //     return redirect("/");
   //   }
   const supabase = await createClient();
-  const { data: etiquetas } = await supabase.from("etiquetas").select("*");
+  const { data: etiquetas, error } = await supabase
+    .from("etiquetas")
+    .select("*")
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Erro ao buscar etiquetas:', error);
+  }
+
+  console.log('Etiquetas encontradas:', etiquetas?.length || 0);
+
   return (
     <AnimationTransitionPage>
       <ContentGrid>
