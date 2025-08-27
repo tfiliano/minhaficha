@@ -1,13 +1,23 @@
 "use client";
 
-import { GridItem, GridItems } from "@/components/admin/grid-items";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tables } from "@/types/database.types";
-import { Search } from "lucide-react";
+import { 
+  Search, 
+  Warehouse, 
+  Plus, 
+  Thermometer,
+  Hash,
+  Archive,
+  Package
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PropsWithChildren, useState } from "react";
-import { ButtonAdd } from "../button-new";
+import { cn } from "@/lib/utils";
 
 type LocalArmazanamento = Tables<`locais_armazenamento`>;
 
@@ -19,7 +29,6 @@ export function LocaisArmazenamentoClient({
   locais_armazenamento,
 }: PropsWithChildren<LocaisArmazenamento>) {
   const pathname = usePathname();
-
   const [busca, setBusca] = useState("");
 
   const locais_armazenamentoFiltrados = (locais_armazenamento || []).filter(
@@ -30,38 +39,196 @@ export function LocaisArmazenamentoClient({
           .replace(/[\u0300-\u036f]/g, "")
           .toLowerCase();
       return (
-        normalizar(local.armazenamento!).includes(normalizar(busca)) ||
-        normalizar(local.armazenamento!).includes(normalizar(busca))
+        normalizar(local.armazenamento || "").includes(normalizar(busca)) ||
+        normalizar(local.metodo || "").includes(normalizar(busca))
       );
     }
   );
 
+  // Estatísticas
+  const totalLocais = locais_armazenamentoFiltrados.length;
+
+  const getMetodoInfo = (metodo: string | null) => {
+    switch (metodo) {
+      case 'refrigerado':
+        return {
+          label: 'Refrigerado',
+          icon: Thermometer,
+          color: 'blue',
+          bgColor: 'bg-blue-100 dark:bg-blue-900/30',
+          textColor: 'text-blue-700 dark:text-blue-400'
+        };
+      case 'congelado':
+        return {
+          label: 'Congelado',
+          icon: Thermometer,
+          color: 'cyan',
+          bgColor: 'bg-cyan-100 dark:bg-cyan-900/30',
+          textColor: 'text-cyan-700 dark:text-cyan-400'
+        };
+      case 'ambiente':
+        return {
+          label: 'Ambiente',
+          icon: Archive,
+          color: 'amber',
+          bgColor: 'bg-amber-100 dark:bg-amber-900/30',
+          textColor: 'text-amber-700 dark:text-amber-400'
+        };
+      default:
+        return {
+          label: metodo || 'Não especificado',
+          icon: Package,
+          color: 'slate',
+          bgColor: 'bg-slate-100 dark:bg-slate-800',
+          textColor: 'text-slate-700 dark:text-slate-300'
+        };
+    }
+  };
+
   return (
-    <>
-      <div className=" mb-4 w-full sticky z-20 top-[19.3px]">
+    <div className="space-y-6">
+      {/* Header com controles */}
+      <div className="bg-gradient-to-r from-slate-50 to-orange-50 dark:from-slate-900 dark:to-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          {/* Título e descrição */}
+          <div className="flex flex-col gap-4">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                Locais de Armazenamento
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Gerencie os locais e métodos de armazenamento de produtos
+              </p>
+            </div>
+            {/* Estatísticas */}
+            <div className="flex flex-wrap gap-3">
+              <Badge className="px-3 py-1.5 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300">
+                <Warehouse className="h-3.5 w-3.5 mr-1.5" />
+                {totalLocais} {totalLocais === 1 ? 'local' : 'locais'}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Botão de adicionar */}
+          <Link href={`${pathname}/add`}>
+            <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Local
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Busca */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
         <Input
           type="text"
-          placeholder="Buscar locais armazenamento..."
-          className="pl-10"
-          onChange={(event) => setBusca(event.target.value)}
-        />
-        <Search
-          className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-          size={20}
+          placeholder="Buscar locais de armazenamento..."
+          className="pl-10 h-11 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
         />
       </div>
-      <ButtonAdd />
-      <GridItems>
-        {(locais_armazenamentoFiltrados || [])?.map((local) => {
-          return (
-            <Link href={pathname + `/${local.id}`} key={local.id}>
-              <GridItem title={local.armazenamento!}>
-                <p className="text-gray-600 mb-2">{local.metodo}</p>
-              </GridItem>
-            </Link>
-          );
-        })}
-      </GridItems>
-    </>
+
+      {/* Grid de locais */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {locais_armazenamentoFiltrados.length === 0 ? (
+          <div className="col-span-full">
+            <Card className="border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <div className="rounded-full bg-slate-100 dark:bg-slate-800 p-6 mb-6">
+                  <Warehouse className="h-12 w-12 text-slate-400" />
+                </div>
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+                  Nenhum local encontrado
+                </h3>
+                <p className="text-slate-600 dark:text-slate-400 text-center max-w-sm mb-6">
+                  {busca ? 
+                    `Nenhum local corresponde à busca "${busca}"` : 
+                    "Comece cadastrando seu primeiro local de armazenamento"
+                  }
+                </p>
+                {!busca && (
+                  <Link href={`${pathname}/add`}>
+                    <Button className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Criar Primeiro Local
+                    </Button>
+                  </Link>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          locais_armazenamentoFiltrados.map((local) => {
+            const metodoInfo = getMetodoInfo(local.metodo);
+            const MetodoIcon = metodoInfo.icon;
+            
+            return (
+              <Link href={pathname + `/${local.id}`} key={local.id}>
+                <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl border-2 border-slate-200 dark:border-slate-700 hover:border-orange-300 dark:hover:border-orange-700">
+                  {/* Gradiente decorativo */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  <CardHeader className="relative pb-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex-1">
+                        <CardTitle className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                          {local.armazenamento}
+                        </CardTitle>
+                        {local.id && (
+                          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+                            <Hash className="h-3 w-3" />
+                            {local.id.slice(0, 8)}
+                          </p>
+                        )}
+                      </div>
+                      <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                        <Warehouse className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="relative space-y-4">
+                    {/* Método de armazenamento */}
+                    {local.metodo && (
+                      <div className={cn(
+                        "flex items-center gap-3 p-3 rounded-lg",
+                        metodoInfo.bgColor
+                      )}>
+                        <MetodoIcon className={cn("h-5 w-5", metodoInfo.textColor)} />
+                        <div className="flex-1">
+                          <p className="text-xs text-slate-500 dark:text-slate-400">Método</p>
+                          <p className={cn("font-semibold text-sm", metodoInfo.textColor)}>
+                            {metodoInfo.label}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Informações adicionais */}
+                    <div className="pt-3 border-t border-slate-200 dark:border-slate-700">
+                      <div className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-slate-400" />
+                        <div>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">Local de Estoque</p>
+                          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                            {local.armazenamento}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                  
+                  {/* Hover overlay com ações */}
+                  <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                </Card>
+              </Link>
+            );
+          })
+        )}
+      </div>
+    </div>
   );
 }
