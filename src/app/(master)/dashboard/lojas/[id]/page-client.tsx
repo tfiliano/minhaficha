@@ -71,11 +71,13 @@ export function LojaUpdateClient({ loja }: LojaProps) {
         
         <TabContent value="users">
           <div className="space-y-6">
-            <AssignUserToStore 
-              lojaId={loja.id} 
-              lojaNome={loja.nome || loja.codigo}
-              onUserAssigned={handleUserAssigned}
-            />
+            {loja && (
+              <AssignUserToStore 
+                lojaId={loja.id} 
+                lojaNome={loja.nome || loja.codigo || 'Loja sem nome'}
+                onUserAssigned={handleUserAssigned}
+              />
+            )}
             <UsuariosPage usuarios={[...(loja?.usuarios || [])]} />
           </div>
         </TabContent>

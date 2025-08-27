@@ -9,13 +9,11 @@ export function ButtonAdd() {
   const pathname = usePathname();
 
   return (
-    <div className="flex items-center justify-end mb-4 w-full">
-      <Button className="w-full sm:w-fit" asChild>
-        <Link href={pathname + "/add"}>
-          <Plus />
-          Novo
-        </Link>
-      </Button>
-    </div>
+    <Button className="w-full sm:w-fit gap-2" asChild>
+      <Link href={pathname + "/add"}>
+        <Plus className="h-4 w-4" />
+        Novo
+      </Link>
+    </Button>
   );
 }

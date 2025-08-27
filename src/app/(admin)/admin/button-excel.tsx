@@ -35,17 +35,15 @@ export function ButtonExcel() {
   }
 
   return (
-    <div className="flex items-center justify-end mb-4 w-full">
-      <Button className="w-full sm:w-fit gap-2" onClick={fetchExcelData}>
-        {isLoading ? (
-          <LoaderIcon className="animate-spin" />
-        ) : (
-          <>
-            <SheetIcon />
-            Baixar lista
-          </>
-        )}
-      </Button>
-    </div>
+    <Button className="w-full sm:w-fit gap-2" onClick={fetchExcelData}>
+      {isLoading ? (
+        <LoaderIcon className="animate-spin" />
+      ) : (
+        <>
+          <SheetIcon />
+          Baixar lista
+        </>
+      )}
+    </Button>
   );
 }

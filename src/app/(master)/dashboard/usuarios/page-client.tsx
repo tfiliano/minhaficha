@@ -28,27 +28,30 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 interface LojaUsuario {
-  loja_id: string;
-  tipo: string;
-  ativo: boolean;
+  loja_id: string | null;
+  tipo: "master" | "admin" | "manager" | "operator" | "user" | null;
+  ativo: boolean | null;
   loja: {
-    nome: string;
-    codigo: string;
-  };
+    nome: string | null;
+    codigo: string | null;
+  } | null;
 }
 
 interface Usuario {
   id: string;
-  name: string;
-  email: string;
+  name: string | null;
+  email: string | null;
   created_at: string;
+  ativo: boolean;
+  avatar: string | null;
+  type: "master" | "admin" | "manager" | "operator" | "user";
   loja_usuarios: LojaUsuario[];
 }
 
 interface Loja {
   id: string;
-  nome: string;
-  codigo: string;
+  nome: string | null;
+  codigo: string | null;
 }
 
 interface UsuariosPageClientProps {
@@ -242,7 +245,7 @@ export function UsuariosPageClient({ usuarios, lojas }: UsuariosPageClientProps)
           <Card key={usuario.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">{usuario.name}</CardTitle>
+                <CardTitle className="text-lg">{usuario.name || 'Usuário sem nome'}</CardTitle>
                 <div className="flex items-center gap-2">
                   <Badge variant={usuario.loja_usuarios?.length > 0 ? "default" : "secondary"}>
                     {usuario.loja_usuarios?.length || 0} lojas
@@ -303,7 +306,11 @@ export function UsuariosPageClient({ usuarios, lojas }: UsuariosPageClientProps)
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuItem
-                              onClick={() => handleToggleUserStatus(usuario.id, lojaUsuario.loja_id, lojaUsuario.ativo)}
+                              onClick={() => {
+                                if (lojaUsuario.loja_id && lojaUsuario.ativo !== null) {
+                                  handleToggleUserStatus(usuario.id, lojaUsuario.loja_id, lojaUsuario.ativo);
+                                }
+                              }}
                             >
                               {lojaUsuario.ativo ? (
                                 <>
@@ -319,7 +326,11 @@ export function UsuariosPageClient({ usuarios, lojas }: UsuariosPageClientProps)
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
-                              onClick={() => handleRemoveUserFromStore(usuario.id, lojaUsuario.loja_id)}
+                              onClick={() => {
+                                if (lojaUsuario.loja_id) {
+                                  handleRemoveUserFromStore(usuario.id, lojaUsuario.loja_id);
+                                }
+                              }}
                               className="text-destructive"
                             >
                               <UserX className="w-4 h-4 mr-2" />
@@ -379,7 +390,7 @@ export function UsuariosPageClient({ usuarios, lojas }: UsuariosPageClientProps)
                 <SelectContent>
                   {lojas.map((loja) => (
                     <SelectItem key={loja.id} value={loja.id}>
-                      {loja.nome} ({loja.codigo})
+                      {loja.nome || 'Sem nome'} ({loja.codigo || 'Sem código'})
                     </SelectItem>
                   ))}
                 </SelectContent>

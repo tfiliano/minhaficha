@@ -39,13 +39,9 @@ import {
   PostgrestQueryBuilder,
 } from "@supabase/postgrest-js";
 
-type PostgresQueryBuilder = PostgrestQueryBuilder<PublicSchema, any, any>;
+type PostgresQueryBuilder = any;
 
-type PostgrestFilterBuilderClass = PostgrestFilterBuilder<
-  PublicSchema,
-  any,
-  any
->;
+type PostgrestFilterBuilderClass = any;
 
 type MethodNames<T> = {
   [K in keyof T]: T[K] extends (...args: any[]) => any ? K : never;
