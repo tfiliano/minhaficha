@@ -108,15 +108,16 @@ export function StoreSelector() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="flex items-center gap-2">
-          <Building2 className="w-4 h-4" />
-          <span className="font-medium">{currentStore.nome}</span>
+        <Button variant="outline" size="sm" className="flex items-center gap-1.5 sm:gap-2 max-w-32 sm:max-w-48 lg:max-w-none text-xs sm:text-sm">
+          <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+          <span className="font-medium truncate hidden sm:block">{currentStore.nome}</span>
+          <span className="font-medium truncate sm:hidden">{currentStore.nome.slice(0, 8)}</span>
           {userType && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs hidden lg:flex">
               {userType}
             </Badge>
           )}
-          <ChevronDown className="w-4 h-4" />
+          <ChevronDown className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">

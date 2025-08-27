@@ -3,7 +3,6 @@ import { cookies } from "next/headers";
 
 import { Database } from "@/types/database.types";
 import { createServerClient } from "@supabase/ssr";
-export { type Session, type User } from "@supabase/supabase-js";
 
 export async function createSupabaseServerAdmin() {
   const cookiesServe = await cookies();

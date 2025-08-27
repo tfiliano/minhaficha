@@ -30,7 +30,7 @@ export function ModeToggle() {
   };
 
   return (
-    <div className="absolute right-4 flex gap-2">
+    <>
       <Button variant="outline" size="icon" onClick={onLogout}>
         <LogOut className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all" />
         <span className="sr-only">Sair</span>
@@ -62,6 +62,6 @@ export function ModeToggle() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-    </div>
+    </>
   );
 }

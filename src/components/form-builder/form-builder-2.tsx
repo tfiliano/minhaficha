@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Package } from "lucide-react";
 import {
   Fragment,
   PropsWithChildren,
@@ -96,31 +97,36 @@ export const FormBuilder2: React.ForwardRefRenderFunction<
         key={colIndex}
       >
         {builderCol.label && (
-          <h2
-            data-inline={inline}
-            className={cn(
-              "text-lg font-semibold p-2",
-              builder.styled
-                ? "bg-gray-100 rounded-t-md border-t border-l border-r data-[inline=true]:rounded-none"
-                : null
-            )}
-          >
-            {builderCol.label}
-          </h2>
+          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+            <div className="p-1.5 sm:p-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
+              <Package className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+            </div>
+            <h2
+              data-inline={inline}
+              className={cn(
+                "text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100",
+                builder.styled
+                  ? "data-[inline=true]:rounded-none"
+                  : null
+              )}
+            >
+              {builderCol.label}
+            </h2>
+          </div>
         )}
         <div
           data-inline={inline}
           className={cn(
-            "w-full gap-2 flex flex-col",
+            "w-full gap-4 sm:gap-6 flex flex-col",
 
             builder.styled
               ? cn(
-                  "bg-gray-50/50 rounded-b-md data-[inline=true]:rounded-b-none data-[inline=true]:border-b-0",
+                  "bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-900 dark:to-slate-800/30 rounded-xl data-[inline=true]:rounded-b-none data-[inline=true]:border-b-0 shadow-sm",
                   {
-                    "gap-1 p-4 border": !builderCol.columns,
+                    "gap-4 sm:gap-6 p-4 sm:p-6 border-0 shadow-lg": !builderCol.columns,
                   }
                 )
-              : null
+              : "gap-4 sm:gap-6 p-4 sm:p-6"
           )}
         >
           {builderCol.rows &&
@@ -146,17 +152,18 @@ export const FormBuilder2: React.ForwardRefRenderFunction<
 
   return (
     <FormProvider {...methods}>
-      <form
-        onSubmit={(e) => {
-          if (preventDefaultSubmit) return e.preventDefault();
-          return methods.handleSubmit(onSubmit)(e);
-        }}
-        id={`formRef-builder`}
-        className="mt-4"
-      >
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 dark:from-slate-900 dark:to-slate-800 -mx-6 -my-6 px-3 sm:px-6 py-6 sm:py-8">
+        <form
+          onSubmit={(e) => {
+            if (preventDefaultSubmit) return e.preventDefault();
+            return methods.handleSubmit(onSubmit)(e);
+          }}
+          id={`formRef-builder`}
+          className="max-w-4xl mx-auto w-full"
+        >
         <div
           data-inline={builder.inline || builder.columns.length === 1}
-          className="flex data-[inline=true]:flex-col data-[inline=false]:gap-4 flex-col sm:flex-row  mb-4"
+          className="flex data-[inline=true]:flex-col data-[inline=false]:gap-6 flex-col mb-8"
         >
           {renderColumns(builder.columns, builder.inline)}
         </div>
@@ -169,7 +176,8 @@ export const FormBuilder2: React.ForwardRefRenderFunction<
           buttonsContainerClass={buttonsContainerClass}
           onSubmit={onSubmit}
         />
-      </form>
+        </form>
+      </div>
     </FormProvider>
   );
 };
@@ -216,7 +224,7 @@ function FieldSetLegend({
         !!row.separator && builderCol.rows![rowIndex + 1]?.fields?.length > 0
       }
       className={cn(
-        "grid gap-4  data-[separator=true]:border-b",
+        "grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 data-[separator=true]:border-b data-[separator=true]:border-slate-200 data-[separator=true]:dark:border-slate-700 data-[separator=true]:pb-5 sm:data-[separator=true]:pb-6 data-[separator=true]:mb-5 sm:data-[separator=true]:mb-6",
         row.className
       )}
       style={{
@@ -282,6 +290,7 @@ function RenderRows({ ...props }: any) {
                     {
                       hidden: field.type === "hidden",
                     },
+                    "space-y-1.5",
                     field.itemClass
                   )}
                   style={
@@ -298,9 +307,12 @@ function RenderRows({ ...props }: any) {
                         <TooltipTrigger asChild>
                           <Label
                             htmlFor={field.name}
-                            className="block py-1 truncate w-auto"
+                            className="min-h-[24px] sm:min-h-[28px] py-1 sm:py-2 flex items-center font-semibold text-slate-700 dark:text-slate-300 text-xs sm:text-sm"
                           >
                             {field.label}
+                            {field.required && (
+                              <span className="text-red-500 ml-1 text-base">*</span>
+                            )}
                           </Label>
                         </TooltipTrigger>
                         <TooltipContent>

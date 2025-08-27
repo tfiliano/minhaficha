@@ -58,8 +58,10 @@ const formBuilder = (
   produtos: IProduto[],
   setores: any[] | null
 ): Builder => ({
+  styled: true,
   columns: [
     {
+      label: "Informações Básicas",
       rows: [
         {
           fields: [
@@ -71,40 +73,41 @@ const formBuilder = (
               required: true,
               onActionBlur: "checarProdutoJaCadastrado",
             },
+          ],
+        },
+        {
+          fields: [
             {
               name: "nome",
               label: "Nome do Produto",
               placeholder: "Digite o nome do produto",
               type: "text",
               required: true,
+              isFullRow: true,
             },
           ],
         },
+      ],
+    },
+    {
+      label: "Informações de Estoque",
+      rows: [
         {
           fields: [
             {
               name: "unidade",
-              label: "Unidades",
-              placeholder: "ex: UN, KG, LT",
+              label: "Unidade de Medida",
+              placeholder: "ex: UN, KG, LT, CX, PCT",
               type: "text",
               required: true,
             },
-            {
-              name: "estoque_unidade",
-              label: "Estoque em Unidades",
-              placeholder: "Digite a quantidade em unidades",
-              type: "number",
-              required: false,
-            },
-            {
-              name: "estoque_kilo",
-              label: "Estoque em Kilos",
-              placeholder: "Digite a quantidade em kilos",
-              type: "number",
-              required: false,
-            },
           ],
         },
+      ],
+    },
+    {
+      label: "Classificação e Organização",
+      rows: [
         {
           fields: [
             {
@@ -121,7 +124,7 @@ const formBuilder = (
             {
               name: "setor",
               label: "Setor",
-              placeholder: "Digite o setor",
+              placeholder: "Selecione o setor",
               type: "select",
               options: (setores || []).map((setor) => ({
                 value: setor.nome,
@@ -131,12 +134,17 @@ const formBuilder = (
             },
           ],
         },
+      ],
+    },
+    {
+      label: "Armazenamento e Validade",
+      rows: [
         {
           fields: [
             {
               name: "armazenamento_id",
-              label: "Armazenamento",
-              placeholder: "Local de armazenamento",
+              label: "Local de Armazenamento",
+              placeholder: "Selecione onde será armazenado",
               type: "select",
               options: armazenamentos.map((armazenamento) => ({
                 value: armazenamento.id,
@@ -146,19 +154,24 @@ const formBuilder = (
             },
             {
               name: "dias_validade",
-              label: "Dias de Validade",
-              placeholder: "Digite a validade em dias",
+              label: "Prazo de Validade (dias)",
+              placeholder: "Ex: 30, 60, 90",
               type: "number",
               required: false,
             },
           ],
         },
+      ],
+    },
+    {
+      label: "Relacionamentos (Opcional)",
+      rows: [
         {
           fields: [
             {
               name: "originado",
-              label: "Produto (Pai)",
-              placeholder: "Selecione o produto",
+              label: "Produto Pai/Origem",
+              placeholder: "Selecione se este produto deriva de outro",
               type: "select",
               options: [
                 ...produtos.map((produto) => ({
@@ -167,6 +180,7 @@ const formBuilder = (
                 }))
               ],
               required: false,
+              isFullRow: true,
             },
           ],
         },

@@ -71,6 +71,7 @@ export function RenderField(
   if (isTextareaField(field)) {
     return (
       <Textarea
+        className="min-h-[120px] bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-lg px-4 py-3 text-base font-medium text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 shadow-sm hover:border-slate-400 dark:hover:border-slate-500 resize-y"
         placeholder={field.placeholder || field.label}
         type={field.type || "text"}
         autoComplete={field?.autoComplete}
@@ -91,7 +92,7 @@ export function RenderField(
     field.onWheel = (event) => event.target.blur();
   }
 
-  const { readOnly, onActionBlur, onDebouncedChange, ...restField } = field as InputField;
+  const { readOnly, onActionBlur, onDebouncedChange, isFullRow, ...restField } = field as InputField;
 
   const onChangeBase = (e: ChangeEvent<HTMLInputElement>) => {
     if (restField.type === "number") return formField.onChange(+e.target.value);
@@ -125,7 +126,7 @@ export function RenderField(
     <div className="relative">
       <Input
         readOnly={isFetching || readOnly}
-        className="appearance-none"
+        className="h-12 sm:h-14 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-lg px-4 sm:px-5 text-base sm:text-lg font-medium text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 shadow-sm hover:border-slate-400 dark:hover:border-slate-500"
         placeholder={restField.placeholder || restField.label}
         type={restField.type || "text"}
         autoComplete={restField?.autoComplete}
@@ -163,8 +164,10 @@ export function RenderField(
         }}
       />
       {isFetching && (
-        <div className="absolute top-3 right-3">
-          <Loader size={16} className="animate-spin text-primary" />
+        <div className="absolute top-1/2 right-4 transform -translate-y-1/2">
+          <div className="p-1 rounded-md bg-blue-100 dark:bg-blue-900/30">
+            <Loader size={16} className="animate-spin text-blue-600 dark:text-blue-400" />
+          </div>
         </div>
       )}
     </div>

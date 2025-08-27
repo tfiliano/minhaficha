@@ -21,7 +21,6 @@ export function BackButton() {
     <Button
       size="icon"
       variant="outline"
-      className="absolute left-4"
       onClick={handleBack}
     >
       <ChevronLeft />

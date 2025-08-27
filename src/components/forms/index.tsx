@@ -76,8 +76,8 @@ export function EntityFormHandler<T>({
         form={{ defaultValues: entity }}
         extraButtons={
           <Button
-            variant="destructive"
-            className="w-full"
+            variant="outline"
+            className="flex-1 h-12 sm:h-14 text-base sm:text-lg font-semibold border-2 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all duration-300"
             type="button"
             onClick={() => router.back()}
           >
