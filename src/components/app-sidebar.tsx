@@ -10,6 +10,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { StoreSelector } from "@/components/store-selector";
 import { Lightbulb } from "lucide-react";
 import Link from "next/link";
 
@@ -59,6 +60,9 @@ export function AppSidebar() {
           <h1 className="font-bold flex flex-col">
             DESCOMPLICA <small className="font-normal text-xs">Admin</small>
           </h1>
+        </div>
+        <div className="mt-4 px-2">
+          <StoreSelector />
         </div>
       </SidebarHeader>
       <SidebarContent>

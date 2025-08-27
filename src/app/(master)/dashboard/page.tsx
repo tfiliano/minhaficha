@@ -1,13 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { createClient } from "@/utils/supabase";
+import { createSupabaseServerAdmin } from "@/utils/server-admin";
 import { Building2, Store, Users } from "lucide-react";
 import Link from "next/link";
 
 async function getSummary() {
-  const supabase = await createClient();
+  // Usar cliente admin para ver TODAS as lojas e usuários
+  const supabase = await createSupabaseServerAdmin();
   const { data: lojas } = await supabase.from("lojas").select();
   const { data: usuarios } = await supabase.from("usuarios").select();
+
+  console.log("Master Dashboard - Lojas:", lojas?.length || 0, "Usuários:", usuarios?.length || 0);
 
   return { lojas, usuarios };
 }
@@ -77,7 +80,7 @@ export default async function DashboardPage() {
                 </li>
               ))}
             </ul>
-            <Link href="/users" className="mt-4 block">
+            <Link href="/dashboard/usuarios" className="mt-4 block">
               <Button className="w-full">Ver Todos os Usuários</Button>
             </Link>
           </CardContent>

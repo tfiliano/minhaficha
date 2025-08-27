@@ -219,7 +219,7 @@ export default function ReportsPageClient({
       <Title>Relatórios</Title>
 
       <div className="flex gap-4 items-center justify-center">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <ExportCard
             title="Relatório de Produção"
             description="Painel de relatório de Produção"
@@ -230,6 +230,7 @@ export default function ReportsPageClient({
             endpoint="/api/reports/producao/excel"
             filename="relatorio_producao.xlsx"
           />
+
 
           <ExportCard
             title="Produção"
@@ -277,6 +278,63 @@ export default function ReportsPageClient({
                 onClick={() => (window.location.href = "/admin/impressao")}
               >
                 Ver Histórico
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </div>
+
+      {/* Seção Analíticos */}
+      <div className="mt-8">
+        <h2 className="text-xl font-semibold mb-4">Analíticos</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Card className="p-6 transition-colors">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <FileSpreadsheet className="w-8 h-8" />
+                <div>
+                  <h3 className="text-lg font-semibold">Produção</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Relatório analítico detalhado com filtro por período
+                  </p>
+                </div>
+              </div>
+              <Button asChild>
+                <Link href="/admin/reports/analiticos/producao">Acessar</Link>
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="p-6 transition-colors">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <FileSpreadsheet className="w-8 h-8" />
+                <div>
+                  <h3 className="text-lg font-semibold">Fator de Conversão</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Análise de fator de conversão com filtro por período
+                  </p>
+                </div>
+              </div>
+              <Button asChild>
+                <Link href="/admin/reports/analiticos/fator-conversao">Acessar</Link>
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="p-6 transition-colors">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <FileSpreadsheet className="w-8 h-8" />
+                <div>
+                  <h3 className="text-lg font-semibold">Entradas de Insumos</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Relatório completo das entradas de insumos com todos os campos
+                  </p>
+                </div>
+              </div>
+              <Button asChild>
+                <Link href="/admin/reports/analiticos/entradas-insumos">Acessar</Link>
               </Button>
             </div>
           </Card>

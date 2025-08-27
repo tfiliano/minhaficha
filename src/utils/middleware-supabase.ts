@@ -107,7 +107,9 @@ class AuthGuard {
   private isPublicRoute(): boolean {
     return (
       this.request.nextUrl.pathname.startsWith("/login") ||
-      this.request.nextUrl.pathname.startsWith("/auth")
+      this.request.nextUrl.pathname.startsWith("/auth") ||
+      this.request.nextUrl.pathname.startsWith("/setup-master") ||
+      this.request.nextUrl.pathname.startsWith("/api/setup-master")
     );
   }
 }

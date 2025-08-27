@@ -2,8 +2,9 @@
 
 import { GridItem, GridItems } from "@/components/admin/grid-items";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Tables } from "@/types/database.types";
-import { Search } from "lucide-react";
+import { Search, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PropsWithChildren, useState } from "react";
@@ -31,6 +32,15 @@ export function LojasPageClient({
 
   return (
     <>
+      <div className="flex items-center gap-4 mb-6">
+        <Link href="/dashboard">
+          <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <ArrowLeft className="w-4 h-4" />
+            Voltar ao Dashboard
+          </Button>
+        </Link>
+      </div>
+      
       <div className=" mb-4 w-full sticky z-20 top-[19.3px]">
         <Input
           type="text"
