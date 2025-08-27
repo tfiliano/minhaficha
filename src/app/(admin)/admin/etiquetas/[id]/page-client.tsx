@@ -31,8 +31,8 @@ export function EtiquetasUpdateClient({ etiqueta, ...props }: EtiquetaProps) {
                 <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
                   Editar Etiqueta
                 </h1>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-2">
-                  {titulo}
+                <div className="text-sm text-slate-600 dark:text-slate-400 mt-1 flex items-center gap-2">
+                  <span>{titulo}</span>
                   {etiqueta?.status && (
                     <Badge 
                       variant={
@@ -44,7 +44,7 @@ export function EtiquetasUpdateClient({ etiqueta, ...props }: EtiquetaProps) {
                       {etiqueta.status}
                     </Badge>
                   )}
-                </p>
+                </div>
               </div>
             </div>
           </div>

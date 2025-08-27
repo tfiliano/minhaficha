@@ -26,9 +26,9 @@ export function EtiquetasAddClient({ fabricantes }: EtiquetaProps) {
               </div>
               Nova Etiqueta
             </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">
               Preencha as informações para criar uma nova etiqueta de rastreamento
-            </p>
+            </div>
           </div>
         </div>
       </div>
