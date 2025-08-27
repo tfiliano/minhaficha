@@ -5,6 +5,7 @@ import { PropsWithChildren } from "react";
 import { ButtonExcel } from "../button-excel";
 import { ButtonAdd } from "../button-new";
 import { ImportProdutos } from "@/components/admin/import-produtos";
+// import { ImportHistory } from "@/components/admin/import-history"; // Movido para dentro do ImportProdutos
 import { ProdutosView } from "@/components/admin/produtos-view";
 
 type Produto = Tables<`produtos`>;

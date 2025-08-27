@@ -9,8 +9,10 @@ async function fetchProdutos() {
   const supabase = await createClient();
   const { data, error } = await supabase.from("produtos").select(`
       id, codigo, grupo, setor, estoque_unidade, estoque_kilo, armazenamento, 
-      dias_validade, originado, nome, unidade, ativo, lojas(nome), grupos(nome,id),armazenamento_id
-     
+      dias_validade, nome, unidade, ativo, 
+      produto_pai:produtos!produtos_originado_fkey(nome),
+      grupos(nome), 
+      locais_armazenamento(armazenamento)
     `);
 
   if (error) {
@@ -22,21 +24,19 @@ async function fetchProdutos() {
 async function generateExcel2(data: any) {
   // Personalize os cabeçalhos e a ordem das colunas com base nas chaves dos objetos
 
-  // Mapeia os dados para os títulos das colunas
+  // Mapeia os dados para o novo formato de layout
   const formattedData = data.map((item: any) => ({
-    ID: item["id"],
-    Código: item["codigo"],
-    Grupo: item["grupo"],
-    Setor: item["setor"],
+    "Nome do Produto": item["nome"],
+    "Código": item["codigo"],
+    "Unidade": item["unidade"],
+    "Setor": item["setor"],
+    "Nome do Grupo": item["grupos"]?.nome || item["grupo"] || "",
+    "Nome do Armazenamento": item["locais_armazenamento"]?.armazenamento || item["armazenamento"] || "",
+    "Nome do Produto Pai": item["produto_pai"]?.nome || "",
     "Estoque Unidade": item["estoque_unidade"],
     "Estoque Kilo": item["estoque_kilo"],
-    Armazenamento: item["armazenamento"],
     "Dias Validade": item["dias_validade"],
-    "Produto Pai": item["originado"],
-    Nome: item["nome"],
-    Unidade: item["unidade"],
-    Loja: item["lojas"]["nome"],
-    Ativo: item["ativo"] ? "SIM" : "NÃO",
+    "Ativo": item["ativo"] ? "SIM" : "NÃO",
   }));
 
   // Converte os dados formatados para uma planilha

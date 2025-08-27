@@ -2,7 +2,27 @@
 
 ## [0.3.0] - 2025-08-27
 
-### ✨ Features Adicionadas
+### 🚀 **Importação de Produtos Revolucionária**
+
+#### **Sistema de Importação Inteligente**
+- **Códigos Inteligentes**: Geração automática de códigos mais legíveis no formato `25H27001` (Ano/Mês/Dia/Sequencial) em vez de timestamps longos
+- **Sistema de Skip**: Checkboxes para permitir que usuários marquem linhas específicas para pular durante a importação
+- **Preview Interativo**: Tabela de pré-visualização com edição inline e dropdowns para seleção de grupos, armazenamentos e produtos pai
+- **Detecção de Conflitos**: Identificação automática de produtos duplicados, códigos conflitantes e dados inconsistentes
+- **Criação Automática de Relacionamentos**: Criação automática de grupos, armazenamentos e produtos pai quando não existem
+
+#### **Sistema de Histórico de Importações**
+- **Armazenamento Completo**: Preservação de todos os arquivos Excel importados
+- **Rastreabilidade Total**: Histórico detalhado linha por linha de cada importação
+- **Interface Visual**: Modal integrado para visualização do histórico com estatísticas completas
+- **Auditoria**: Dados originais preservados para compliance e troubleshooting
+
+#### **Interface de 3 Etapas**
+- **Etapa 1**: Upload com validação de formato e tamanho
+- **Etapa 2**: Preview interativo com edição e resolução de conflitos
+- **Etapa 3**: Resultado final com estatísticas detalhadas
+
+### ✨ Features Adicionadas (Versões Anteriores)
 
 #### 🏢 Sistema Master Dashboard
 - **Novo dashboard master** para gerenciamento de lojas e usuários
