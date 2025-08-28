@@ -57,7 +57,7 @@ interface ProdutosViewProps {
 
 export function ProdutosView({ produtos }: ProdutosViewProps) {
   const pathname = usePathname();
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [busca, setBusca] = useState("");
   const [filtroGrupo, setFiltroGrupo] = useState<string>("all");
   const [filtroArmazenamento, setFiltroArmazenamento] = useState<string>("all");
@@ -318,12 +318,12 @@ export function ProdutosView({ produtos }: ProdutosViewProps) {
                     <CardTitle className="text-lg font-semibold leading-tight truncate text-slate-900 dark:text-slate-100 group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
                       {produto.nome}
                     </CardTitle>
-                    <CardDescription className="mt-2 flex items-center gap-1.5 text-sm font-medium">
+                    <div className="mt-2 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
                       <div className="p-1 rounded-md bg-blue-100 dark:bg-blue-900/30">
                         <Tag className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                       </div>
                       <span className="text-slate-600 dark:text-slate-400">{produto.codigo}</span>
-                    </CardDescription>
+                    </div>
                   </div>
                   <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
                     <Link href={`${pathname}/${produto.id}`}>

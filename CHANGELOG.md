@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.3.3] - 2025-08-28
+
+### 🎨 Modernização da Página de Produtos
+
+#### **Interface Completamente Redesenhada**
+- **📦 Header Moderno**: Layout com gradiente azul/índigo seguindo padrão estabelecido
+  - Título "Gestão de Produtos" com ícone contextual
+  - Descrição responsiva com truncamento inteligente no mobile
+  - Estatísticas em cards: Total, Ativos, Principais, Insumos
+  - Design responsivo com padding e ícones adaptativos
+
+#### **Cards de Estatísticas Inteligentes**
+- **📊 Métricas Organizadas**: 4 cards informativos com cores temáticas
+  - **Total**: Contador geral de produtos (Database icon)
+  - **Ativos**: Produtos ativos com cor verde (Package icon)
+  - **Principais**: Produtos pai com cor azul (Layers icon) 
+  - **Insumos**: Produtos filhos com cor roxa (ShoppingCart icon)
+- **🔧 Layout Responsivo**: `grid-cols-2 lg:grid-cols-4` para otimização mobile/desktop
+
+#### **Seção de Ações Modernizada**
+- **⚡ Botões Organizados**: Card dedicado para ações de gerenciamento
+  - Novo Produto (ButtonAdd)
+  - Importar Excel (ImportProdutos)
+  - Baixar Lista (ButtonExcel)
+- **📱 Layout Adaptativo**: Empilhamento vertical no mobile, horizontal no desktop
+
+#### **Correções e Melhorias Técnicas**
+- **🐛 Erro de Hidratação**: Corrigido problema de `<div>` dentro de `<p>` no ProdutosView
+  - Substituído `CardDescription` por `<div>` com classes apropriadas
+- **🗂️ Container Adequado**: Removido `ContentGrid` inadequado que causava layout espremido
+  - Implementado container responsivo normal com `container mx-auto px-4 py-6`
+- **👁️ Visualização Padrão**: Alterado para modo "lista" ao invés de "cards"
+  - Melhor experiência inicial para visualização de produtos
+
+#### **Design System Consistente**
+- **🎨 Tema Azul/Índigo**: Seguindo padrão estabelecido para seção de produtos
+- **📏 Espaçamento Otimizado**: Reduzido para `space-y-4` para melhor aproveitamento
+- **🔤 Tipografia Responsiva**: Tamanhos adaptativos (`text-xl sm:text-2xl`)
+- **💫 Micro-interações**: Hover effects e transições suaves
+
 ## [0.3.2] - 2025-08-28
 
 ### 🎨 Modernização Completa da Interface Admin + Processos

@@ -1,5 +1,4 @@
 import { AnimationTransitionPage } from "@/components/animation";
-import { ContentGrid } from "@/components/layout";
 import { createClient } from "@/utils/supabase";
 import { ProdutosPageClient } from "./page-client";
 
@@ -25,9 +24,9 @@ export default async function Produtos(props: Props) {
 
   return (
     <AnimationTransitionPage>
-      <ContentGrid>
+      <div className="container mx-auto px-4 py-6">
         <ProdutosPageClient produtos={produtos} />
-      </ContentGrid>
+      </div>
     </AnimationTransitionPage>
   );
 }
