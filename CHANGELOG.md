@@ -1,10 +1,38 @@
 # Changelog
 
-## [0.3.1] - 2025-08-28
+## [0.3.2] - 2025-08-28
 
-### 🎨 Modernização Completa da Interface Admin
+### 🎨 Modernização Completa da Interface Admin + Processos
 
-#### **Filtros de Data Aprimorados**
+#### **Modernização das Telas de Processo**
+- **🚛 Entrada de Insumos**: Interface redesenhada com tema azul/sky
+  - Cards organizados: Dados da Entrega + Rastreabilidade
+  - Análise de conformidade com botões visuais lado a lado
+  - Campo de observações reposicionado após conformidades
+  - Validação condicional: observações obrigatórias para não conformidades
+  - Layout responsivo otimizado para mobile
+
+- **⚙️ Produção**: Interface moderna com tema verde/emerald  
+  - Layout de insumos responsivo sem overflow no mobile
+  - Métricas de produção com cards coloridos (fator correção, perda, insumos)
+  - Cálculos automáticos de peso líquido e percentual de perda
+  - Dialog de confirmação substituindo drawer antigo
+  - Grid adaptativo: `grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`
+
+- **🏷️ Geração de Etiquetas**: Interface inteligente com tema azul/indigo
+  - Auto-seleção de template/impressora quando há apenas 1 opção
+  - Campo de validade bloqueado quando produto tem dias configurados
+  - Preview de configuração antes da impressão  
+  - Campos dinâmicos baseados no template selecionado
+  - Feedback visual para seleções automáticas
+
+#### **Funcionalidades Inteligentes**
+- **🤖 Auto-seleção**: Templates e impressoras selecionados quando únicos
+- **🔒 Campos Bloqueados**: Validade calculada automaticamente e protegida
+- **📱 Mobile First**: Todos os layouts otimizados para dispositivos móveis
+- **⚡ UX Contextual**: Placeholders e validações baseadas no estado do form
+
+#### **Filtros de Data Aprimorados** 
 - **Seleção Rápida de Períodos**: 6 botões pré-definidos para acesso imediato
   - Hoje (dia atual)
   - Esta Semana
@@ -35,10 +63,12 @@ Todas as telas seguem novo padrão visual consistente:
 - **Configurações**: Tema âmbar com JSON avançado
 
 ### 🛠 Melhorias Técnicas
-- **Componentes Reutilizáveis**: QuickReportCard com filtros integrados
-- **date-fns**: Manipulação precisa de datas com locale pt-BR
-- **Estado Consistente**: useTransition para feedback de carregamento
-- **Gradientes Modernos**: Visual atualizado com hover effects
+- **📖 Guia de Estilos**: DESIGN_PATTERNS.md criado para manter consistência
+- **🎯 Componentes Reutilizáveis**: QuickReportCard com filtros integrados
+- **📅 date-fns**: Manipulação precisa de datas com locale pt-BR
+- **⚡ Estado Consistente**: useTransition para feedback de carregamento
+- **🎨 Gradientes Modernos**: Visual atualizado com hover effects
+- **📱 Grid Sistema**: Responsividade consistente em todas as telas
 
 ## [0.3.0] - 2025-08-27
 

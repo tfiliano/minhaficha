@@ -3,30 +3,40 @@
 import { SubmitHandler, useForm } from "react-hook-form";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
-
+import { Label } from "../ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { Separator } from "../ui/separator";
 import { toast } from "sonner";
 
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 import { Inputs, saveProducao } from "@/app/(app)/producao/actions";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useRouter } from "@/hooks/use-router";
 import { cn } from "@/lib/utils";
+import { 
+  LoaderCircle, 
+  Factory, 
+  Package, 
+  Calculator, 
+  AlertCircle,
+  CheckCircle2,
+  ArrowRight,
+  Scale,
+  Layers,
+  TrendingUp,
+  Save,
+  Eye,
+  Package2,
+  Hash
+} from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -61,7 +71,7 @@ export function ProducaoForm({
   const [loading, setLoading] = useState(false);
   const [loadingText, setLoadingText] = useState("");
 
-  const { register, handleSubmit, watch, setValue } = useForm<Inputs>({
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<Inputs>({
     defaultValues: {
       ...INIT_PRODUCAO,
       items,
@@ -74,6 +84,11 @@ export function ProducaoForm({
       produto_nome: getParam("produtoDesc"),
     },
   });
+
+  const watchPesoBruto = watch("peso_bruto");
+  const watchPesoLiquido = watch("peso_liquido");
+  const watchFatorCorrecao = watch("fator_correcao");
+  const watchItems = watch("items");
 
   function round(value: number) {
     const roundedValue = Math.round((value + Number.EPSILON) * 100) / 100;
@@ -91,20 +106,18 @@ export function ProducaoForm({
   useEffect(() => {
     watch((value, { name, type }) => {
       if (type === "change" && name?.includes("items.")) {
-        setValue(
-          "peso_liquido",
-          value.items!.reduce((acc, item) => (acc += item.peso || 0), 0)
-        );
+        const peso_liquido = value.items!.reduce((acc, item) => (acc += item.peso || 0), 0);
+        setValue("peso_liquido", peso_liquido);
+        
         const bruto = value.peso_bruto || 0;
-        const liquido = value.peso_liquido || 0.01;
+        const liquido = peso_liquido || 0.01;
         const fator_correcao = bruto > 0 && liquido > 0 ? bruto / liquido : 0;
-        console.log("oi", bruto, liquido, fator_correcao);
 
         setValue("peso_perda", toFixed(bruto - liquido));
         setValue("fator_correcao", toFixed(fator_correcao));
       }
     });
-  }, [watch]);
+  }, [watch, setValue]);
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     const producao: Inputs = {
@@ -122,211 +135,382 @@ export function ProducaoForm({
           peso_medio: round(i.peso / i.quantidade),
         };
       });
-    console.log(producao);
 
     setProducao(producao);
   };
 
   const onSubmitFormAfterConfirmation = async () => {
     try {
-      setLoadingText("Salvando...");
+      setLoadingText("Salvando produção...");
       setLoading(true);
-      console.log("ACAO PARA SER DISPARADA PARA O SUPABASE OU API");
+      
       const { produto_nome, operador, ...toSave } = producao || INIT_PRODUCAO;
-      console.log(JSON.stringify(toSave, null, 2));
-
       const response = await saveProducao(toSave!);
+      
       if (response.error) throw response.error;
 
+      toast.success("Produção registrada com sucesso!");
       router.replace("/");
     } catch (error: any) {
-      toast.error(error?.message);
+      toast.error(error?.message || "Erro ao salvar produção");
     } finally {
       setLoading(false);
     }
-    // if (error) {
-    //   setLoadingText(`Erro: ${error.message}`)
-    //   console.error(error)
-    //   await wait(3e3);
-    //   setLoading(false)
-
-    //   return;
-    // }
-    // setLoading(false);
-
-    //redirect nao funciona :(
-    // return redirect("/")
   };
+
+  const totalItemsUsados = watchItems?.filter(item => (item?.peso || 0) > 0).length || 0;
+  const pesoPerda = watchPesoBruto ? toFixed(watchPesoBruto - watchPesoLiquido) : 0;
+  const percentualPerda = watchPesoBruto > 0 ? ((pesoPerda / watchPesoBruto) * 100).toFixed(1) : "0.0";
 
   return (
     <>
+      {/* Loading Overlay */}
       <div
         className={cn(
-          "fixed top-0 w-screen h-screen z-50 bg-background/90 text-center flex-1 content-center",
-          {
-            hidden: !loading,
-          }
+          "fixed inset-0 z-50 bg-background/90 backdrop-blur-sm flex flex-col items-center justify-center transition-opacity duration-300",
+          loading ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       >
-        {loadingText || "Processando..."}
+        <div className="bg-white dark:bg-slate-800 rounded-lg p-6 shadow-xl flex flex-col items-center gap-4">
+          <LoaderCircle className="h-8 w-8 animate-spin text-emerald-500" />
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            {loadingText || "Processando..."}
+          </p>
+        </div>
       </div>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col max-w-3xl w-full mx-auto"
-      >
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell className="font-medium">{produto.nome}</TableCell>
-              <TableCell>
-                  <Input
-                    type="number"
-                    pattern="^[$\-\s]*[\d\,]*?([\.]\d{0,10})?\s*$"
-                    {...register("quantidade", { valueAsNumber: true, })}
-                  />
-                </TableCell>
-              <TableCell>
-                <Input
-                  type="number"
-                  placeholder={""}
-                  step={0.001}
-                  {...register("peso_bruto", { valueAsNumber: true })}
-                />
-              </TableCell>
-              <TableCell>{produto.unidade}</TableCell>
-            </TableRow>
 
-            <TableRow>
-              <TableCell className="font-small">LÍQUIDO</TableCell>
-              <TableCell>
-                <Input
-                  type="number"
-                  placeholder=""
-                  readOnly
-                  {...register("peso_liquido")}
-                />
-              </TableCell>
-              <TableCell>{produto.unidade}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
-
-        <Table className="border-t">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px]">PRODUTO</TableHead>
-              <TableHead>UN</TableHead>
-              <TableHead>PORÇÃO</TableHead>
-              <TableHead>PESO</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((item, index) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.nome}</TableCell>
-                <TableCell>{item.unidade}</TableCell>
-                <TableCell>
+      <form onSubmit={handleSubmit(onSubmit)} className="max-w-6xl mx-auto space-y-6">
+        {/* Header com produto principal */}
+        <Card className="border-2 border-emerald-200 dark:border-emerald-800 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950 dark:to-green-950">
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="space-y-2">
+                <CardTitle className="text-2xl flex items-center gap-3">
+                  <Factory className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                  {produto?.nome || "Produto"}
+                </CardTitle>
+                <CardDescription className="flex items-center gap-4">
+                  <Badge variant="secondary" className="font-mono">
+                    {produto?.codigo || "SEM CÓDIGO"}
+                  </Badge>
+                  <span>Unidade: {produto?.unidade || "UN"}</span>
+                </CardDescription>
+              </div>
+              <div className="text-right space-y-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400">Operador</p>
+                <p className="font-semibold text-slate-700 dark:text-slate-300">
+                  {getParam("operador") || "Não identificado"}
+                </p>
+                <Badge variant="outline" className="text-emerald-600 border-emerald-600">
+                  <Package className="h-3 w-3 mr-1" />
+                  {items?.length || 0} insumos
+                </Badge>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="quantidade" className="flex items-center gap-2">
+                    <Hash className="h-4 w-4" />
+                    Quantidade *
+                  </Label>
                   <Input
+                    id="quantidade"
                     type="number"
-                    placeholder={item.unidade}
-                    pattern="^[$\-\s]*[\d\,]*?([\.]\d{0,10})?\s*$"
-                    {...register(`items.${index}.quantidade`, {
+                    min="1"
+                    placeholder="1"
+                    className="text-lg font-semibold"
+                    {...register("quantidade", { 
                       valueAsNumber: true,
+                      required: "Quantidade é obrigatória",
+                      min: { value: 1, message: "Quantidade deve ser no mínimo 1" }
                     })}
                   />
-                </TableCell>
-                <TableCell className="text-right">
-                  <Input
-                    type="number"
-                    placeholder="KG"
-                    pattern="^[$\-\s]*[\d\,]*?([\.]\d{0,10})?\s*$"
-                    step="any"
-                    {...register(`items.${index}.peso`, {
-                      valueAsNumber: true,
-                    })}
-                  />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell className="font-medium">Fator de Correção</TableCell>
-              <TableCell className="font-medium">
-                <Input
-                  type="number"
-                  placeholder=""
-                  readOnly
-                  {...register("fator_correcao", { valueAsNumber: true })}
-                />
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="peso_bruto" className="flex items-center gap-2">
+                    <Scale className="h-4 w-4" />
+                    Peso Bruto *
+                  </Label>
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      id="peso_bruto"
+                      type="number"
+                      step={0.001}
+                      placeholder="0.000"
+                      className="text-lg font-semibold"
+                      {...register("peso_bruto", { 
+                        valueAsNumber: true,
+                        required: "Peso bruto é obrigatório"
+                      })}
+                    />
+                    <Badge variant="outline" className="px-3 py-2">
+                      {produto?.unidade || "KG"}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-        <Button className="m-8" type="submit">
-          Enviar
-        </Button>
+            {/* Peso Líquido Calculado */}
+            {watchPesoLiquido > 0 && (
+              <div className="mt-4 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <Label className="flex items-center gap-2 font-medium">
+                    <Layers className="h-4 w-4" />
+                    Peso Líquido (calculado)
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                      {watchPesoLiquido.toFixed(3)}
+                    </span>
+                    <Badge variant="outline">{produto?.unidade || "KG"}</Badge>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Insumos Utilizados */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package2 className="h-5 w-5 text-blue-600" />
+              Insumos Utilizados
+            </CardTitle>
+            <CardDescription>
+              Configure as quantidades e pesos dos insumos utilizados na produção
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {items.map((item, index) => (
+                <div key={item.id} className="p-3 border rounded-lg bg-slate-50 dark:bg-slate-800/50">
+                  <div className="space-y-3">
+                    {/* Nome do produto */}
+                    <div>
+                      <h4 className="font-semibold text-slate-900 dark:text-white text-sm">{item.nome}</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">{item.codigo}</p>
+                    </div>
+                    
+                    {/* Campos de input em layout mobile-friendly */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">Quantidade</Label>
+                        <div className="flex gap-1">
+                          <Input
+                            type="number"
+                            step="any"
+                            placeholder="0"
+                            className="text-center text-sm"
+                            {...register(`items.${index}.quantidade`, {
+                              valueAsNumber: true,
+                            })}
+                          />
+                          <Badge variant="outline" className="px-2 text-xs whitespace-nowrap">
+                            {item.unidade}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-1">
+                        <Label className="text-xs font-medium">Peso</Label>
+                        <div className="flex gap-1">
+                          <Input
+                            type="number"
+                            step="any"
+                            placeholder="0.000"
+                            className="text-center text-sm"
+                            {...register(`items.${index}.peso`, {
+                              valueAsNumber: true,
+                            })}
+                          />
+                          <Badge variant="outline" className="px-2 text-xs">KG</Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              
+              {items.length === 0 && (
+                <div className="text-center py-8 text-slate-500 dark:text-slate-400">
+                  <Package className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Nenhum insumo encontrado para este produto</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Métricas de Produção */}
+        {(watchPesoBruto > 0 || watchPesoLiquido > 0) && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Calculator className="h-5 w-5 text-purple-600" />
+                Métricas de Produção
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-purple-600 dark:text-purple-400 truncate">Fator de Correção</p>
+                      <p className="text-lg font-bold text-purple-700 dark:text-purple-300 truncate">
+                        {watchFatorCorrecao?.toFixed(4) || "0.0000"}
+                      </p>
+                    </div>
+                    <TrendingUp className="h-6 w-6 text-purple-500 opacity-50 flex-shrink-0 ml-2" />
+                  </div>
+                </div>
+
+                <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-amber-600 dark:text-amber-400 truncate">Peso de Perda</p>
+                      <p className="text-lg font-bold text-amber-700 dark:text-amber-300 truncate">
+                        {pesoPerda} KG
+                      </p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 truncate">
+                        ({percentualPerda}% do bruto)
+                      </p>
+                    </div>
+                    <Scale className="h-6 w-6 text-amber-500 opacity-50 flex-shrink-0 ml-2" />
+                  </div>
+                </div>
+
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800 sm:col-span-2 lg:col-span-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-blue-600 dark:text-blue-400 truncate">Insumos Usados</p>
+                      <p className="text-lg font-bold text-blue-700 dark:text-blue-300">
+                        {totalItemsUsados} / {items.length}
+                      </p>
+                    </div>
+                    <Package2 className="h-6 w-6 text-blue-500 opacity-50 flex-shrink-0 ml-2" />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Botões de ação */}
+        <div className="flex justify-end gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.replace("/")}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="submit"
+            className="min-w-[150px] bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Revisar Produção
+          </Button>
+        </div>
       </form>
 
-      <Drawer
-        open={!!producao}
-        onOpenChange={(e) => {
-          if (e === false) setProducao(null);
-        }}
-      >
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Confirmação</DrawerTitle>
-            <DrawerDescription>
-              Verifique os dados antes de confirmar
-            </DrawerDescription>
-          </DrawerHeader>
-          <div>
-            {producao && (
-              <>
-                <Table>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>{producao!.produto_nome}</TableCell>
-                      <TableCell>{producao!.quantidade}</TableCell>
-                      <TableCell>{producao!.peso_bruto} Kg</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>PRODUTO</TableHead>
-                      <TableHead>UN</TableHead>
-                      <TableHead>PESO</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {producao!.items.map((item, index) => (
-                      <TableRow key={item.id}>
-                        <TableCell>{item.nome}</TableCell>
-                        <TableCell>{item.quantidade}</TableCell>
-                        <TableCell>{item.peso}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </>
-            )}
-          </div>
-          <DrawerFooter>
-            <Button onClick={onSubmitFormAfterConfirmation}>Enviar</Button>
-            <DrawerClose>
-              <Button variant="outline" className="w-full">
-                Cancelar
-              </Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+      {/* Dialog de confirmação */}
+      <Dialog open={!!producao} onOpenChange={(open) => !open && setProducao(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+              Confirmar Produção
+            </DialogTitle>
+            <DialogDescription>
+              Verifique os dados antes de finalizar o registro de produção
+            </DialogDescription>
+          </DialogHeader>
+          
+          {producao && (
+            <div className="space-y-4">
+              {/* Resumo do produto */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg">{producao.produto_nome}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-slate-500">Quantidade:</span>
+                      <span className="ml-2 font-semibold">{producao.quantidade}</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Peso Bruto:</span>
+                      <span className="ml-2 font-semibold">{producao.peso_bruto} KG</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Peso Líquido:</span>
+                      <span className="ml-2 font-semibold">{producao.peso_liquido} KG</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-500">Fator de Correção:</span>
+                      <span className="ml-2 font-semibold">{producao.fator_correcao}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Insumos utilizados */}
+              {producao.items && producao.items.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg">Insumos Utilizados</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {producao.items.map((item, index) => (
+                        <div key={index} className="flex justify-between items-center p-2 bg-slate-50 dark:bg-slate-800 rounded">
+                          <span className="text-sm font-medium">{item.nome}</span>
+                          <div className="text-sm text-slate-600 dark:text-slate-400">
+                            {item.quantidade} un • {item.peso} KG
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProducao(null)}>
+              Cancelar
+            </Button>
+            <Button
+              onClick={onSubmitFormAfterConfirmation}
+              disabled={loading}
+              className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700"
+            >
+              {loading ? (
+                <>
+                  <LoaderCircle className="h-4 w-4 mr-2 animate-spin" />
+                  Salvando...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Confirmar Produção
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
