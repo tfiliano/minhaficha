@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.3.1] - 2025-08-28
+
+### 🎨 Modernização Completa da Interface Admin
+
+#### **Filtros de Data Aprimorados**
+- **Seleção Rápida de Períodos**: 6 botões pré-definidos para acesso imediato
+  - Hoje (dia atual)
+  - Esta Semana
+  - Este Mês  
+  - Últimos 7 dias
+  - Últimos 30 dias
+  - Mês Anterior
+- **Botão Limpar**: Reset rápido do filtro de data
+- **Interface Organizada**: Separação clara entre seleção rápida e calendário personalizado
+- **Ícones Visuais**: Cada período com ícone representativo (CalendarDays, Zap)
+
+#### **Relatórios Simplificados**
+- **Foco em Relatórios Analíticos**: Interface limpa com apenas 3 relatórios essenciais
+- **Filtros Inline**: Configuração direta na mesma tela, sem navegação adicional
+- **Cards Coloridos**: Cada relatório com cor temática única (verde, roxo, azul)
+- **Filtros Colapsáveis**: Economia de espaço com seções expansíveis
+
+#### **Telas Admin Modernizadas**
+Todas as telas seguem novo padrão visual consistente:
+- **Grupos**: Tema roxo com preview de cores
+- **Armazenamento**: Tema âmbar com indicador de temperatura
+- **Fabricantes**: Tema esmeralda com contadores de produtos
+- **Setor**: Tema azul com organização departamental
+- **SIF**: Tema vermelho com status de ativação
+- **Operadores**: Tema ciano com indicadores online/offline
+- **Impressoras**: Tema violeta com status de rede
+- **Templates**: Tema rosa com dimensões visuais
+- **Configurações**: Tema âmbar com JSON avançado
+
+### 🛠 Melhorias Técnicas
+- **Componentes Reutilizáveis**: QuickReportCard com filtros integrados
+- **date-fns**: Manipulação precisa de datas com locale pt-BR
+- **Estado Consistente**: useTransition para feedback de carregamento
+- **Gradientes Modernos**: Visual atualizado com hover effects
+
 ## [0.3.0] - 2025-08-27
 
 ### 🚀 **Importação de Produtos Revolucionária**
