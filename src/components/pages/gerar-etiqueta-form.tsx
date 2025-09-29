@@ -252,101 +252,98 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
 
         {/* Configurações de Impressão */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Configurações Gerais */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5 text-emerald-600" />
-                Configurações de Impressão
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="template_id" className="flex items-center gap-2">
-                  <Layers className="h-4 w-4" />
-                  Template *
-                </Label>
-                <Select value={watchTemplateId} onValueChange={(value) => setValue("template_id", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecionar template..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {templates.map((template) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          <div>
-                            <p>{template.nome}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {template.width}mm × {template.height}mm
-                            </p>
-                          </div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {templates.length === 1 && (
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" />
-                    Template selecionado automaticamente
-                  </p>
+          {/* Configurações Gerais - Ocultar se houver apenas 1 template e 1 impressora */}
+          {(templates.length > 1 || printers.length > 1) && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-emerald-600" />
+                  Configurações de Impressão
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {templates.length > 1 ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="template_id" className="flex items-center gap-2">
+                      <Layers className="h-4 w-4" />
+                      Template *
+                    </Label>
+                    <Select value={watchTemplateId} onValueChange={(value) => setValue("template_id", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar template..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {templates.map((template) => (
+                          <SelectItem key={template.id} value={template.id}>
+                            <div className="flex items-center gap-2">
+                              <FileText className="h-4 w-4" />
+                              <div>
+                                <p>{template.nome}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {template.width}mm × {template.height}mm
+                                </p>
+                              </div>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : templates.length === 1 && (
+                  <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Template selecionado automaticamente</p>
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                          {templates[0].nome} ({templates[0].width}mm × {templates[0].height}mm)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="impressora_id" className="flex items-center gap-2">
-                  <Printer className="h-4 w-4" />
-                  Impressora *
-                </Label>
-                <Select value={watchImpressoraId} onValueChange={(value) => setValue("impressora_id", value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecionar impressora..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {printers.map((printer) => (
-                      <SelectItem key={printer.id} value={printer.id}>
-                        <div className="flex items-center gap-2">
-                          <Printer className="h-4 w-4" />
-                          {printer.nome}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {printers.length === 1 && (
-                  <p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                    <CheckCircle2 className="h-3 w-3" />
-                    Impressora selecionada automaticamente
-                  </p>
+                {printers.length > 1 ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="impressora_id" className="flex items-center gap-2">
+                      <Printer className="h-4 w-4" />
+                      Impressora *
+                    </Label>
+                    <Select value={watchImpressoraId} onValueChange={(value) => setValue("impressora_id", value)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecionar impressora..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {printers.map((printer) => (
+                          <SelectItem key={printer.id} value={printer.id}>
+                            <div className="flex items-center gap-2">
+                              <Printer className="h-4 w-4" />
+                              {printer.nome}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : printers.length === 1 && (
+                  <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">Impressora selecionada automaticamente</p>
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                          {printers[0].nome}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="quantidade" className="flex items-center gap-2">
-                  <Hash className="h-4 w-4" />
-                  Quantidade *
-                </Label>
-                <Input
-                  id="quantidade"
-                  type="number"
-                  min="1"
-                  max="100"
-                  placeholder="1"
-                  className="text-lg font-semibold"
-                  {...register("quantidade", { 
-                    valueAsNumber: true,
-                    required: "Quantidade é obrigatória",
-                    min: { value: 1, message: "Mínimo 1 etiqueta" },
-                    max: { value: 100, message: "Máximo 100 etiquetas" }
-                  })}
-                />
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Informações da Etiqueta */}
-          <Card>
+          <Card className={(templates.length === 1 && printers.length === 1) ? "lg:col-span-2" : ""}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Info className="h-5 w-5 text-purple-600" />
@@ -418,6 +415,27 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
                   id="sif"
                   placeholder="Código SIF"
                   {...register("sif")}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="quantidade" className="flex items-center gap-2">
+                  <Hash className="h-4 w-4" />
+                  Quantidade *
+                </Label>
+                <Input
+                  id="quantidade"
+                  type="number"
+                  min="1"
+                  max="100"
+                  placeholder="1"
+                  className="text-lg font-semibold"
+                  {...register("quantidade", {
+                    valueAsNumber: true,
+                    required: "Quantidade é obrigatória",
+                    min: { value: 1, message: "Mínimo 1 etiqueta" },
+                    max: { value: 100, message: "Máximo 100 etiquetas" }
+                  })}
                 />
               </div>
             </CardContent>
