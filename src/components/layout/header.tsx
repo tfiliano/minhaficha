@@ -1,9 +1,23 @@
 import { Suspense } from "react";
+import { Lightbulb } from "lucide-react";
 import { Logo } from "../Logo";
 import { StoreSelector } from "../store-selector";
 import { BackButton } from "./back-button";
 import { MobileMenu } from "./mobile-menu";
 import { UserMenu } from "./user-menu";
+
+function LogoFallback() {
+  return (
+    <>
+      <div className="p-2 bg-primary rounded-xl">
+        <Lightbulb className="h-5 w-5 text-white" />
+      </div>
+      <div className="flex flex-col">
+        <h1 className="font-bold text-sm sm:text-base">Minha Ficha</h1>
+      </div>
+    </>
+  );
+}
 
 export function Header() {
   return (
@@ -19,7 +33,9 @@ export function Header() {
 
       {/* Centro - Logo */}
       <div className="flex items-center gap-2 absolute left-1/2 transform -translate-x-1/2">
-        <Logo />
+        <Suspense fallback={<LogoFallback />}>
+          <Logo />
+        </Suspense>
       </div>
 
       {/* Lado direito */}

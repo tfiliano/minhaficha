@@ -3,6 +3,7 @@
 import { VERSION_APP } from "@/utils/consts";
 import { Lightbulb } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const routeNames: Record<string, string> = {
   "/": "Início",
@@ -29,35 +30,38 @@ const routeNames: Record<string, string> = {
 export function Logo() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [currentRoute, setCurrentRoute] = useState<string | null>(null);
 
-  // Encontrar o nome da rota atual
-  const getCurrentRoute = () => {
-    // Se estiver em /operador, verificar o query param "operacao"
-    if (pathname === "/operador") {
-      const operacao = searchParams?.get("operacao");
-      if (operacao) {
-        return operacao;
+  useEffect(() => {
+    // Encontrar o nome da rota atual
+    const getCurrentRoute = () => {
+      // Se estiver em /operador, verificar o query param "operacao"
+      if (pathname === "/operador") {
+        const operacao = searchParams?.get("operacao");
+        if (operacao) {
+          return operacao;
+        }
       }
-    }
 
-    // Tentar match exato primeiro
-    if (routeNames[pathname || ""]) {
-      return routeNames[pathname || ""];
-    }
-
-    // Tentar encontrar a rota pai mais próxima
-    const pathParts = pathname?.split("/").filter(Boolean) || [];
-    for (let i = pathParts.length; i > 0; i--) {
-      const testPath = "/" + pathParts.slice(0, i).join("/");
-      if (routeNames[testPath]) {
-        return routeNames[testPath];
+      // Tentar match exato primeiro
+      if (routeNames[pathname || ""]) {
+        return routeNames[pathname || ""];
       }
-    }
 
-    return null;
-  };
+      // Tentar encontrar a rota pai mais próxima
+      const pathParts = pathname?.split("/").filter(Boolean) || [];
+      for (let i = pathParts.length; i > 0; i--) {
+        const testPath = "/" + pathParts.slice(0, i).join("/");
+        if (routeNames[testPath]) {
+          return routeNames[testPath];
+        }
+      }
 
-  const currentRoute = getCurrentRoute();
+      return null;
+    };
+
+    setCurrentRoute(getCurrentRoute());
+  }, [pathname, searchParams]);
 
   return (
     <>
