@@ -7,24 +7,26 @@ import { UserMenu } from "./user-menu";
 
 export function Header() {
   return (
-    <header className="bg-background/95 border-b h-16 sm:h-20 sticky top-0 flex items-center justify-between px-3 sm:px-4 lg:px-6 z-20 backdrop-blur-sm shadow-sm mb-4">
+    <header className="bg-background/95 border-b h-16 sm:h-20 sticky top-0 flex items-center px-3 sm:px-4 lg:px-6 z-20 backdrop-blur-sm shadow-sm mb-4">
+      {/* Lado esquerdo */}
       <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-1 min-w-0">
-        {/* Burger menu apenas no mobile */}
+        {/* Menu burger visível em todos os tamanhos */}
         <MobileMenu />
-
         <Suspense>
           <BackButton />
         </Suspense>
+      </div>
+
+      {/* Centro - Logo */}
+      <div className="flex items-center gap-2 absolute left-1/2 transform -translate-x-1/2">
         <Logo />
       </div>
 
-      <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-shrink-0 ml-2 sm:ml-4">
-        {/* Store selector apenas no desktop */}
+      {/* Lado direito */}
+      <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 flex-shrink-0 ml-auto">
         <div className="hidden md:block">
           <StoreSelector />
         </div>
-
-        {/* Avatar com menu de usuário */}
         <UserMenu />
       </div>
     </header>
