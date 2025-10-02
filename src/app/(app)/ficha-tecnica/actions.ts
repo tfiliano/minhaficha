@@ -19,6 +19,16 @@ export type FichaTecnica = {
   porcoes?: number;
   observacoes?: string;
   ativo?: boolean;
+  modo_preparo?: string;
+  tempo_preparo_minutos?: number;
+};
+
+export type FichaTecnicaFoto = {
+  id?: string;
+  ficha_tecnica_id: string;
+  url: string;
+  is_capa?: boolean;
+  ordem?: number;
 };
 
 /**
@@ -46,6 +56,8 @@ export async function upsertFichaTecnica(data: FichaTecnica) {
           porcoes: data.porcoes,
           observacoes: data.observacoes,
           ativo: data.ativo ?? true,
+          modo_preparo: data.modo_preparo,
+          tempo_preparo_minutos: data.tempo_preparo_minutos,
         })
         .eq("id", existing.id)
         .select()
@@ -60,6 +72,8 @@ export async function upsertFichaTecnica(data: FichaTecnica) {
           porcoes: data.porcoes,
           observacoes: data.observacoes,
           ativo: data.ativo ?? true,
+          modo_preparo: data.modo_preparo,
+          tempo_preparo_minutos: data.tempo_preparo_minutos,
         })
         .select()
         .single();
@@ -198,6 +212,170 @@ export async function searchProdutos(searchTerm: string) {
       success: false,
       error: error instanceof Error ? error.message : "Erro desconhecido",
       data: []
+    };
+  }
+}
+
+/**
+ * Buscar fotos de uma ficha técnica
+ */
+export async function getFotos(fichaTecnicaId: string) {
+  const supabase = await createClient();
+
+  try {
+    const { data, error } = await supabase
+      .from("fichas_tecnicas_fotos")
+      .select("*")
+      .eq("ficha_tecnica_id", fichaTecnicaId)
+      .order("ordem", { ascending: true });
+
+    if (error) {
+      console.error("Erro ao buscar fotos:", error);
+      return { success: false, error: error.message, data: [] };
+    }
+
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error("Erro ao buscar fotos:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro desconhecido",
+      data: []
+    };
+  }
+}
+
+/**
+ * Adicionar uma foto à ficha técnica
+ */
+export async function addFoto(foto: FichaTecnicaFoto) {
+  const supabase = await createClient();
+
+  try {
+    const { data, error } = await supabase
+      .from("fichas_tecnicas_fotos")
+      .insert({
+        ficha_tecnica_id: foto.ficha_tecnica_id,
+        url: foto.url,
+        is_capa: foto.is_capa ?? false,
+        ordem: foto.ordem ?? 0,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Erro ao adicionar foto:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Erro ao adicionar foto:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro desconhecido"
+    };
+  }
+}
+
+/**
+ * Remover uma foto da ficha técnica
+ */
+export async function deleteFoto(fotoId: string) {
+  const supabase = await createClient();
+
+  try {
+    // Buscar a URL da foto antes de deletar para remover do storage
+    const { data: foto } = await supabase
+      .from("fichas_tecnicas_fotos")
+      .select("url")
+      .eq("id", fotoId)
+      .single();
+
+    if (foto?.url) {
+      // Extrair o path do storage da URL
+      const urlParts = foto.url.split('/arquivos/');
+      if (urlParts.length > 1) {
+        const filePath = urlParts[1];
+        // Remover arquivo do storage
+        await supabase.storage.from('arquivos').remove([filePath]);
+      }
+    }
+
+    // Deletar registro do banco
+    const { error } = await supabase
+      .from("fichas_tecnicas_fotos")
+      .delete()
+      .eq("id", fotoId);
+
+    if (error) {
+      console.error("Erro ao remover foto:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao remover foto:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro desconhecido"
+    };
+  }
+}
+
+/**
+ * Definir uma foto como capa
+ */
+export async function setFotoCapa(fotoId: string, fichaTecnicaId: string) {
+  const supabase = await createClient();
+
+  try {
+    // O trigger do banco já garante que apenas uma foto será capa
+    // Apenas precisamos marcar a foto selecionada como capa
+    const { error } = await supabase
+      .from("fichas_tecnicas_fotos")
+      .update({ is_capa: true })
+      .eq("id", fotoId)
+      .eq("ficha_tecnica_id", fichaTecnicaId);
+
+    if (error) {
+      console.error("Erro ao definir foto como capa:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao definir foto como capa:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro desconhecido"
+    };
+  }
+}
+
+/**
+ * Atualizar ordem de uma foto
+ */
+export async function updateFotoOrdem(fotoId: string, ordem: number) {
+  const supabase = await createClient();
+
+  try {
+    const { error } = await supabase
+      .from("fichas_tecnicas_fotos")
+      .update({ ordem })
+      .eq("id", fotoId);
+
+    if (error) {
+      console.error("Erro ao atualizar ordem da foto:", error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Erro ao atualizar ordem da foto:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro desconhecido"
     };
   }
 }

@@ -188,10 +188,12 @@ export type Database = {
           created_at: string | null
           id: string
           loja_id: string | null
+          modo_preparo: string | null
           nome: string | null
           observacoes: string | null
           porcoes: number | null
           produto_cardapio_id: string
+          tempo_preparo_minutos: number | null
           updated_at: string | null
         }
         Insert: {
@@ -199,10 +201,12 @@ export type Database = {
           created_at?: string | null
           id?: string
           loja_id?: string | null
+          modo_preparo?: string | null
           nome?: string | null
           observacoes?: string | null
           porcoes?: number | null
           produto_cardapio_id: string
+          tempo_preparo_minutos?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -210,10 +214,12 @@ export type Database = {
           created_at?: string | null
           id?: string
           loja_id?: string | null
+          modo_preparo?: string | null
           nome?: string | null
           observacoes?: string | null
           porcoes?: number | null
           produto_cardapio_id?: string
+          tempo_preparo_minutos?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -237,6 +243,48 @@ export type Database = {
             isOneToOne: true
             referencedRelation: "vw_fichas_tecnicas_completas"
             referencedColumns: ["produto_id"]
+          },
+        ]
+      }
+      fichas_tecnicas_fotos: {
+        Row: {
+          created_at: string | null
+          ficha_tecnica_id: string
+          id: string
+          is_capa: boolean | null
+          ordem: number | null
+          url: string
+        }
+        Insert: {
+          created_at?: string | null
+          ficha_tecnica_id: string
+          id?: string
+          is_capa?: boolean | null
+          ordem?: number | null
+          url: string
+        }
+        Update: {
+          created_at?: string | null
+          ficha_tecnica_id?: string
+          id?: string
+          is_capa?: boolean | null
+          ordem?: number | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fichas_tecnicas_fotos_ficha_tecnica_id_fkey"
+            columns: ["ficha_tecnica_id"]
+            isOneToOne: false
+            referencedRelation: "fichas_tecnicas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fichas_tecnicas_fotos_ficha_tecnica_id_fkey"
+            columns: ["ficha_tecnica_id"]
+            isOneToOne: false
+            referencedRelation: "vw_fichas_tecnicas_completas"
+            referencedColumns: ["ficha_id"]
           },
         ]
       }
@@ -1070,11 +1118,15 @@ export type Database = {
           ficha_id: string | null
           ficha_nome: string | null
           ficha_observacoes: string | null
+          foto_capa_url: string | null
           loja_id: string | null
+          modo_preparo: string | null
           porcoes: number | null
           produto_codigo: string | null
           produto_id: string | null
           produto_nome: string | null
+          tempo_preparo_minutos: number | null
+          total_fotos: number | null
           total_ingredientes: number | null
           updated_at: string | null
         }

@@ -6,10 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IngredienteSelector } from "./ingrediente-selector";
+import { ModoPreparo } from "./modo-preparo";
+import { FotosManager } from "./fotos-manager";
 import { addIngrediente, removeIngrediente, updateIngrediente } from "@/app/(app)/ficha-tecnica/actions";
+import type { FichaTecnicaFoto } from "@/app/(app)/ficha-tecnica/actions";
 import { toast } from "sonner";
-import { Trash2, Edit2, Save, X, Package } from "lucide-react";
+import { Trash2, Edit2, Save, X, Package, BookOpen, Camera } from "lucide-react";
 
 type Produto = {
   id: string;
@@ -37,6 +41,7 @@ type IngredienteItem = {
 
 type FichaTecnicaFormProps = {
   fichaTecnicaId: string;
+  lojaId: string;
   produtoCardapio: {
     id: string;
     codigo: string;
@@ -44,18 +49,26 @@ type FichaTecnicaFormProps = {
     unidade: string;
   };
   ingredientes: IngredienteItem[];
+  fotos: FichaTecnicaFoto[];
   porcoes?: number;
   observacoes?: string;
+  modoPreparo?: string;
+  tempoPreparoMinutos?: number;
 };
 
 export function FichaTecnicaForm({
   fichaTecnicaId,
+  lojaId,
   produtoCardapio,
   ingredientes: initialIngredientes,
+  fotos: initialFotos,
   porcoes: initialPorcoes,
   observacoes: initialObservacoes,
+  modoPreparo: initialModoPreparo,
+  tempoPreparoMinutos: initialTempoPreparoMinutos,
 }: FichaTecnicaFormProps) {
   const [ingredientes, setIngredientes] = useState<IngredienteItem[]>(initialIngredientes);
+  const [fotos, setFotos] = useState<FichaTecnicaFoto[]>(initialFotos);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editQuantidade, setEditQuantidade] = useState("");
   const [isAdding, setIsAdding] = useState(false);
@@ -146,9 +159,16 @@ export function FichaTecnicaForm({
               <Package className="h-5 w-5 text-orange-600" />
               {produtoCardapio.nome}
             </div>
-            <Badge variant="secondary" className="text-base">
-              {ingredientes.length} {ingredientes.length === 1 ? 'ingrediente' : 'ingredientes'}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary" className="text-base">
+                {ingredientes.length} {ingredientes.length === 1 ? 'ingrediente' : 'ingredientes'}
+              </Badge>
+              {fotos.length > 0 && (
+                <Badge variant="secondary" className="text-base">
+                  {fotos.length} {fotos.length === 1 ? 'foto' : 'fotos'}
+                </Badge>
+              )}
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -158,6 +178,26 @@ export function FichaTecnicaForm({
           </div>
         </CardContent>
       </Card>
+
+      {/* Sistema de Tabs */}
+      <Tabs defaultValue="ingredientes" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="ingredientes" className="gap-2">
+            <Package className="h-4 w-4" />
+            Ingredientes
+          </TabsTrigger>
+          <TabsTrigger value="modo-preparo" className="gap-2">
+            <BookOpen className="h-4 w-4" />
+            Modo de Preparo
+          </TabsTrigger>
+          <TabsTrigger value="fotos" className="gap-2">
+            <Camera className="h-4 w-4" />
+            Fotos
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Tab 1: Ingredientes */}
+        <TabsContent value="ingredientes" className="space-y-6 mt-6">
 
       {/* Adicionar Ingrediente */}
       <Card>
@@ -279,6 +319,31 @@ export function FichaTecnicaForm({
           )}
         </CardContent>
       </Card>
+        </TabsContent>
+
+        {/* Tab 2: Modo de Preparo */}
+        <TabsContent value="modo-preparo" className="mt-6">
+          <ModoPreparo
+            fichaTecnicaId={fichaTecnicaId}
+            produtoCardapioId={produtoCardapio.id}
+            modoPreparo={initialModoPreparo}
+            tempoPreparoMinutos={initialTempoPreparoMinutos}
+          />
+        </TabsContent>
+
+        {/* Tab 3: Fotos */}
+        <TabsContent value="fotos" className="mt-6">
+          <FotosManager
+            fichaTecnicaId={fichaTecnicaId}
+            lojaId={lojaId}
+            fotos={fotos}
+            onFotosChange={() => {
+              // Recarregar fotos após alteração
+              // A página pode ser recarregada ou podemos fazer uma busca
+            }}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { FichaTecnicaForm } from "@/components/ficha-tecnica/ficha-tecnica-form";
 import { upsertFichaTecnica } from "../actions";
+import { cookies } from "next/headers";
 
 type Props = {
   params: Promise<{
@@ -20,6 +21,10 @@ export default async function FichaTecnicaEditPage(props: Props) {
   const produtoId = params.id;
 
   const supabase = await createClient();
+
+  // Obter loja_id do cookie
+  const cookieStore = await cookies();
+  const lojaId = cookieStore.get("minhaficha_loja_id")?.value || "";
 
   // Buscar o produto de cardápio
   const { data: produto, error: produtoError } = await supabase
@@ -69,6 +74,13 @@ export default async function FichaTecnicaEditPage(props: Props) {
     .eq("ficha_tecnica_id", fichaTecnica?.id || "")
     .order("ordem", { ascending: true });
 
+  // Buscar fotos da ficha técnica
+  const { data: fotos } = await supabase
+    .from("fichas_tecnicas_fotos")
+    .select("*")
+    .eq("ficha_tecnica_id", fichaTecnica?.id || "")
+    .order("ordem", { ascending: true });
+
   return (
     <AnimationTransitionPage>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
@@ -104,6 +116,7 @@ export default async function FichaTecnicaEditPage(props: Props) {
           {fichaTecnica ? (
             <FichaTecnicaForm
               fichaTecnicaId={fichaTecnica.id}
+              lojaId={lojaId}
               produtoCardapio={{
                 id: produto.id,
                 codigo: produto.codigo,
@@ -111,8 +124,11 @@ export default async function FichaTecnicaEditPage(props: Props) {
                 unidade: produto.unidade,
               }}
               ingredientes={ingredientes || []}
+              fotos={fotos || []}
               porcoes={fichaTecnica.porcoes || undefined}
               observacoes={fichaTecnica.observacoes || undefined}
+              modoPreparo={fichaTecnica.modo_preparo || undefined}
+              tempoPreparoMinutos={fichaTecnica.tempo_preparo_minutos || undefined}
             />
           ) : (
             <Card>
