@@ -10,7 +10,14 @@ export function BackButton() {
   const pathname = usePathname();
   const router = useRouter();
 
-  if (params.size === 0 && !pathname.includes("/admin")) return <></>;
+  // Mostrar botão voltar se:
+  // - Tiver query params, OU
+  // - Estiver em /admin, OU
+  // - Pathname tiver mais de 2 segmentos (rotas dinâmicas como /ficha-tecnica/[id])
+  const pathSegments = pathname.split("/").filter(Boolean);
+  const shouldShow = params.size > 0 || pathname.includes("/admin") || pathSegments.length > 1;
+
+  if (!shouldShow) return <></>;
 
   const handleBack = () => {
     if (pathname === "/admin") router.replace("/");

@@ -152,52 +152,64 @@ export function FichaTecnicaForm({
   return (
     <div className="space-y-6">
       {/* Informações do Produto de Cardápio */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-slate-800 dark:to-slate-700">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Package className="h-5 w-5 text-orange-600" />
-              {produtoCardapio.nome}
+              <div className="p-2 bg-orange-600 rounded-lg">
+                <Package className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-lg sm:text-xl">{produtoCardapio.nome}</CardTitle>
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mt-1">
+                  <Badge variant="outline" className="text-xs">{produtoCardapio.codigo}</Badge>
+                  <span className="text-xs">·</span>
+                  <span className="text-xs">{produtoCardapio.unidade}</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary" className="text-base">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary" className="text-xs">
                 {ingredientes.length} {ingredientes.length === 1 ? 'ingrediente' : 'ingredientes'}
               </Badge>
               {fotos.length > 0 && (
-                <Badge variant="secondary" className="text-base">
+                <Badge variant="secondary" className="text-xs">
                   {fotos.length} {fotos.length === 1 ? 'foto' : 'fotos'}
                 </Badge>
               )}
             </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-4 text-sm text-slate-600 dark:text-slate-400">
-            <Badge variant="outline">{produtoCardapio.codigo}</Badge>
-            <span>Unidade: {produtoCardapio.unidade}</span>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Sistema de Tabs */}
-      <Tabs defaultValue="ingredientes" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="ingredientes" className="gap-2">
-            <Package className="h-4 w-4" />
-            Ingredientes
-          </TabsTrigger>
-          <TabsTrigger value="modo-preparo" className="gap-2">
-            <BookOpen className="h-4 w-4" />
-            Preparo
-          </TabsTrigger>
-          <TabsTrigger value="fotos" className="gap-2">
-            <Camera className="h-4 w-4" />
-            Fotos
-          </TabsTrigger>
-        </TabsList>
+        </CardHeader>
+        <CardContent className="p-0">
+          {/* Sistema de Tabs */}
+          <Tabs defaultValue="ingredientes" className="w-full">
+            <TabsList className="w-full grid grid-cols-3 rounded-none border-b bg-transparent h-auto p-0">
+              <TabsTrigger
+                value="ingredientes"
+                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-orange-600 data-[state=active]:bg-transparent py-3"
+              >
+                <Package className="h-4 w-4" />
+                <span className="hidden sm:inline">Ingredientes</span>
+                <span className="sm:hidden">Ingred.</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="modo-preparo"
+                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-orange-600 data-[state=active]:bg-transparent py-3"
+              >
+                <BookOpen className="h-4 w-4" />
+                Preparo
+              </TabsTrigger>
+              <TabsTrigger
+                value="fotos"
+                className="gap-2 rounded-none border-b-2 border-transparent data-[state=active]:border-orange-600 data-[state=active]:bg-transparent py-3"
+              >
+                <Camera className="h-4 w-4" />
+                Fotos
+              </TabsTrigger>
+            </TabsList>
 
         {/* Tab 1: Ingredientes */}
-        <TabsContent value="ingredientes" className="space-y-6 mt-6">
+        <TabsContent value="ingredientes" className="space-y-6 p-4 sm:p-6">
 
       {/* Adicionar Ingrediente */}
       <Card>
@@ -322,7 +334,7 @@ export function FichaTecnicaForm({
         </TabsContent>
 
         {/* Tab 2: Modo de Preparo */}
-        <TabsContent value="modo-preparo" className="mt-6">
+        <TabsContent value="modo-preparo" className="p-4 sm:p-6">
           <ModoPreparo
             fichaTecnicaId={fichaTecnicaId}
             produtoCardapioId={produtoCardapio.id}
@@ -332,7 +344,7 @@ export function FichaTecnicaForm({
         </TabsContent>
 
         {/* Tab 3: Fotos */}
-        <TabsContent value="fotos" className="mt-6">
+        <TabsContent value="fotos" className="p-4 sm:p-6">
           <FotosManager
             fichaTecnicaId={fichaTecnicaId}
             lojaId={lojaId}
@@ -343,7 +355,9 @@ export function FichaTecnicaForm({
             }}
           />
         </TabsContent>
-      </Tabs>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }

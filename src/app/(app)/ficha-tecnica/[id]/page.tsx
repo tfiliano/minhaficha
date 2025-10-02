@@ -84,33 +84,7 @@ export default async function FichaTecnicaEditPage(props: Props) {
   return (
     <AnimationTransitionPage>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="container mx-auto px-4 py-6">
-          {/* Header */}
-          <div className="mb-8">
-            <div className="bg-gradient-to-r from-orange-600 to-amber-600 rounded-xl p-6 text-white shadow-lg">
-              <div className="flex items-center gap-4 mb-4">
-                <Button
-                  variant="ghost"
-                  asChild
-                  className="text-white hover:bg-white/20"
-                >
-                  <Link href="/ficha-tecnica">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Voltar
-                  </Link>
-                </Button>
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold mb-2 flex items-center gap-3">
-                  <ChefHat className="h-8 w-8" />
-                  Ficha Técnica
-                </h1>
-                <p className="text-orange-100">
-                  Configure os ingredientes e quantidades para {produto.nome}
-                </p>
-              </div>
-            </div>
-          </div>
+        <div className="container mx-auto px-4 py-4 max-w-5xl">
 
           {/* Formulário */}
           {fichaTecnica ? (
