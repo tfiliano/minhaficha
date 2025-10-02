@@ -61,66 +61,43 @@ export function ModoPreparo({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Card de Tempo de Preparo */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            Tempo de Preparo
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="tempo">Tempo estimado (em minutos)</Label>
-            <Input
-              id="tempo"
-              type="number"
-              min="0"
-              placeholder="Ex: 30"
-              value={tempoMinutos}
-              onChange={(e) => setTempoMinutos(e.target.value)}
-              className="max-w-xs"
-            />
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Informe o tempo médio necessário para preparar este item
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-3">
+      {/* Tempo de Preparo - Compacto */}
+      <div className="flex items-center gap-2">
+        <Clock className="h-4 w-4 text-slate-500 flex-shrink-0" />
+        <Label htmlFor="tempo" className="text-sm flex-shrink-0">Tempo (min)</Label>
+        <Input
+          id="tempo"
+          type="number"
+          min="0"
+          placeholder="30"
+          value={tempoMinutos}
+          onChange={(e) => setTempoMinutos(e.target.value)}
+          className="w-24 h-8 text-sm"
+        />
+      </div>
 
-      {/* Card de Instruções */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Instruções de Preparo</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Label htmlFor="modo-preparo">Passo a passo do preparo</Label>
-            <RichTextEditor
-              content={modoPreparo}
-              onChange={setModoPreparo}
-              placeholder="Descreva o modo de preparo detalhado com formatação rica..."
-            />
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Use a barra de ferramentas para formatar o texto (negrito, itálico, listas, etc.)
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Editor de Modo de Preparo */}
+      <div className="space-y-2">
+        <RichTextEditor
+          content={modoPreparo}
+          onChange={setModoPreparo}
+          placeholder="Descreva o modo de preparo..."
+        />
+      </div>
 
       {/* Botão de Salvar */}
       <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving} size="lg">
+        <Button onClick={handleSave} disabled={saving} size="sm">
           {saving ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Salvando...
+              <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+              <span className="text-xs">Salvando...</span>
             </>
           ) : (
             <>
-              <Save className="mr-2 h-4 w-4" />
-              Salvar Modo de Preparo
+              <Save className="mr-1 h-3 w-3" />
+              <span className="text-xs sm:text-sm">Salvar</span>
             </>
           )}
         </Button>

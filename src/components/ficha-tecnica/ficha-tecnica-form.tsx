@@ -7,6 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { IngredienteSelector } from "./ingrediente-selector";
 import { ModoPreparo } from "./modo-preparo";
 import { FotosManager } from "./fotos-manager";
@@ -72,6 +82,7 @@ export function FichaTecnicaForm({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editQuantidade, setEditQuantidade] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [ingredienteToDelete, setIngredienteToDelete] = useState<string | null>(null);
 
   const handleAddIngrediente = async (produto: Produto, quantidade: number) => {
     setIsAdding(true);
@@ -103,15 +114,18 @@ export function FichaTecnicaForm({
     setIsAdding(false);
   };
 
-  const handleRemoveIngrediente = async (itemId: string) => {
-    const result = await removeIngrediente(itemId);
+  const handleRemoveIngrediente = async () => {
+    if (!ingredienteToDelete) return;
+
+    const result = await removeIngrediente(ingredienteToDelete);
     if (result.success) {
       // Atualizar lista localmente
-      setIngredientes(ingredientes.filter((item) => item.id !== itemId));
+      setIngredientes(ingredientes.filter((item) => item.id !== ingredienteToDelete));
       toast.success("Ingrediente removido com sucesso!");
     } else {
       toast.error(result.error || "Erro ao remover ingrediente");
     }
+    setIngredienteToDelete(null);
   };
 
   const handleStartEdit = (item: IngredienteItem) => {
@@ -153,7 +167,7 @@ export function FichaTecnicaForm({
     <div className="space-y-6">
       {/* Informações do Produto de Cardápio */}
       <Card className="overflow-hidden">
-        <CardHeader className="pb-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-slate-800 dark:to-slate-700">
+        <CardHeader className="p-3 sm:p-6 pb-2 sm:pb-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-slate-800 dark:to-slate-700">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-2 flex-1 min-w-0">
               <div className="p-2 bg-orange-600 rounded-lg flex-shrink-0">
@@ -170,11 +184,11 @@ export function FichaTecnicaForm({
             </div>
             <div className="flex flex-col items-end gap-1 flex-shrink-0">
               <Badge variant="secondary" className="text-xs whitespace-nowrap">
-                {ingredientes.length}{' '}
-                <span className="hidden sm:inline">
+                {ingredientes.length}
+                <span className="hidden sm:inline ml-1">
                   {ingredientes.length === 1 ? 'ingrediente' : 'ingredientes'}
                 </span>
-                <span className="sm:hidden">ingred.</span>
+                <span className="sm:hidden ml-1">ingred.</span>
               </Badge>
               {fotos.length > 0 && (
                 <Badge variant="secondary" className="text-xs whitespace-nowrap">
@@ -213,54 +227,44 @@ export function FichaTecnicaForm({
             </TabsList>
 
         {/* Tab 1: Ingredientes */}
-        <TabsContent value="ingredientes" className="space-y-6 p-4 sm:p-6">
+        <TabsContent value="ingredientes" className="space-y-3 p-3 sm:p-6">
 
-      {/* Adicionar Ingrediente */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Adicionar Ingrediente</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <IngredienteSelector
-            onSelect={handleAddIngrediente}
-            excludeIds={excludedIds}
-          />
-        </CardContent>
-      </Card>
+      {/* Campo de Busca Compacto */}
+      <div className="sticky top-0 bg-white dark:bg-slate-950 z-10 pb-3">
+        <IngredienteSelector
+          onSelect={handleAddIngrediente}
+          excludeIds={excludedIds}
+        />
+      </div>
 
       {/* Lista de Ingredientes */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Ingredientes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {ingredientes.length === 0 ? (
-            <div className="text-center py-12">
-              <Package className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-              <p className="text-slate-500 dark:text-slate-400">
-                Nenhum ingrediente adicionado ainda
-              </p>
-              <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
-                Use o campo de busca acima para adicionar ingredientes
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
+      {ingredientes.length === 0 ? (
+        <div className="text-center py-8 px-4">
+          <Package className="h-10 w-10 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Nenhum ingrediente adicionado
+          </p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+            Use o campo de busca acima
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
               {ingredientes.map((item, index) => (
                 <div
                   key={item.id}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                  className="flex items-center gap-2 p-2.5 sm:p-3 rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <Badge variant="outline" className="shrink-0">
+                      <Badge variant="outline" className="shrink-0 text-xs">
                         {item.produto?.codigo}
                       </Badge>
-                      <span className="font-medium text-slate-900 dark:text-white truncate">
+                      <span className="text-sm font-medium text-slate-900 dark:text-white truncate">
                         {item.produto?.nome}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
                       {editingId === item.id ? (
                         <div className="flex items-center gap-2">
                           <Input
@@ -314,7 +318,7 @@ export function FichaTecnicaForm({
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => handleRemoveIngrediente(item.id)}
+                          onClick={() => setIngredienteToDelete(item.id)}
                           className="h-8 w-8 p-0"
                         >
                           <Trash2 className="h-4 w-4 text-red-600" />
@@ -324,14 +328,12 @@ export function FichaTecnicaForm({
                   </div>
                 </div>
               ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      )}
         </TabsContent>
 
         {/* Tab 2: Modo de Preparo */}
-        <TabsContent value="modo-preparo" className="p-4 sm:p-6">
+        <TabsContent value="modo-preparo" className="p-3 sm:p-6">
           <ModoPreparo
             fichaTecnicaId={fichaTecnicaId}
             produtoCardapioId={produtoCardapio.id}
@@ -341,7 +343,7 @@ export function FichaTecnicaForm({
         </TabsContent>
 
         {/* Tab 3: Fotos */}
-        <TabsContent value="fotos" className="p-4 sm:p-6">
+        <TabsContent value="fotos" className="p-3 sm:p-6">
           <FotosManager
             fichaTecnicaId={fichaTecnicaId}
             lojaId={lojaId}
@@ -355,6 +357,24 @@ export function FichaTecnicaForm({
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Dialog de Confirmação de Exclusão */}
+      <AlertDialog open={!!ingredienteToDelete} onOpenChange={() => setIngredienteToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja remover este ingrediente? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRemoveIngrediente} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

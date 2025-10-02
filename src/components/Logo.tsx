@@ -10,6 +10,7 @@ const routeNames: Record<string, string> = {
   "/producao": "Produção",
   "/operador": "Operador",
   "/entrada-insumo": "Entrada de Insumo",
+  "/ficha-tecnica": "Fichas Técnicas",
   "/relatorios": "Relatórios",
   "/admin": "Administração",
   "/admin/produtos": "Produtos",

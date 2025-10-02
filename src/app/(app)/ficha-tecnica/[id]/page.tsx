@@ -84,7 +84,7 @@ export default async function FichaTecnicaEditPage(props: Props) {
   return (
     <AnimationTransitionPage>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-        <div className="container mx-auto px-4 py-4 max-w-5xl">
+        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4 max-w-5xl">
 
           {/* Formulário */}
           {fichaTecnica ? (

@@ -2,6 +2,96 @@
 
 ## [0.3.4] - 2025-10-02
 
+### 🧑‍🍳 Melhorias no Sistema de Ficha Técnica
+
+#### **Interface com Tabs**
+- **📑 Sistema de Abas**: Implementadas 3 tabs na ficha técnica
+  - **Ingredientes**: Gestão completa de ingredientes com busca e edição inline
+  - **Preparo**: Editor de texto rico para modo de preparo + tempo estimado
+  - **Fotos**: Upload e gerenciamento de fotos com capa
+- **🎨 UI Mobile-First**: Interface redesenhada para mobile
+  - Cards compactos e responsivos
+  - Margens reduzidas
+  - Texto adaptativo (desktop: "ingredientes", mobile: "ingred.")
+  - Imagens otimizadas (thumbnails 32px em cards, 48px na listagem)
+
+#### **Editor de Texto Rico**
+- **✏️ Editor Quill**: Substituído Tiptap por react-quill-new
+  - Compatível com React 18
+  - Toolbar compacta em uma linha
+  - Suporte a: Bold, Italic, Headers (H2/H3), Listas (ordenadas/marcadores), Alinhamento
+  - Dark mode completo
+  - Tooltips em português
+  - Loading state durante carregamento
+
+#### **Gerenciamento de Fotos**
+- **📸 Upload de Fotos**: Sistema completo de fotos
+  - Upload múltiplo (máx. 10 fotos por ficha)
+  - Validação de tipo (JPG, PNG, WebP) e tamanho (5MB)
+  - Definir foto de capa (badge dourada "Capa")
+  - Visualização em tela cheia com dialog
+  - Grid responsivo (3/4/5 colunas conforme breakpoint)
+  - Thumbnails compactos (h-32)
+  - Botões de ação no hover (Visualizar, Tornar Capa, Excluir)
+- **🗄️ Storage Integration**: Supabase Storage
+  - Bucket 'arquivos' com RLS policies
+  - Organização por loja e ficha técnica
+  - URLs públicas para acesso às imagens
+
+#### **Busca e Filtros Avançados**
+- **🔍 Sistema de Busca**: Painel lateral (Sheet) com filtros
+  - Campo de busca por nome ou código
+  - Filtro por Grupo (dropdown)
+  - Filtro por Setor (dropdown)
+  - Filtro por Status: Com/Sem ingredientes, Com/Sem foto
+  - Indicador visual (bolinha laranja) quando há filtros ativos
+  - Botão "Limpar Tudo"
+  - Contador de resultados em tempo real
+  - Filtros aplicados instantaneamente (client-side)
+
+#### **Listagem de Fichas**
+- **📋 Cards Compactos**: Interface redesenhada
+  - Foto de capa exibida (quando disponível)
+  - Badges de status (ingredientes, foto)
+  - Layout responsivo (1/2/3 colunas)
+  - Hover com escala sutil (1.02x)
+  - Botão centralizado "Adicionar Item"
+  - Botão "Filtros" à direita
+
+#### **UX Melhorada**
+- **⚠️ Confirmações**: Dialogs de confirmação
+  - Exclusão de ingredientes (AlertDialog)
+  - Exclusão de fotos (AlertDialog)
+  - Mensagens claras e destrutivas
+- **🏷️ Navegação**: Atualizado componente Logo
+  - Rota "/ficha-tecnica" exibe "Fichas Técnicas"
+  - Padrão consistente com outras telas
+
+#### **Banco de Dados**
+- **🗄️ Migração**: Novas tabelas e campos
+  - `modo_preparo` (TEXT) em `fichas_tecnicas`
+  - `tempo_preparo_minutos` (INTEGER) em `fichas_tecnicas`
+  - Tabela `fichas_tecnicas_fotos` com campos:
+    - `url`, `is_capa`, `ordem`
+    - Índice único para garantir apenas 1 foto de capa
+    - Trigger para atualizar capa automaticamente
+- **🔐 Multi-tenancy**: Correção no proxy Supabase
+  - Adicionada `fichas_tecnicas_fotos` à lista de exceção
+  - Tabela não possui `loja_id` (herda via FK)
+
+#### **Dependências**
+- **➕ Adicionados**:
+  - `react-quill-new@^3.6.0` (fork compatível com React 18)
+  - `quill@^2.0.3`
+- **➖ Removidos**:
+  - `@tiptap/react`
+  - `@tiptap/starter-kit`
+  - `@tiptap/extension-placeholder`
+
+---
+
+## [0.3.3] - 2025-10-01
+
 ### 🧑‍🍳 Sistema de Ficha Técnica
 
 #### **Nova Funcionalidade Completa**
