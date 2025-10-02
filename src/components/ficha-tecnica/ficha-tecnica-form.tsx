@@ -154,26 +154,26 @@ export function FichaTecnicaForm({
       {/* Informações do Produto de Cardápio */}
       <Card className="overflow-hidden">
         <CardHeader className="pb-3 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-slate-800 dark:to-slate-700">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-orange-600 rounded-lg">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div className="p-2 bg-orange-600 rounded-lg flex-shrink-0">
                 <Package className="h-5 w-5 text-white" />
               </div>
-              <div>
-                <CardTitle className="text-lg sm:text-xl">{produtoCardapio.nome}</CardTitle>
-                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mt-1">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-lg sm:text-xl truncate">{produtoCardapio.nome}</CardTitle>
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mt-1 flex-wrap">
                   <Badge variant="outline" className="text-xs">{produtoCardapio.codigo}</Badge>
                   <span className="text-xs">·</span>
                   <span className="text-xs">{produtoCardapio.unidade}</span>
                 </div>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary" className="text-xs">
-                {ingredientes.length} {ingredientes.length === 1 ? 'ingrediente' : 'ingredientes'}
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+              <Badge variant="secondary" className="text-xs whitespace-nowrap">
+                {ingredientes.length} {ingredientes.length === 1 ? 'ingred.' : 'ingred.'}
               </Badge>
               {fotos.length > 0 && (
-                <Badge variant="secondary" className="text-xs">
+                <Badge variant="secondary" className="text-xs whitespace-nowrap">
                   {fotos.length} {fotos.length === 1 ? 'foto' : 'fotos'}
                 </Badge>
               )}
