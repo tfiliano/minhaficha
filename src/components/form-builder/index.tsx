@@ -376,28 +376,30 @@ export function FooterFormBuilder({
   if (submitLabel)
     return (
       <div className="bg-white dark:bg-slate-900 rounded-xl p-4 sm:p-6 shadow-lg border border-slate-200 dark:border-slate-700 mt-6 sm:mt-8">
-        <div className={cn("flex flex-col sm:flex-row gap-3 sm:gap-4", buttonsContainerClass)}>
-          <Button
-            type={submitType || "submit"}
-            className={cn(
-              "flex-1 h-12 sm:h-14 text-base sm:text-lg font-semibold bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105",
-              submitClass
-            )}
-            disabled={!!formState.isSubmitting || !formState.isValid}
-            {...(submitType === "button"
-              ? { onClick: handleSubmit(onSubmit) }
-              : {})}
-          >
-            {!!formState.isSubmitting && (
-              <Loader2 className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
-            )}
-            {!!formState.isSubmitting ? "Salvando..." : submitLabel}
-          </Button>
-          
+        <div className="flex flex-col gap-3 sm:gap-4">
+          <div className={cn("flex", buttonsContainerClass)}>
+            <Button
+              type={submitType || "submit"}
+              className={cn(
+                "flex-1 h-12 sm:h-14 text-base sm:text-lg font-semibold bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105",
+                submitClass
+              )}
+              disabled={!!formState.isSubmitting || !formState.isValid}
+              {...(submitType === "button"
+                ? { onClick: handleSubmit(onSubmit) }
+                : {})}
+            >
+              {!!formState.isSubmitting && (
+                <Loader2 className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+              )}
+              {!!formState.isSubmitting ? "Salvando..." : submitLabel}
+            </Button>
+          </div>
+
           {extraButtons && !formState.isSubmitting && (
-            <>
+            <div className={cn("flex justify-center", extraButtonsContainerClass)}>
               {extraButtons}
-            </>
+            </div>
           )}
         </div>
       </div>

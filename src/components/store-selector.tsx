@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, ChevronDown, Store } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@/utils/supabase-client";
-import { actionSelectLoja } from "@/app/(app)/store-picker/select-store";
+import { actionSelectLoja } from "@/app/store-picker/select-store";
 import { toast } from "sonner";
 import { getCookie } from "@/utils/cookie-local";
 

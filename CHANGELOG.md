@@ -1,5 +1,95 @@
 # Changelog
 
+## [0.3.5] - 2025-10-02
+
+### 🎨 Redesign Completo das Páginas de Autenticação
+
+#### **Interface Modernizada com Tema Azul**
+- **🔐 Página de Login**: Redesenhada com layout moderno e limpo
+  - Card centralizado com sombra e bordas arredondadas (rounded-2xl)
+  - Logo com gradiente azul (from-blue-500 to-blue-600)
+  - Título em gradiente "Minha Ficha" (from-blue-600 to-blue-700)
+  - Background com gradiente sutil (from-blue-50 via-cyan-50 to-slate-50)
+  - Removido header com versão, interface full-screen centrada
+  - Dark mode completo em todos os elementos
+
+#### **🔗 Autenticação Magic Link**
+- **Novo Método de Login**: Botão "Receber link no email"
+  - Implementado com `signInWithOtp()` do Supabase
+  - Tela de confirmação após envio do email
+  - Mensagens de sucesso/erro com toast notifications
+  - Ícone de email (Mail) no botão
+  - Estilo azul consistente com tema geral
+
+#### **🔑 Sistema de Recuperação de Senha**
+- **Página "Esqueci Minha Senha"**: Completamente refeita
+  - Formulário com campo de email único
+  - Usa `resetPasswordForEmail()` do Supabase (corrigido)
+  - Ícone KeyRound em gradiente azul
+  - Tela de confirmação após envio
+  - Redirecionamento para `/auth/reset-password`
+
+- **Nova Página "Redefinir Senha"**: Criada do zero
+  - Campos de senha e confirmação de senha
+  - Validação client-side para senhas correspondentes
+  - Usa `updateUser()` para atualizar senha
+  - Ícone Lock em gradiente azul
+  - Tela de sucesso com redirecionamento automático para login
+  - Mensagens de feedback claras
+
+- **Nova Rota de Callback**: `/auth/callback`
+  - Handler para processar magic links e reset de senha
+  - Usa `exchangeCodeForSession()` para troca de código
+  - Redirecionamento inteligente após autenticação
+  - Tratamento de erros com mensagem na URL
+
+#### **🏪 Página de Seleção de Loja Redesenhada**
+- **Interface Modernizada**: Seguindo padrão das páginas de auth
+  - Removido header com logo e versão
+  - Layout centralizado com gradiente azul de background
+  - Logo grande com gradiente azul no topo
+  - Título "Minha Ficha" e subtítulo explicativo
+  - Cards de loja com hover effects (scale-105, border-blue-500)
+  - Avatares com ícone de Store em gradiente azul
+  - Grid responsivo (1/2/3 colunas conforme breakpoint)
+  - Sombras e bordas suaves (shadow-lg, rounded-2xl)
+
+- **Organização de Arquivos**: Movido de `(app)` para raiz
+  - De: `/app/(app)/store-picker/`
+  - Para: `/app/store-picker/`
+  - Criado `layout.tsx` próprio com gradiente azul
+  - Atualizado imports em `user-menu.tsx` e `store-selector.tsx`
+
+#### **🎨 Mudança de Paleta de Cores**
+- **Tema Unificado Azul/Ciano**: Substituição completa
+  - Background: `orange-50` → `blue-50`, `amber-50` → `cyan-50`
+  - Gradientes de logo: `orange-500/amber-500` → `blue-500/blue-600`
+  - Texto em gradiente: `orange-600/amber-600` → `blue-600/blue-700`
+  - Hover states: `orange-700/amber-700` → `blue-700/blue-800`
+  - Bordas e acentos em tonalidades de azul
+
+#### **📱 Layout Responsivo Aprimorado**
+- **FormBuilder Footer**: Mudança de layout
+  - Botões agora em linhas separadas (flex-col)
+  - "Esqueci minha senha" abaixo do botão principal
+  - Melhor UX em mobile e desktop
+  - Separação clara entre ação principal e secundária
+
+### 🛠 Melhorias Técnicas
+- **🗂️ Organização de Rotas**: Store picker fora do grupo `(app)` para evitar header
+- **🎯 Componentes Simplificados**: Removido FormBuilder2 em favor de formulários manuais
+- **⚡ Estado Local**: Uso de `useState` para controle de fluxo (magicLinkSent, emailSent, passwordReset)
+- **🔄 Redirecionamentos**: Lógica de redirect após autenticação bem definida
+- **📝 Validação**: Verificação client-side para senhas correspondentes
+
+### 🐛 Correções
+- **Zod Schema**: Removido `.required()` após `.refine()` (não suportado)
+- **Imports**: Atualizados após mover store-picker (`@/app/store-picker/select-store`)
+- **Fluxo de Recuperação**: Corrigido para usar `resetPasswordForEmail` ao invés de login action
+- **Callback OAuth**: Implementado handler para processar códigos do Supabase
+
+---
+
 ## [0.3.4] - 2025-10-02
 
 ### 🧑‍🍳 Melhorias no Sistema de Ficha Técnica

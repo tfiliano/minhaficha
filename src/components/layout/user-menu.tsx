@@ -15,7 +15,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { createBrowserClient } from "@/utils/supabase-client";
 import { getCookie } from "@/utils/cookie-local";
-import { actionSelectLoja } from "@/app/(app)/store-picker/select-store";
+import { actionSelectLoja } from "@/app/store-picker/select-store";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
