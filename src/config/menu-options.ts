@@ -21,7 +21,14 @@ export const adminMenuOptions = [
     category: "primary",
     description: "Monitore impressões ativas"
   },
-  
+  {
+    label: "Ficha Técnica",
+    href: "../ficha-tecnica",
+    icon: "ChefHat",
+    category: "primary",
+    description: "Receitas e ingredientes"
+  },
+
   // Configurações - Setup do sistema
   {
     label: "Grupos",

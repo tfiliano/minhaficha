@@ -14,34 +14,32 @@ export async function createClient() {
   ) => {
     return (...args: any[]) => {
       // No caso do select, adiciona o filtro `.eq("loja_id", loja_id)`
+      // Tabelas que não precisam de filtro automático por loja_id
+      const tabelasSemFiltro = [
+        "loja_usuarios",
+        "usuarios",
+        "lojas",
+        "usuarios_masters",
+        "impressoras",
+        "fichas_tecnicas_itens", // Não tem loja_id, herda pela FK
+      ];
+
       if (
         method === "select" &&
-        table !== "loja_usuarios" &&
-        table !== "usuarios" &&
-        table !== "lojas" &&
-        table !== "usuarios_masters" &&
-        table !== "impressoras"
+        !tabelasSemFiltro.includes(table as string)
       ) {
         const query = fn(...args);
         return query.eq("loja_id", loja_id!);
       }
       if (
         method === "insert" &&
-        table !== "loja_usuarios" &&
-        table !== "usuarios" &&
-        table !== "lojas" &&
-        table !== "usuarios_masters" &&
-        table !== "impressoras"
+        !tabelasSemFiltro.includes(table as string)
       ) {
         if (!args[0].loja_id) args[0].loja_id = loja_id;
       }
       if (
         method === "upsert" &&
-        table !== "loja_usuarios" &&
-        table !== "usuarios" &&
-        table !== "lojas" &&
-        table !== "usuarios_masters" &&
-        table !== "impressoras"
+        !tabelasSemFiltro.includes(table as string)
       ) {
         if (!args[0].loja_id) args[0].loja_id = loja_id;
       }

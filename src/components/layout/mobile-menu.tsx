@@ -20,7 +20,8 @@ import {
   Receipt,
   LayoutTemplate,
   PrinterIcon,
-  Cog
+  Cog,
+  ChefHat
 } from "lucide-react";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
@@ -37,6 +38,7 @@ import { cn } from "@/lib/utils";
 
 const adminSubmenus = [
   { href: "/admin/produtos", label: "Produtos", icon: Box },
+  { href: "/ficha-tecnica", label: "Ficha Técnica", icon: ChefHat },
   { href: "/admin/operadores", label: "Operadores", icon: Users },
   { href: "/admin/grupos", label: "Grupos", icon: Tags },
   { href: "/admin/setores", label: "Setores", icon: MapPin },
@@ -56,6 +58,7 @@ const menuItems = [
   { href: "/operador?operacao=Produção", label: "Produção", icon: Package },
   { href: "/operador?operacao=Etiquetas", label: "Gerar Etiqueta", icon: Printer },
   { href: "/operador?operacao=Entrada de Insumos", label: "Entrada de Insumos", icon: FileText },
+  { href: "/ficha-tecnica", label: "Ficha Técnica", icon: ChefHat },
   { href: "/admin/reports", label: "Relatórios", icon: BarChart3 },
   {
     href: "/admin",

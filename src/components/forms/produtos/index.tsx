@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Builder, blurActionRegistry } from "@/components/form-builder";
 import { useRouter } from "@/hooks/use-router";
 import { executeRevalidationPath } from "@/lib/revalidation-next";
@@ -9,6 +10,9 @@ import { createBrowserClient } from "@/utils/supabase-client";
 import { FieldValues, UseFormReset } from "react-hook-form";
 import { toast } from "sonner";
 import { EntityFormHandler, ModeFormHandlerProp } from "..";
+import { SelectWithAddGrupo } from "./select-with-add-grupo";
+import { SelectWithAddSetor } from "./select-with-add-setor";
+import { SelectWithAddArmazenamento } from "./select-with-add-armazenamento";
 
 type IProduto = Tables<"produtos">;
 type Grupo = Tables<"grupos">;
@@ -120,6 +124,15 @@ const formBuilder = (
                 label: grupo.nome || 'Sem nome',
               })),
               required: true,
+              component: (props: any) => (
+                <SelectWithAddGrupo
+                  grupos={grupos}
+                  formField={props.formField}
+                  onGrupoAdded={(novoGrupo) => {
+                    setGrupos([...grupos, novoGrupo]);
+                  }}
+                />
+              ),
             },
             {
               name: "setor",
@@ -131,6 +144,12 @@ const formBuilder = (
                 label: setor.nome,
               })),
               required: true,
+              component: (props: any) => (
+                <SelectWithAddSetor
+                  setores={setores || []}
+                  formField={props.formField}
+                />
+              ),
             },
           ],
         },
@@ -151,6 +170,15 @@ const formBuilder = (
                 label: armazenamento.armazenamento || 'Sem nome',
               })),
               required: true,
+              component: (props: any) => (
+                <SelectWithAddArmazenamento
+                  armazenamentos={armazenamentos}
+                  formField={props.formField}
+                  onArmazenamentoAdded={(novoArmazenamento) => {
+                    setArmazenamentos([...armazenamentos, novoArmazenamento]);
+                  }}
+                />
+              ),
             },
             {
               name: "dias_validade",
@@ -186,19 +214,38 @@ const formBuilder = (
         },
       ],
     },
+    {
+      label: "Ficha Técnica",
+      rows: [
+        {
+          fields: [
+            {
+              name: "item_de_cardapio",
+              label: "É um item de cardápio?",
+              type: "checkbox",
+              required: false,
+              helperText: "Marque se este produto possui ficha técnica com ingredientes",
+            },
+          ],
+        },
+      ],
+    },
   ],
 });
 
 function ProdutoForm({
   mode,
   produto,
-  grupos,
-  armazenamentos,
+  grupos: gruposInitial,
+  armazenamentos: armazenamentosInitial,
   produtos,
   setores,
 }: ProdutoProps & ModeFormHandlerProp) {
   const supabase = createBrowserClient();
   const router = useRouter();
+  const [grupos, setGrupos] = useState(gruposInitial);
+  const [armazenamentos, setArmazenamentos] = useState(armazenamentosInitial);
+
   const handleSubmit = async (data: IProduto) => {
     try {
       console.log(data)
@@ -206,6 +253,8 @@ function ProdutoForm({
       const armazenamento = armazenamentos.find((a) => a.id === data.armazenamento_id);
 
       if (!grupo || !armazenamento) {
+        console.error('Grupo não encontrado:', { grupo_id: data.grupo_id, grupos });
+        console.error('Armazenamento não encontrado:', { armazenamento_id: data.armazenamento_id, armazenamentos });
         throw new Error('Grupo ou local de armazenamento não encontrado');
       }
 
@@ -227,6 +276,7 @@ function ProdutoForm({
         estoque_unidade: data.estoque_unidade === undefined ? null : data.estoque_unidade,
         estoque_kilo: data.estoque_kilo === undefined ? null : data.estoque_kilo,
         dias_validade: data.dias_validade === undefined ? null : data.dias_validade,
+        item_de_cardapio: data.item_de_cardapio ?? false,
         ativo: data.ativo ?? true,
         loja_id: data.loja_id ?? null,
       };

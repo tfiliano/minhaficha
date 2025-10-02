@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { UrlObject } from "url";
 import { Card, CardContent } from "../ui/card";
-import { 
-  Package, 
-  QrCode, 
+import {
+  Package,
+  QrCode,
   Printer as PrinterIcon,
   FolderTree,
   Archive,
@@ -15,7 +15,8 @@ import {
   Layout,
   Settings,
   BarChart3,
-  ArrowRight
+  ArrowRight,
+  ChefHat
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MenuCategory } from "@/config/menu-options";
@@ -34,6 +35,7 @@ const iconMap = {
   Layout,
   Settings,
   BarChart3,
+  ChefHat,
 } as const;
 
 const categoryStyles = {

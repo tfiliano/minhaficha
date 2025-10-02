@@ -10,15 +10,19 @@ export function Operacao({ tipoUsuario }: any) {
 
     {
       title: "Entrada de Insumos",
+      url: null,
     },
     {
       title: "Produção",
+      url: null,
     },
     {
       title: "Ficha Técnica",
+      url: "/ficha-tecnica",
     },
     {
       title: "Etiquetas",
+      url: null,
     },
   ];
 
@@ -30,10 +34,14 @@ export function Operacao({ tipoUsuario }: any) {
           <CardButton
             key={operacao.title}
             title={operacao.title}
-            url={{
-              pathname: "/operador",
-              query: { operacao: operacao.title },
-            }}
+            url={
+              operacao.url
+                ? operacao.url
+                : {
+                    pathname: "/operador",
+                    query: { operacao: operacao.title },
+                  }
+            }
           />
         ))}
         {["admin", "master"].includes(tipoUsuario) && (

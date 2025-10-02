@@ -134,6 +134,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "etiquetas_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_fichas_tecnicas_completas"
+            referencedColumns: ["produto_id"]
+          },
+          {
             foreignKeyName: "etiquetas_template_id_fkey"
             columns: ["template_id"]
             isOneToOne: false
@@ -174,6 +181,129 @@ export type Database = {
           telefone?: string | null
         }
         Relationships: []
+      }
+      fichas_tecnicas: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          id: string
+          loja_id: string | null
+          nome: string | null
+          observacoes: string | null
+          porcoes: number | null
+          produto_cardapio_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          id?: string
+          loja_id?: string | null
+          nome?: string | null
+          observacoes?: string | null
+          porcoes?: number | null
+          produto_cardapio_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          id?: string
+          loja_id?: string | null
+          nome?: string | null
+          observacoes?: string | null
+          porcoes?: number | null
+          produto_cardapio_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fichas_tecnicas_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fichas_tecnicas_produto_cardapio_id_fkey"
+            columns: ["produto_cardapio_id"]
+            isOneToOne: true
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fichas_tecnicas_produto_cardapio_id_fkey"
+            columns: ["produto_cardapio_id"]
+            isOneToOne: true
+            referencedRelation: "vw_fichas_tecnicas_completas"
+            referencedColumns: ["produto_id"]
+          },
+        ]
+      }
+      fichas_tecnicas_itens: {
+        Row: {
+          created_at: string | null
+          custo_unitario: number | null
+          ficha_tecnica_id: string
+          id: string
+          observacoes: string | null
+          ordem: number | null
+          produto_ingrediente_id: string
+          quantidade: number
+          unidade: string
+        }
+        Insert: {
+          created_at?: string | null
+          custo_unitario?: number | null
+          ficha_tecnica_id: string
+          id?: string
+          observacoes?: string | null
+          ordem?: number | null
+          produto_ingrediente_id: string
+          quantidade: number
+          unidade: string
+        }
+        Update: {
+          created_at?: string | null
+          custo_unitario?: number | null
+          ficha_tecnica_id?: string
+          id?: string
+          observacoes?: string | null
+          ordem?: number | null
+          produto_ingrediente_id?: string
+          quantidade?: number
+          unidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fichas_tecnicas_itens_ficha_tecnica_id_fkey"
+            columns: ["ficha_tecnica_id"]
+            isOneToOne: false
+            referencedRelation: "fichas_tecnicas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fichas_tecnicas_itens_ficha_tecnica_id_fkey"
+            columns: ["ficha_tecnica_id"]
+            isOneToOne: false
+            referencedRelation: "vw_fichas_tecnicas_completas"
+            referencedColumns: ["ficha_id"]
+          },
+          {
+            foreignKeyName: "fichas_tecnicas_itens_produto_ingrediente_id_fkey"
+            columns: ["produto_ingrediente_id"]
+            isOneToOne: false
+            referencedRelation: "produtos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fichas_tecnicas_itens_produto_ingrediente_id_fkey"
+            columns: ["produto_ingrediente_id"]
+            isOneToOne: false
+            referencedRelation: "vw_fichas_tecnicas_completas"
+            referencedColumns: ["produto_id"]
+          },
+        ]
       }
       grupos: {
         Row: {
@@ -555,6 +685,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "producao_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_fichas_tecnicas_completas"
+            referencedColumns: ["produto_id"]
+          },
+          {
             foreignKeyName: "producoes_client_id_fkey"
             columns: ["loja_id"]
             isOneToOne: false
@@ -589,6 +726,7 @@ export type Database = {
           grupo: string
           grupo_id: string | null
           id: string
+          item_de_cardapio: boolean | null
           loja_id: string | null
           nome: string
           originado: string | null
@@ -606,6 +744,7 @@ export type Database = {
           grupo: string
           grupo_id?: string | null
           id?: string
+          item_de_cardapio?: boolean | null
           loja_id?: string | null
           nome: string
           originado?: string | null
@@ -623,6 +762,7 @@ export type Database = {
           grupo?: string
           grupo_id?: string | null
           id?: string
+          item_de_cardapio?: boolean | null
           loja_id?: string | null
           nome?: string
           originado?: string | null
@@ -657,6 +797,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "produtos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "produtos_originado_fkey"
+            columns: ["originado"]
+            isOneToOne: false
+            referencedRelation: "vw_fichas_tecnicas_completas"
+            referencedColumns: ["produto_id"]
           },
         ]
       }
@@ -733,11 +880,25 @@ export type Database = {
             referencedColumns: ["codigo"]
           },
           {
+            foreignKeyName: "entrada_insumos_produto_fkey"
+            columns: ["produto"]
+            isOneToOne: false
+            referencedRelation: "vw_fichas_tecnicas_completas"
+            referencedColumns: ["produto_codigo"]
+          },
+          {
             foreignKeyName: "entrada_insumos_produto_id_fkey"
             columns: ["produto_id"]
             isOneToOne: false
             referencedRelation: "produtos"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entrada_insumos_produto_id_fkey"
+            columns: ["produto_id"]
+            isOneToOne: false
+            referencedRelation: "vw_fichas_tecnicas_completas"
+            referencedColumns: ["produto_id"]
           },
           {
             foreignKeyName: "recebimento_operador_id_fkey"
@@ -901,7 +1062,32 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      vw_fichas_tecnicas_completas: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          custo_total_estimado: number | null
+          ficha_id: string | null
+          ficha_nome: string | null
+          ficha_observacoes: string | null
+          loja_id: string | null
+          porcoes: number | null
+          produto_codigo: string | null
+          produto_id: string | null
+          produto_nome: string | null
+          total_ingredientes: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fichas_tecnicas_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       listar_setores: {

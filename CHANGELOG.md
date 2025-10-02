@@ -1,5 +1,74 @@
 # Changelog
 
+## [0.3.4] - 2025-10-02
+
+### 🧑‍🍳 Sistema de Ficha Técnica
+
+#### **Nova Funcionalidade Completa**
+- **📋 Gestão de Fichas Técnicas**: Sistema completo para gerenciar receitas e ingredientes de produtos de cardápio
+  - Listagem de produtos marcados como "Item de Cardápio"
+  - Interface para adicionar, editar e remover ingredientes
+  - Contador dinâmico de ingredientes que atualiza em tempo real
+  - Busca de produtos com autocomplete e debounce (300ms)
+  - Cálculo automático de quantidades e unidades de medida
+
+#### **Banco de Dados**
+- **🗄️ Novas Tabelas**: Criadas tabelas `fichas_tecnicas` e `fichas_tecnicas_itens`
+- **🔐 RLS Policies**: Implementadas políticas de segurança para multi-tenancy
+- **🔗 Relacionamentos**: FKs entre fichas técnicas, produtos de cardápio e ingredientes
+- **✅ Campo Novo**: Adicionado campo `item_de_cardapio` à tabela `produtos`
+
+#### **Formulário de Produtos Aprimorado**
+- **➕ Quick-Add Modals**: Botões de adicionar rápido para:
+  - Grupos (sem abandonar o formulário)
+  - Setores (com criação inline)
+  - Locais de Armazenamento (cadastro rápido)
+- **🔄 Estado Sincronizado**: Listas atualizadas dinamicamente sem reload
+- **📝 Callbacks**: Sistema de callbacks para sincronizar estado entre componentes
+
+#### **Navegação e Menus**
+- **🧭 Rotas Criadas**:
+  - `/ficha-tecnica` - Listagem de produtos de cardápio
+  - `/ficha-tecnica/[id]` - Edição de ficha técnica específica
+- **📱 Menu Principal**: Card "Ficha Técnica" vai direto para listagem
+- **🍔 Burger Menu**: Item "Ficha Técnica" adicionado ao menu lateral
+- **🎛️ Menu Admin**: Opção "Ficha Técnica" no painel administrativo
+- **🔙 Botão Voltar**: Implementado no header das páginas de ficha técnica
+
+#### **Componentes Criados**
+- **`FichaTecnicaForm`**: Formulário principal de gestão de ingredientes
+  - Adicionar ingredientes com busca e quantidade
+  - Editar quantidades inline
+  - Remover ingredientes com confirmação
+  - Estado local otimista para UX fluida
+- **`IngredienteSelector`**: Autocomplete para busca de produtos
+  - Debounce de 300ms para performance
+  - Listagem com código, nome, grupo e unidade
+  - Input de quantidade antes de adicionar
+- **`SelectWithAddGrupo`**: Modal para criar grupos sem sair do formulário
+- **`SelectWithAddSetor`**: Modal para criar setores inline
+- **`SelectWithAddArmazenamento`**: Modal para criar locais de armazenamento
+
+#### **Server Actions**
+- **`upsertFichaTecnica`**: Criar ou atualizar ficha técnica
+- **`addIngrediente`**: Adicionar ingrediente à receita
+- **`updateIngrediente`**: Atualizar quantidade de ingrediente
+- **`removeIngrediente`**: Remover ingrediente da ficha
+- **`searchProdutos`**: Buscar produtos para usar como ingredientes
+
+#### **Melhorias Técnicas**
+- **🚫 Removido revalidatePath**: Compatibilidade com Next.js 15
+- **🎯 Estado Local**: Uso de `useState` para atualizações sem reload
+- **🔧 Proxy Supabase**: Tabela `fichas_tecnicas_itens` adicionada à lista de exceções de `loja_id`
+- **✨ Type Generation**: Types do Supabase atualizados com novas tabelas
+- **🎨 Ícone ChefHat**: Adicionado ao CardButton e menus
+
+### 🐛 Correções
+- **Lint**: Escapamento de aspas em mensagens de erro
+- **Cache**: Listas de grupos/armazenamentos não atualizavam após criação
+- **Multi-tenancy**: Filtro `loja_id` aplicado incorretamente em tabela de relacionamento
+- **onChange Error**: Acesso correto ao `formField.onChange` em custom components
+
 ## [0.3.3] - 2025-08-28
 
 ### 🎨 Modernização da Página de Produtos

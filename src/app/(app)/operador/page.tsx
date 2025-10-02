@@ -23,6 +23,8 @@ export default async function Operadores(props: Props) {
   else if (params.get("operacao") == "Etiquetas") route = "/setor";
   else if (params.get("operacao") == "Entrada de Insumos")
     route = "/selecionar-insumo";
+  else if (params.get("operacao") == "Ficha Técnica")
+    route = "/ficha-tecnica";
 
   const supabase = await createClient();
   const { data: operadores } = await supabase.from("operadores").select("*");
