@@ -22,6 +22,7 @@ export async function createClient() {
         "usuarios_masters",
         "impressoras",
         "fichas_tecnicas_itens", // Não tem loja_id, herda pela FK
+        "fichas_tecnicas_fotos", // Não tem loja_id, herda pela FK
       ];
 
       if (

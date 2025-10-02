@@ -188,7 +188,7 @@ export function FichaTecnicaForm({
           </TabsTrigger>
           <TabsTrigger value="modo-preparo" className="gap-2">
             <BookOpen className="h-4 w-4" />
-            Modo de Preparo
+            Preparo
           </TabsTrigger>
           <TabsTrigger value="fotos" className="gap-2">
             <Camera className="h-4 w-4" />

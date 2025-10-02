@@ -170,23 +170,24 @@ export function FotosManager({
         <Button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading || fotos.length >= MAX_FOTOS}
-          variant="outline"
+          size="lg"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-md"
         >
           {uploading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Enviando...
             </>
           ) : (
             <>
-              <Upload className="mr-2 h-4 w-4" />
+              <Upload className="mr-2 h-5 w-5" />
               Adicionar Fotos
             </>
           )}
         </Button>
-        <span className="text-sm text-slate-600 dark:text-slate-400">
+        <Badge variant="secondary" className="text-sm px-3 py-1">
           {fotos.length}/{MAX_FOTOS} fotos
-        </span>
+        </Badge>
       </div>
 
       {/* Grid de Fotos */}
