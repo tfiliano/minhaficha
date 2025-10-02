@@ -170,7 +170,11 @@ export function FichaTecnicaForm({
             </div>
             <div className="flex flex-col items-end gap-1 flex-shrink-0">
               <Badge variant="secondary" className="text-xs whitespace-nowrap">
-                {ingredientes.length} {ingredientes.length === 1 ? 'ingred.' : 'ingred.'}
+                {ingredientes.length}{' '}
+                <span className="hidden sm:inline">
+                  {ingredientes.length === 1 ? 'ingrediente' : 'ingredientes'}
+                </span>
+                <span className="sm:hidden">ingred.</span>
               </Badge>
               {fotos.length > 0 && (
                 <Badge variant="secondary" className="text-xs whitespace-nowrap">
@@ -227,14 +231,7 @@ export function FichaTecnicaForm({
       {/* Lista de Ingredientes */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg flex items-center justify-between">
-            <span>Ingredientes ({ingredientes.length})</span>
-            {ingredientes.length > 0 && (
-              <Badge variant="secondary">
-                Total de ingredientes na receita
-              </Badge>
-            )}
-          </CardTitle>
+          <CardTitle className="text-lg">Ingredientes</CardTitle>
         </CardHeader>
         <CardContent>
           {ingredientes.length === 0 ? (
