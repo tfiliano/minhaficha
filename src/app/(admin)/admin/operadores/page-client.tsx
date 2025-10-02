@@ -5,20 +5,30 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/types/database.types";
-import { 
-  Search, 
-  UserCheck, 
-  Plus, 
+import {
+  Search,
+  UserCheck,
+  Plus,
   Hash,
   User,
   Clock,
   UserCircle,
-  Palette
+  Palette,
+  Filter
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PropsWithChildren, useState } from "react";
 import { cn } from "@/lib/utils";
+import { FilterSheet } from "@/components/ui/filter-sheet";
+import { useFilters } from "@/hooks/use-filters";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 type Operador = Tables<`operadores`>;
 
@@ -30,18 +40,34 @@ export function OperadoresClient({
   operadores,
 }: PropsWithChildren<Operadores>) {
   const pathname = usePathname();
-  const [busca, setBusca] = useState("");
+
+  const {
+    filters: filtros,
+    updateFilter,
+    clearFilters,
+    activeFiltersCount
+  } = useFilters({
+    busca: "",
+    ativo: "all",
+  });
+
+  const normalizar = (texto: string) =>
+    texto
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
 
   const operadoresFiltrados = (operadores || []).filter((operador) => {
-    const normalizar = (texto: string) =>
-      texto
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-    return (
-      normalizar(operador.nome || "").includes(normalizar(busca)) ||
-      normalizar(operador.matricula || "").includes(normalizar(busca))
-    );
+    const matchBusca =
+      !filtros.busca ||
+      normalizar(operador.nome || "").includes(normalizar(filtros.busca)) ||
+      normalizar(operador.matricula || "").includes(normalizar(filtros.busca));
+
+    const matchAtivo = filtros.ativo === "all" ||
+      (filtros.ativo === "true" && operador.ativo) ||
+      (filtros.ativo === "false" && !operador.ativo);
+
+    return matchBusca && matchAtivo;
   });
 
   // Estatísticas
@@ -51,55 +77,82 @@ export function OperadoresClient({
   return (
     <div className="space-y-6">
       {/* Header com controles */}
-      <div className="bg-gradient-to-r from-slate-50 to-cyan-50 dark:from-slate-900 dark:to-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          {/* Título e descrição */}
-          <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-end gap-3">
+        <FilterSheet
+          activeFiltersCount={activeFiltersCount}
+          onApply={() => {}}
+          onClear={clearFilters}
+        >
+          <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                Operadores
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Gerencie funcionários e operadores do sistema de produção
-              </p>
+              <label className="text-sm font-semibold mb-3 block text-slate-700 dark:text-slate-300">Buscar</label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                  <Search className="h-4 w-4 text-slate-400" />
+                </div>
+                <Input
+                  placeholder="Buscar por nome ou matrícula..."
+                  value={filtros.busca}
+                  onChange={(e) => updateFilter("busca", e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
-            {/* Estatísticas */}
-            <div className="flex flex-wrap gap-3">
-              <Badge className="px-3 py-1.5 bg-cyan-100 text-cyan-700 dark:bg-cyan-900 dark:text-cyan-300">
-                <UserCheck className="h-3.5 w-3.5 mr-1.5" />
-                {totalOperadores} {totalOperadores === 1 ? 'operador' : 'operadores'}
-              </Badge>
-              <Badge className="px-3 py-1.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
-                <Clock className="h-3.5 w-3.5 mr-1.5" />
-                {operadoresAtivos} ativos
-              </Badge>
+
+            <div>
+              <label className="text-sm font-semibold mb-3 block text-slate-700 dark:text-slate-300">Status</label>
+              <Select
+                value={filtros.ativo}
+                onValueChange={(v) => updateFilter("ativo", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="true">Ativos</SelectItem>
+                  <SelectItem value="false">Inativos</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
+        </FilterSheet>
+      </div>
 
-          {/* Botão de adicionar */}
-          <Link href={`${pathname}/add`}>
-            <Button className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Operador
-            </Button>
-          </Link>
+      {/* Contador de resultados */}
+      <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-cyan-100 dark:bg-cyan-900/30">
+              <UserCheck className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900 dark:text-slate-100">
+                {operadoresFiltrados.length} de {operadores?.length || 0} operadores
+              </p>
+              {activeFiltersCount > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  {filtros.busca && (
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                      <Search className="h-3 w-3 mr-1" />
+                      &quot;{filtros.busca}&quot;
+                    </Badge>
+                  )}
+                  {filtros.ativo !== "all" && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                      <Filter className="h-3 w-3 mr-1" />
+                      {filtros.ativo === "true" ? "Ativos" : "Inativos"}
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Busca */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
-        <Input
-          type="text"
-          placeholder="Buscar operadores por nome ou matrícula..."
-          className="pl-10 h-11 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-          value={busca}
-          onChange={(e) => setBusca(e.target.value)}
-        />
-      </div>
-
       {/* Grid de operadores */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
         {operadoresFiltrados.length === 0 ? (
           <div className="col-span-full">
             <Card className="border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
@@ -111,12 +164,12 @@ export function OperadoresClient({
                   Nenhum operador encontrado
                 </h3>
                 <p className="text-slate-600 dark:text-slate-400 text-center max-w-sm mb-6">
-                  {busca ? 
-                    `Nenhum operador corresponde à busca "${busca}"` : 
+                  {activeFiltersCount > 0 ?
+                    "Nenhum operador corresponde aos filtros aplicados" :
                     "Comece cadastrando operadores para o sistema de produção"
                   }
                 </p>
-                {!busca && (
+                {activeFiltersCount === 0 && (
                   <Link href={`${pathname}/add`}>
                     <Button className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white">
                       <Plus className="h-4 w-4 mr-2" />
@@ -135,7 +188,7 @@ export function OperadoresClient({
             return (
               <Link href={pathname + `/${operador.id}`} key={operador.id}>
                 <Card className={cn(
-                  "group relative overflow-hidden transition-all duration-300 hover:shadow-xl border-2",
+                  "group relative overflow-hidden transition-all duration-300 hover:shadow-xl border-2 h-full",
                   isAtivo 
                     ? "border-slate-200 dark:border-slate-700 hover:border-cyan-300 dark:hover:border-cyan-700" 
                     : "border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50 opacity-75"
@@ -150,10 +203,10 @@ export function OperadoresClient({
                   
                   <CardHeader className="relative pb-3">
                     <div className="flex justify-between items-start gap-2">
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <CardTitle className={cn(
-                            "text-lg font-bold transition-colors line-clamp-2",
+                            "text-base sm:text-lg font-bold transition-colors line-clamp-2",
                             isAtivo 
                               ? "text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400" 
                               : "text-slate-500 dark:text-slate-400"

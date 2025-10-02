@@ -12,12 +12,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tables } from "@/types/database.types";
-import { 
-  Search, 
-  Package, 
-  Calendar, 
-  Hash, 
-  Layers, 
+import {
+  Search,
+  Package,
+  Calendar,
+  Hash,
+  Layers,
   Filter,
   Building2,
   Tag,
@@ -33,6 +33,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { PropsWithChildren, useState } from "react";
 import { cn } from "@/lib/utils";
+import { FilterSheet } from "@/components/ui/filter-sheet";
+import { useFilters } from "@/hooks/use-filters";
 
 type Etiqueta = Tables<`etiquetas`>;
 type ViewMode = "grid" | "list";
@@ -47,12 +49,20 @@ export function EtiquetasPageClient({
   etiquetas,
 }: PropsWithChildren<EtiquetasPage>) {
   const pathname = usePathname();
-  
+
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [busca, setBusca] = useState("");
-  const [filtroStatus, setFiltroStatus] = useState<string>("all");
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+
+  const {
+    filters: filtros,
+    updateFilter,
+    clearFilters,
+    activeFiltersCount
+  } = useFilters({
+    busca: "",
+    status: "all",
+  });
 
   const normalizar = (texto: string) =>
     texto
@@ -62,14 +72,14 @@ export function EtiquetasPageClient({
 
   const etiquetasFiltrados = (etiquetas || [])
     .filter((etiqueta) => {
-      const matchBusca = !busca || 
-        normalizar(etiqueta.produto_nome || "").includes(normalizar(busca)) ||
-        normalizar(etiqueta.codigo_produto || "").includes(normalizar(busca)) ||
-        normalizar(etiqueta.lote || "").includes(normalizar(busca)) ||
-        normalizar(etiqueta.SIF || "").includes(normalizar(busca));
-      
-      const matchStatus = filtroStatus === "all" || etiqueta.status === filtroStatus;
-      
+      const matchBusca = !filtros.busca ||
+        normalizar(etiqueta.produto_nome || "").includes(normalizar(filtros.busca)) ||
+        normalizar(etiqueta.codigo_produto || "").includes(normalizar(filtros.busca)) ||
+        normalizar(etiqueta.lote || "").includes(normalizar(filtros.busca)) ||
+        normalizar(etiqueta.SIF || "").includes(normalizar(filtros.busca));
+
+      const matchStatus = filtros.status === "all" || etiqueta.status === filtros.status;
+
       return matchBusca && matchStatus;
     })
     .sort((a, b) => {
@@ -138,104 +148,32 @@ export function EtiquetasPageClient({
   return (
     <div className="space-y-6">
       {/* Header com controles */}
-      <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          {/* Título e estatísticas */}
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-                Gerenciar Etiquetas
-              </h2>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
-                Gerencie e acompanhe todas as etiquetas de produtos
-              </p>
-            </div>
-            {/* Estatísticas rápidas */}
-            <div className="flex flex-wrap gap-3">
-              <Badge className="px-3 py-1.5 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300">
-                <Package className="h-3.5 w-3.5 mr-1.5" />
-                {totalEtiquetas} etiquetas
-              </Badge>
-              {etiquetasVencidas > 0 && (
-                <Badge className="px-3 py-1.5 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300">
-                  <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                  {etiquetasVencidas} vencidas
-                </Badge>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1">
+            <Button
+              variant={viewMode === "grid" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("grid")}
+              className={cn(
+                "px-3 py-1.5",
+                viewMode === "grid" && "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
               )}
-              {etiquetasProximasVencer > 0 && (
-                <Badge className="px-3 py-1.5 bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300">
-                  <Calendar className="h-3.5 w-3.5 mr-1.5" />
-                  {etiquetasProximasVencer} vencendo em 7 dias
-                </Badge>
+            >
+              <Grid3X3 className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === "list" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => setViewMode("list")}
+              className={cn(
+                "px-3 py-1.5",
+                viewMode === "list" && "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
               )}
-            </div>
+            >
+              <List className="h-4 w-4" />
+            </Button>
           </div>
-
-          {/* Controles de visualização */}
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1">
-              <Button
-                variant={viewMode === "grid" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("grid")}
-                className={cn(
-                  "px-3 py-1.5",
-                  viewMode === "grid" && "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                )}
-              >
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === "list" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setViewMode("list")}
-                className={cn(
-                  "px-3 py-1.5",
-                  viewMode === "list" && "bg-gradient-to-r from-blue-500 to-blue-600 text-white"
-                )}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
-
-            <Link href={`${pathname}/add`}>
-              <Button className="bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-200">
-                <Plus className="h-4 w-4 mr-2" />
-                Nova Etiqueta
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Filtros e busca */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        {/* Busca */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 h-5 w-5" />
-          <Input
-            type="text"
-            placeholder="Buscar por nome, código, lote ou SIF..."
-            className="pl-10 h-11 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
-        </div>
-
-        {/* Filtros */}
-        <div className="flex gap-3">
-          <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-            <SelectTrigger className="w-40 h-11 bg-white dark:bg-slate-800">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos Status</SelectItem>
-              <SelectItem value="pending">Pendente</SelectItem>
-              <SelectItem value="completed">Completo</SelectItem>
-              <SelectItem value="error">Erro</SelectItem>
-            </SelectContent>
-          </Select>
 
           <Select value={sortField} onValueChange={(value) => setSortField(value as SortField)}>
             <SelectTrigger className="w-44 h-11 bg-white dark:bg-slate-800">
@@ -249,12 +187,85 @@ export function EtiquetasPageClient({
             </SelectContent>
           </Select>
         </div>
+
+        <FilterSheet
+          activeFiltersCount={activeFiltersCount}
+          onApply={() => {}}
+          onClear={clearFilters}
+        >
+          <div className="space-y-6">
+            <div>
+              <label className="text-sm font-semibold mb-3 block text-slate-700 dark:text-slate-300">Buscar</label>
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                  <Search className="h-4 w-4 text-slate-400" />
+                </div>
+                <Input
+                  placeholder="Buscar por nome, código, lote ou SIF..."
+                  value={filtros.busca}
+                  onChange={(e) => updateFilter("busca", e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-semibold mb-3 block text-slate-700 dark:text-slate-300">Status</label>
+              <Select
+                value={filtros.status}
+                onValueChange={(v) => updateFilter("status", v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="completed">Completo</SelectItem>
+                  <SelectItem value="error">Erro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </FilterSheet>
+      </div>
+
+      {/* Contador de resultados */}
+      <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+              <Package className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900 dark:text-slate-100">
+                {etiquetasFiltrados.length} de {etiquetas?.length || 0} etiquetas
+              </p>
+              {activeFiltersCount > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  {filtros.busca && (
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                      <Search className="h-3 w-3 mr-1" />
+                      &quot;{filtros.busca}&quot;
+                    </Badge>
+                  )}
+                  {filtros.status !== "all" && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                      <Filter className="h-3 w-3 mr-1" />
+                      {filtros.status === "pending" ? "Pendente" : filtros.status === "completed" ? "Completo" : "Erro"}
+                    </Badge>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Lista ou Grid de etiquetas */}
       <div className={cn(
-        viewMode === "grid" 
-          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" 
+        viewMode === "grid"
+          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6"
           : "space-y-4"
       )}>
         {etiquetasFiltrados.length === 0 ? (
@@ -268,12 +279,12 @@ export function EtiquetasPageClient({
                   Nenhuma etiqueta encontrada
                 </h3>
                 <p className="text-slate-600 dark:text-slate-400 text-center max-w-sm mb-6">
-                  {busca ? 
-                    `Nenhuma etiqueta corresponde à busca "${busca}"` : 
+                  {activeFiltersCount > 0 ?
+                    "Nenhuma etiqueta corresponde aos filtros aplicados" :
                     "Comece criando sua primeira etiqueta para gerenciar o rastreamento de produtos"
                   }
                 </p>
-                {!busca && (
+                {activeFiltersCount === 0 && (
                   <Link href={`${pathname}/add`}>
                     <Button className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white">
                       <Plus className="h-4 w-4 mr-2" />
@@ -296,7 +307,7 @@ export function EtiquetasPageClient({
             return (
               <Link href={pathname + `/${etiqueta.id}`} key={etiqueta.id}>
                 <Card className={cn(
-                  "group relative overflow-hidden transition-all duration-300 hover:shadow-xl border-2",
+                  "group relative overflow-hidden transition-all duration-300 hover:shadow-xl border-2 h-full",
                   isVencido ? "border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/20" :
                   isProximoVencer ? "border-yellow-200 dark:border-yellow-900 bg-yellow-50/50 dark:bg-yellow-950/20" :
                   "border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-700"
@@ -311,12 +322,12 @@ export function EtiquetasPageClient({
                   
                   <CardHeader className="relative pb-3">
                     <div className="flex justify-between items-start gap-2">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
                           {titulo}
                         </CardTitle>
                         {etiqueta.codigo_produto && (
-                          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 truncate">
                             Código: {etiqueta.codigo_produto}
                           </p>
                         )}
@@ -337,9 +348,9 @@ export function EtiquetasPageClient({
                     </div>
                   </CardHeader>
                   
-                  <CardContent className="relative space-y-3">
+                  <CardContent className="relative space-y-2 sm:space-y-3">
                     {/* Informações principais */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       {etiqueta.lote && (
                         <div className="flex items-start gap-2">
                           <Layers className="h-4 w-4 text-slate-400 mt-0.5 shrink-0" />

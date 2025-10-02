@@ -154,7 +154,7 @@ export default function TemplateListPage() {
       </div>
 
       {/* Grid de templates */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
         {templatesFiltrados.length === 0 ? (
           <div className="col-span-full">
             <Card className="border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50">
@@ -185,17 +185,17 @@ export default function TemplateListPage() {
         ) : (
           templatesFiltrados.map((template) => {
             return (
-              <Card 
+              <Card
                 key={template.id}
-                className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl border-2 border-slate-200 dark:border-slate-700 hover:border-pink-300 dark:hover:border-pink-700"
+                className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl border-2 border-slate-200 dark:border-slate-700 hover:border-pink-300 dark:hover:border-pink-700 h-full"
               >
                 {/* Gradiente decorativo */}
                 <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 
                 <CardHeader className="relative pb-3">
                   <div className="flex justify-between items-start gap-2">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors line-clamp-2">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-pink-600 dark:group-hover:text-pink-400 transition-colors line-clamp-2">
                         {template.nome || "Template sem nome"}
                       </CardTitle>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">

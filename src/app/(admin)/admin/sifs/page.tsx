@@ -1,5 +1,4 @@
 import { AnimationTransitionPage } from "@/components/animation";
-import { ContentGrid } from "@/components/layout";
 import { createClient } from "@/utils/supabase";
 import { SifsPageClient } from "./page-client";
 
@@ -25,9 +24,9 @@ export default async function Sifs(props: Props) {
 
   return (
     <AnimationTransitionPage>
-      <ContentGrid>
+      <div className="px-3 sm:px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
         <SifsPageClient sifs={sifs} />
-      </ContentGrid>
+      </div>
     </AnimationTransitionPage>
   );
 }

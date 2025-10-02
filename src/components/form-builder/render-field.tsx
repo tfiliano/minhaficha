@@ -15,6 +15,7 @@ import { Textarea } from "../ui/textarea";
 import { CustomInput } from "./input-mask";
 import { RadioGroupForm } from "./radio-group";
 import { SelectForm, isSelectField } from "./select-form";
+import { ToggleForm } from "./toggle-form";
 
 export function RenderField(
   field: Field,
@@ -71,7 +72,7 @@ export function RenderField(
   if (isTextareaField(field)) {
     return (
       <Textarea
-        className="min-h-[120px] bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-lg px-4 py-3 text-base font-medium text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 shadow-sm hover:border-slate-400 dark:hover:border-slate-500 resize-y"
+        className="resize-y"
         placeholder={field.placeholder || field.label}
         type={field.type || "text"}
         autoComplete={field?.autoComplete}
@@ -86,6 +87,10 @@ export function RenderField(
 
   if (field.type === "radio") {
     return <RadioGroupForm formField={formField} field={field} />;
+  }
+
+  if (field.type === "boolean" || field.type === "checkbox") {
+    return <ToggleForm formField={formField} field={field} disabled={field.disabled} />;
   }
 
   if (field.type === "number") {
@@ -126,7 +131,6 @@ export function RenderField(
     <div className="relative">
       <Input
         readOnly={isFetching || readOnly}
-        className="h-12 sm:h-14 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-lg px-4 sm:px-5 text-base sm:text-lg font-medium text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 shadow-sm hover:border-slate-400 dark:hover:border-slate-500"
         placeholder={restField.placeholder || restField.label}
         type={restField.type || "text"}
         autoComplete={restField?.autoComplete}

@@ -93,24 +93,25 @@ export function ButtonRemoveItem<T>({
   };
 
   return (
-    <>
-      <AlertDialogConfirm {...dialogProps} handleAction={handleAction}>
-        <Button
-          className={cn(
-            "w-full my-4 flex items-center justify-center gap-2 text-red-500 hover:text-red-800 group hover:bg-transparent",
-            {
-              "text-green-500 hover:text-green-800":
-                IS_DISABLED &&
-                !(entity as any)?.ativo &&
-                !(entity as any)?.is_active,
-            }
-          )}
-          variant="link"
-        >
-          <dialogProps.icon size={18} />
-          {dialogProps.button}
-        </Button>
-      </AlertDialogConfirm>
-    </>
+    <AlertDialogConfirm {...dialogProps} handleAction={handleAction}>
+      <Button
+        className={cn(
+          "h-9 px-4 text-sm font-medium border transition-all duration-200 gap-2 w-full sm:w-auto",
+          {
+            "border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20":
+              !IS_DISABLED ||
+              ((entity as any)?.ativo || (entity as any)?.is_active),
+            "border-green-300 dark:border-green-700 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/20":
+              IS_DISABLED &&
+              !(entity as any)?.ativo &&
+              !(entity as any)?.is_active,
+          }
+        )}
+        variant="outline"
+      >
+        <dialogProps.icon className="h-4 w-4" />
+        {dialogProps.button}
+      </Button>
+    </AlertDialogConfirm>
   );
 }

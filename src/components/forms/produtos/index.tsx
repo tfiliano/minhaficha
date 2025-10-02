@@ -60,7 +60,8 @@ const formBuilder = (
   grupos: Grupo[],
   armazenamentos: LocalArmazenamento[],
   produtos: IProduto[],
-  setores: any[] | null
+  setores: any[] | null,
+  mode?: "create" | "update"
 ): Builder => ({
   styled: true,
   columns: [
@@ -75,7 +76,7 @@ const formBuilder = (
               placeholder: "Digite o código do produto",
               type: "text",
               required: true,
-              onActionBlur: "checarProdutoJaCadastrado",
+              ...(mode === "create" ? { onActionBlur: "checarProdutoJaCadastrado" } : {}),
             },
           ],
         },
@@ -134,6 +135,10 @@ const formBuilder = (
                 />
               ),
             },
+          ],
+        },
+        {
+          fields: [
             {
               name: "setor",
               label: "Setor",
@@ -317,7 +322,7 @@ function ProdutoForm({
     <EntityFormHandler<IProduto>
       mode={mode}
       entity={produto}
-      builder={formBuilder(grupos, armazenamentos, produtos, setores)}
+      builder={formBuilder(grupos, armazenamentos, produtos, setores, mode)}
       onSubmit={handleSubmit}
       tableCollection="produtos"
       submitLabel={mode === "create" ? "Adicionar" : "Atualizar"}

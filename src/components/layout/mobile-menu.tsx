@@ -21,7 +21,11 @@ import {
   LayoutTemplate,
   PrinterIcon,
   Cog,
-  ChefHat
+  ChefHat,
+  UtensilsCrossed,
+  Tag,
+  Truck,
+  Shield
 } from "lucide-react";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
@@ -55,15 +59,15 @@ const adminSubmenus = [
 
 const menuItems = [
   { href: "/", label: "Início", icon: Home },
-  { href: "/operador?operacao=Produção", label: "Produção", icon: Package },
-  { href: "/operador?operacao=Etiquetas", label: "Gerar Etiqueta", icon: Printer },
-  { href: "/operador?operacao=Entrada de Insumos", label: "Entrada de Insumos", icon: FileText },
+  { href: "/operador?operacao=Produção", label: "Produção", icon: UtensilsCrossed },
+  { href: "/operador?operacao=Etiquetas", label: "Gerar Etiqueta", icon: Tag },
+  { href: "/operador?operacao=Entrada de Insumos", label: "Entrada de Insumos", icon: Truck },
   { href: "/ficha-tecnica", label: "Ficha Técnica", icon: ChefHat },
   { href: "/admin/reports", label: "Relatórios", icon: BarChart3 },
   {
     href: "/admin",
     label: "Administração",
-    icon: Settings,
+    icon: Shield,
     submenus: adminSubmenus
   },
 ];

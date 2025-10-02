@@ -16,7 +16,11 @@ import {
   Settings,
   BarChart3,
   ArrowRight,
-  ChefHat
+  ChefHat,
+  Truck,
+  Factory,
+  Tag,
+  UtensilsCrossed
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MenuCategory } from "@/config/menu-options";
@@ -36,6 +40,10 @@ const iconMap = {
   Settings,
   BarChart3,
   ChefHat,
+  Truck,
+  Factory,
+  Tag,
+  UtensilsCrossed,
 } as const;
 
 const categoryStyles = {
@@ -77,31 +85,31 @@ export function CardButton({
     <Link href={url} className="group">
       <Card className={cn(
         "relative overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl",
-        "border-2 cursor-pointer h-full min-h-[140px]",
+        "border-2 cursor-pointer h-full min-h-[120px] sm:min-h-[140px]",
         styles.card
       )}>
-        <CardContent className="p-6 flex flex-col items-start justify-between h-full relative">
+        <CardContent className="p-4 sm:p-5 lg:p-6 flex flex-col items-start justify-between h-full relative">
           {/* Background Pattern */}
           <div className="absolute inset-0 opacity-10">
             <div className="absolute -right-4 -top-4">
               <IconComponent size={80} className="rotate-12" />
             </div>
           </div>
-          
+
           {/* Content */}
-          <div className="relative z-10 flex flex-col gap-3 w-full">
+          <div className="relative z-10 flex flex-col gap-2 sm:gap-3 w-full">
             <div className="flex items-start justify-between">
-              <IconComponent size={32} className={cn("flex-shrink-0", styles.icon)} />
-              <ArrowRight 
-                size={18} 
-                className="text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-300"
+              <IconComponent size={28} className={cn("sm:w-8 sm:h-8 flex-shrink-0", styles.icon)} />
+              <ArrowRight
+                size={16}
+                className="sm:w-[18px] sm:h-[18px] text-white/60 group-hover:text-white group-hover:translate-x-1 transition-all duration-300"
               />
             </div>
-            
+
             <div>
-              <h3 className="font-bold text-lg leading-tight mb-1">{title}</h3>
+              <h3 className="font-bold text-base sm:text-lg leading-tight mb-0.5 sm:mb-1">{title}</h3>
               {description && (
-                <p className="text-white/80 text-sm leading-tight line-clamp-2">
+                <p className="text-white/80 text-xs sm:text-sm leading-tight line-clamp-2">
                   {description}
                 </p>
               )}

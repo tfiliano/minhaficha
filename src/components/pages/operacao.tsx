@@ -11,18 +11,22 @@ export function Operacao({ tipoUsuario }: any) {
     {
       title: "Entrada de Insumos",
       url: null,
+      icon: "Truck",
     },
     {
       title: "Produção",
       url: null,
+      icon: "UtensilsCrossed",
     },
     {
       title: "Ficha Técnica",
       url: "/ficha-tecnica",
+      icon: "ChefHat",
     },
     {
       title: "Etiquetas",
       url: null,
+      icon: "Tag",
     },
   ];
 
@@ -34,6 +38,7 @@ export function Operacao({ tipoUsuario }: any) {
           <CardButton
             key={operacao.title}
             title={operacao.title}
+            icon={operacao.icon as any}
             url={
               operacao.url
                 ? operacao.url
@@ -45,7 +50,7 @@ export function Operacao({ tipoUsuario }: any) {
           />
         ))}
         {["admin", "master"].includes(tipoUsuario) && (
-          <CardButton title="Admin" url="admin" />
+          <CardButton title="Admin" url="admin" icon="Shield" />
         )}
       </ContentGrid>
     </AnimationTransitionPage>

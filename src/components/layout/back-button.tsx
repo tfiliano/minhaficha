@@ -13,14 +13,16 @@ export function BackButton() {
   // Mostrar botão voltar se:
   // - Tiver query params, OU
   // - Estiver em /admin, OU
+  // - Estiver em /ficha-tecnica, OU
   // - Pathname tiver mais de 2 segmentos (rotas dinâmicas como /ficha-tecnica/[id])
   const pathSegments = pathname.split("/").filter(Boolean);
-  const shouldShow = params.size > 0 || pathname.includes("/admin") || pathSegments.length > 1;
+  const shouldShow = params.size > 0 || pathname.includes("/admin") || pathname === "/ficha-tecnica" || pathSegments.length > 1;
 
   if (!shouldShow) return <></>;
 
   const handleBack = () => {
     if (pathname === "/admin") router.replace("/");
+    else if (pathname === "/ficha-tecnica") router.replace("/operador");
     else router.back();
   };
 

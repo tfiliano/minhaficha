@@ -17,6 +17,7 @@ import { ButtonRemoveItem } from "./remove-item-table";
 import { Setores } from "./Setores";
 import { SIF } from "./SIF";
 import { Usuarios } from "./Usuario";
+import { Check, X } from "lucide-react";
 
 export const Forms = {
   Produto,
@@ -33,7 +34,13 @@ export const Forms = {
 };
 
 export function FormContent({ children }: PropsWithChildren) {
-  return <div className="max-w-lg w-full mx-auto px-4">{children}</div>;
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900 py-4 sm:py-6">
+      <div className="w-full px-3 sm:px-4 max-w-7xl mx-auto">
+        {children}
+      </div>
+    </div>
+  );
 }
 
 type ModeFormHandler = "create" | "update";
@@ -77,21 +84,24 @@ export function EntityFormHandler<T>({
         extraButtons={
           <Button
             variant="outline"
-            className="flex-1 h-12 sm:h-14 text-base sm:text-lg font-semibold border-2 border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all duration-300"
+            className="h-9 px-4 sm:flex-1 text-sm font-medium border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-all duration-200 gap-2 w-full sm:w-auto"
             type="button"
             onClick={() => router.back()}
           >
+            <X className="h-4 w-4" />
             Cancelar
           </Button>
         }
+        removeButton={
+          mode === "update" && tableCollection ? (
+            <ButtonRemoveItem<T>
+              entity={entity}
+              tableCollection={tableCollection}
+              keyProp={keyProp}
+            />
+          ) : undefined
+        }
       />
-      {mode === "update" && tableCollection && (
-        <ButtonRemoveItem<T>
-          entity={entity}
-          tableCollection={tableCollection}
-          keyProp={keyProp}
-        />
-      )}
     </FormContent>
   );
 }

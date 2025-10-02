@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { EntityFormHandler, ModeFormHandlerProp } from "..";
 
 const formBuilder: Builder = {
+  styled: true,
   columns: [
     {
       rows: [

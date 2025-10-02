@@ -2,7 +2,6 @@
 
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Package } from "lucide-react";
 import {
   Fragment,
   PropsWithChildren,
@@ -49,6 +48,7 @@ type FormBuilderProps = {
   form: FieldValues;
   schema?: any;
   preventDefaultSubmit?: boolean;
+  removeButton?: React.ReactNode;
 };
 
 export type FormBuilderRef = UseFormReturn<any, any, undefined>;
@@ -69,6 +69,7 @@ export const FormBuilder2: React.ForwardRefRenderFunction<
     schema,
     form,
     preventDefaultSubmit,
+    removeButton,
   } = props;
 
   const [builder, setBuilder] = useState(builderState);
@@ -97,36 +98,31 @@ export const FormBuilder2: React.ForwardRefRenderFunction<
         key={colIndex}
       >
         {builderCol.label && (
-          <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-            <div className="p-1.5 sm:p-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
-              <Package className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
-            </div>
-            <h2
-              data-inline={inline}
-              className={cn(
-                "text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100",
-                builder.styled
-                  ? "data-[inline=true]:rounded-none"
-                  : null
-              )}
-            >
-              {builderCol.label}
-            </h2>
-          </div>
+          <h2
+            data-inline={inline}
+            className={cn(
+              "text-base sm:text-lg font-medium text-slate-700 dark:text-slate-300 mb-3 sm:mb-5 border-b border-slate-200 dark:border-slate-700 pb-2",
+              builder.styled
+                ? "data-[inline=true]:rounded-none"
+                : null
+            )}
+          >
+            {builderCol.label}
+          </h2>
         )}
         <div
           data-inline={inline}
           className={cn(
-            "w-full gap-4 sm:gap-6 flex flex-col",
+            "w-full gap-4 sm:gap-8 flex flex-col",
 
             builder.styled
               ? cn(
-                  "bg-gradient-to-br from-white to-slate-50/30 dark:from-slate-900 dark:to-slate-800/30 rounded-xl data-[inline=true]:rounded-b-none data-[inline=true]:border-b-0 shadow-sm",
+                  "bg-white dark:bg-slate-900 rounded-xl data-[inline=true]:rounded-b-none data-[inline=true]:border-b-0 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-200",
                   {
-                    "gap-4 sm:gap-6 p-4 sm:p-6 border-0 shadow-lg": !builderCol.columns,
+                    "gap-4 sm:gap-8 p-5 sm:p-7": !builderCol.columns,
                   }
                 )
-              : "gap-4 sm:gap-6 p-4 sm:p-6"
+              : "gap-4 sm:gap-8 p-5 sm:p-7"
           )}
         >
           {builderCol.rows &&
@@ -152,18 +148,18 @@ export const FormBuilder2: React.ForwardRefRenderFunction<
 
   return (
     <FormProvider {...methods}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 dark:from-slate-900 dark:to-slate-800 -mx-6 -my-6 px-3 sm:px-6 py-6 sm:py-8">
+      <div className="w-full flex justify-center">
         <form
           onSubmit={(e) => {
             if (preventDefaultSubmit) return e.preventDefault();
             return methods.handleSubmit(onSubmit)(e);
           }}
           id={`formRef-builder`}
-          className="max-w-4xl mx-auto w-full"
+          className="w-full max-w-5xl"
         >
         <div
           data-inline={builder.inline || builder.columns.length === 1}
-          className="flex data-[inline=true]:flex-col data-[inline=false]:gap-6 flex-col mb-8"
+          className="flex data-[inline=true]:flex-col data-[inline=false]:gap-6 sm:gap-8 flex-col mb-6 sm:mb-12"
         >
           {renderColumns(builder.columns, builder.inline)}
         </div>
@@ -175,6 +171,7 @@ export const FormBuilder2: React.ForwardRefRenderFunction<
           extraButtonsContainerClass={extraButtonsContainerClass}
           buttonsContainerClass={buttonsContainerClass}
           onSubmit={onSubmit}
+          removeButton={removeButton}
         />
         </form>
       </div>
@@ -224,7 +221,7 @@ function FieldSetLegend({
         !!row.separator && builderCol.rows![rowIndex + 1]?.fields?.length > 0
       }
       className={cn(
-        "grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 data-[separator=true]:border-b data-[separator=true]:border-slate-200 data-[separator=true]:dark:border-slate-700 data-[separator=true]:pb-5 sm:data-[separator=true]:pb-6 data-[separator=true]:mb-5 sm:data-[separator=true]:mb-6",
+        "grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 data-[separator=true]:border-b data-[separator=true]:border-slate-200 data-[separator=true]:dark:border-slate-700 data-[separator=true]:pb-4 sm:data-[separator=true]:pb-8 data-[separator=true]:mb-4 sm:data-[separator=true]:mb-8",
         row.className
       )}
       style={{
@@ -290,7 +287,9 @@ function RenderRows({ ...props }: any) {
                     {
                       hidden: field.type === "hidden",
                     },
-                    "space-y-1.5",
+                    field.type === "boolean" || field.type === "checkbox"
+                      ? "flex items-center gap-3"
+                      : "space-y-1.5 sm:space-y-2",
                     field.itemClass
                   )}
                   style={
@@ -301,17 +300,17 @@ function RenderRows({ ...props }: any) {
                       : undefined
                   }
                 >
-                  {field.label && field.type !== "hidden" && (
+                  {field.label && field.type !== "hidden" && field.type !== "boolean" && field.type !== "checkbox" && (
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Label
                             htmlFor={field.name}
-                            className="min-h-[24px] sm:min-h-[28px] py-1 sm:py-2 flex items-center font-semibold text-slate-700 dark:text-slate-300 text-xs sm:text-sm"
+                            className="py-0.5 sm:py-1 flex items-center font-normal text-slate-600 dark:text-slate-400 text-xs sm:text-sm"
                           >
                             {field.label}
                             {field.required && (
-                              <span className="text-red-500 ml-1 text-base">*</span>
+                              <span className="text-red-500 ml-1 text-sm">*</span>
                             )}
                           </Label>
                         </TooltipTrigger>

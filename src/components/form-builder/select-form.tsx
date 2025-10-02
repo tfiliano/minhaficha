@@ -71,12 +71,12 @@ export function SelectForm({
         }}
         value={formField.value ? formField.value.toString() : "__empty__"}
       >
-        <SelectTrigger className="h-12 sm:h-14 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 rounded-lg px-4 sm:px-5 text-base sm:text-lg font-medium text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 shadow-sm hover:border-slate-400 dark:hover:border-slate-500">
-          <SelectValue placeholder="Selecione uma opção" className="text-slate-500 dark:text-slate-400" />
+        <SelectTrigger>
+          <SelectValue placeholder="Selecione uma opção" />
         </SelectTrigger>
-        <SelectContent className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-lg shadow-xl max-h-48 sm:max-h-60 text-sm sm:text-base">
+        <SelectContent>
           {!cleanField.required && (
-            <SelectItem key="clear" value="__empty__" className="text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 py-3 px-4 cursor-pointer">
+            <SelectItem key="clear" value="__empty__">
               <div className="flex items-center gap-2">
                 <span className="text-xs">✕</span>
                 Limpar seleção
@@ -84,7 +84,7 @@ export function SelectForm({
             </SelectItem>
           )}
           {cleanField.options.map((option) => (
-            <SelectItem key={uuid()} value={option.value?.toString() || "__empty__"} className="text-slate-900 dark:text-slate-100 hover:bg-blue-50 dark:hover:bg-blue-900/20 py-3 px-4 cursor-pointer font-medium transition-colors">
+            <SelectItem key={uuid()} value={option.value?.toString() || "__empty__"}>
               {option.label}
             </SelectItem>
           ))}

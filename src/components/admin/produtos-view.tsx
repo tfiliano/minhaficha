@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FilterSheet } from "@/components/ui/filter-sheet";
+import { useFilters } from "@/hooks/use-filters";
 import {
   Table,
   TableBody,
@@ -58,12 +60,21 @@ interface ProdutosViewProps {
 export function ProdutosView({ produtos }: ProdutosViewProps) {
   const pathname = usePathname();
   const [viewMode, setViewMode] = useState<ViewMode>("list");
-  const [busca, setBusca] = useState("");
-  const [filtroGrupo, setFiltroGrupo] = useState<string>("all");
-  const [filtroArmazenamento, setFiltroArmazenamento] = useState<string>("all");
-  const [filtroProdutoPai, setFiltroProdutoPai] = useState<string>("all");
   const [sortField, setSortField] = useState<SortField>("nome");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
+
+  const {
+    filters: filtros,
+    updateFilter,
+    clearFilters,
+    activeFiltersCount
+  } = useFilters({
+    busca: "",
+    grupo: "all",
+    armazenamento: "all",
+    produtoPai: "all",
+    ativo: "all",
+  });
 
   // Extrair grupos, armazenamentos e produtos pai únicos para filtros
   const grupos = Array.from(new Set(produtos.map(p => p.grupo).filter(Boolean)));
@@ -83,15 +94,19 @@ export function ProdutosView({ produtos }: ProdutosViewProps) {
   // Aplicar filtros e ordenação
   const produtosFiltrados = produtos
     .filter((produto) => {
-      const matchBusca = 
-        normalizar(produto.nome).includes(normalizar(busca)) ||
-        normalizar(produto.codigo || "").includes(normalizar(busca));
-      
-      const matchGrupo = filtroGrupo === "all" || produto.grupo === filtroGrupo;
-      const matchArmazenamento = filtroArmazenamento === "all" || produto.armazenamento === filtroArmazenamento;
-      const matchProdutoPai = filtroProdutoPai === "all" || produto.originado === filtroProdutoPai;
-      
-      return matchBusca && matchGrupo && matchArmazenamento && matchProdutoPai;
+      const matchBusca =
+        !filtros.busca ||
+        normalizar(produto.nome).includes(normalizar(filtros.busca)) ||
+        normalizar(produto.codigo || "").includes(normalizar(filtros.busca));
+
+      const matchGrupo = filtros.grupo === "all" || produto.grupo === filtros.grupo;
+      const matchArmazenamento = filtros.armazenamento === "all" || produto.armazenamento === filtros.armazenamento;
+      const matchProdutoPai = filtros.produtoPai === "all" || produto.originado === filtros.produtoPai;
+      const matchAtivo = filtros.ativo === "all" ||
+        (filtros.ativo === "true" && produto.ativo) ||
+        (filtros.ativo === "false" && !produto.ativo);
+
+      return matchBusca && matchGrupo && matchArmazenamento && matchProdutoPai && matchAtivo;
     })
     .sort((a, b) => {
       let aValue: string | number;
@@ -146,87 +161,9 @@ export function ProdutosView({ produtos }: ProdutosViewProps) {
   return (
     <div className="space-y-6">
       {/* Header com controles */}
-      <div className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          {/* Busca */}
-          <div className="relative flex-1 max-w-md">
-            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 p-1 rounded-md bg-blue-100 dark:bg-blue-900/30">
-              <Search className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            </div>
-            <Input
-              placeholder="Buscar produtos..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="pl-12 h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-medium text-slate-700 dark:text-slate-300"
-            />
-          </div>
-
-          {/* Filtros e controles */}
-          <div className="flex items-center gap-3 flex-wrap">
-            {/* Filtro por grupo */}
-            <Select value={filtroGrupo} onValueChange={setFiltroGrupo}>
-              <SelectTrigger className="w-[160px] sm:w-[180px] h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:shadow-md transition-all font-medium">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-md bg-purple-100 dark:bg-purple-900/30">
-                    <Filter className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <SelectValue placeholder="Grupo" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os grupos</SelectItem>
-                {grupos.map((grupo) => (
-                  <SelectItem key={grupo} value={grupo}>
-                    {grupo}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Filtro por armazenamento */}
-            <Select value={filtroArmazenamento} onValueChange={setFiltroArmazenamento}>
-              <SelectTrigger className="w-[160px] sm:w-[200px] h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:shadow-md transition-all font-medium">
-                <div className="flex items-center gap-2">
-                  <div className="p-1 rounded-md bg-amber-100 dark:bg-amber-900/30">
-                    <Warehouse className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <SelectValue placeholder="Armazenamento" />
-                </div>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os armazenamentos</SelectItem>
-                {armazenamentos.map((armazenamento) => (
-                  <SelectItem key={armazenamento} value={armazenamento || ''}>
-                    {armazenamento}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Filtro por produto pai */}
-            {produtosPaiUnicos.length > 0 && (
-              <Select value={filtroProdutoPai} onValueChange={setFiltroProdutoPai}>
-                <SelectTrigger className="w-[140px] sm:w-[160px] h-12 bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 rounded-lg shadow-sm hover:shadow-md transition-all font-medium">
-                  <div className="flex items-center gap-2">
-                    <div className="p-1 rounded-md bg-emerald-100 dark:bg-emerald-900/30">
-                      <Package className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                    </div>
-                    <SelectValue placeholder="Produto Pai" />
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os pais</SelectItem>
-                  {produtosPaiUnicos.map((produtoPai) => (
-                    <SelectItem key={produtoPai!.id} value={produtoPai!.id}>
-                      {produtoPai!.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-
-            {/* Toggle de visualização */}
-            <div className="flex bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg p-1 shadow-sm">
+      <div className="flex items-center justify-end gap-3">
+        {/* Toggle de visualização */}
+        <div className="flex bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg p-1 shadow-sm">
               <Button
                 variant={viewMode === "grid" ? "default" : "ghost"}
                 size="sm"
@@ -258,8 +195,109 @@ export function ProdutosView({ produtos }: ProdutosViewProps) {
                 Lista
               </Button>
             </div>
-          </div>
-        </div>
+
+            {/* Botão de Filtros */}
+            <FilterSheet
+              activeFiltersCount={activeFiltersCount}
+              onApply={() => {}}
+              onClear={clearFilters}
+            >
+              <div className="space-y-6">
+                <div>
+                  <label className="text-sm font-semibold mb-3 block text-slate-700 dark:text-slate-300">Buscar</label>
+                  <div className="relative">
+                    <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                      <Search className="h-4 w-4 text-slate-400" />
+                    </div>
+                    <Input
+                      placeholder="Buscar por nome ou código..."
+                      value={filtros.busca}
+                      onChange={(e) => updateFilter("busca", e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold mb-3 block text-slate-700 dark:text-slate-300">Grupo</label>
+                  <Select
+                    value={filtros.grupo}
+                    onValueChange={(v) => updateFilter("grupo", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os grupos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os grupos</SelectItem>
+                      {grupos.map((grupo) => (
+                        <SelectItem key={grupo} value={grupo}>
+                          {grupo}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold mb-3 block text-slate-700 dark:text-slate-300">Armazenamento</label>
+                  <Select
+                    value={filtros.armazenamento}
+                    onValueChange={(v) => updateFilter("armazenamento", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos os armazenamentos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos os armazenamentos</SelectItem>
+                      {armazenamentos.map((armazenamento) => (
+                        <SelectItem key={armazenamento} value={armazenamento || ''}>
+                          {armazenamento}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {produtosPaiUnicos.length > 0 && (
+                  <div>
+                    <label className="text-sm font-semibold mb-3 block text-slate-700 dark:text-slate-300">Produto Pai</label>
+                    <Select
+                      value={filtros.produtoPai}
+                      onValueChange={(v) => updateFilter("produtoPai", v)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Todos os pais" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos os pais</SelectItem>
+                        {produtosPaiUnicos.map((produtoPai) => (
+                          <SelectItem key={produtoPai!.id} value={produtoPai!.id}>
+                            {produtoPai!.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                <div>
+                  <label className="text-sm font-semibold mb-3 block text-slate-700 dark:text-slate-300">Status</label>
+                  <Select
+                    value={filtros.ativo}
+                    onValueChange={(v) => updateFilter("ativo", v)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todos</SelectItem>
+                      <SelectItem value="true">Ativos</SelectItem>
+                      <SelectItem value="false">Inativos</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </FilterSheet>
       </div>
 
       {/* Contador de resultados */}
@@ -273,30 +311,36 @@ export function ProdutosView({ produtos }: ProdutosViewProps) {
               <p className="font-semibold text-slate-900 dark:text-slate-100">
                 {produtosFiltrados.length} de {produtos.length} produtos
               </p>
-              {(busca || filtroGrupo !== "all" || filtroArmazenamento !== "all" || filtroProdutoPai !== "all") && (
+              {activeFiltersCount > 0 && (
                 <div className="flex flex-wrap items-center gap-2 mt-2">
-                  {busca && (
+                  {filtros.busca && (
                     <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
                       <Search className="h-3 w-3 mr-1" />
-                      &quot;{busca}&quot;
+                      &quot;{filtros.busca}&quot;
                     </Badge>
                   )}
-                  {filtroGrupo !== "all" && (
+                  {filtros.grupo !== "all" && (
                     <Badge variant="secondary" className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
                       <Filter className="h-3 w-3 mr-1" />
-                      {filtroGrupo}
+                      {filtros.grupo}
                     </Badge>
                   )}
-                  {filtroArmazenamento !== "all" && (
+                  {filtros.armazenamento !== "all" && (
                     <Badge variant="secondary" className="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
                       <Warehouse className="h-3 w-3 mr-1" />
-                      {filtroArmazenamento}
+                      {filtros.armazenamento}
                     </Badge>
                   )}
-                  {filtroProdutoPai !== "all" && (
+                  {filtros.produtoPai !== "all" && (
                     <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
                       <Package className="h-3 w-3 mr-1" />
-                      {produtosPaiUnicos.find(p => p!.id === filtroProdutoPai)?.nome}
+                      {produtosPaiUnicos.find(p => p!.id === filtros.produtoPai)?.nome}
+                    </Badge>
+                  )}
+                  {filtros.ativo !== "all" && (
+                    <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                      <Filter className="h-3 w-3 mr-1" />
+                      {filtros.ativo === "true" ? "Ativos" : "Inativos"}
                     </Badge>
                   )}
                 </div>
@@ -527,12 +571,12 @@ export function ProdutosView({ produtos }: ProdutosViewProps) {
               </div>
             </div>
             <h3 className="text-2xl font-bold mb-3 text-slate-900 dark:text-slate-100">
-              {busca || filtroGrupo !== "all" || filtroArmazenamento !== "all" || filtroProdutoPai !== "all" 
-                ? "Nenhum produto encontrado" 
+              {activeFiltersCount > 0
+                ? "Nenhum produto encontrado"
                 : "Nenhum produto cadastrado"}
             </h3>
             <p className="text-slate-600 dark:text-slate-400 text-center max-w-md text-lg leading-relaxed">
-              {busca || filtroGrupo !== "all" || filtroArmazenamento !== "all" || filtroProdutoPai !== "all"
+              {activeFiltersCount > 0
                 ? "Tente ajustar os filtros ou termos de busca para encontrar produtos."
                 : "Comece adicionando produtos ao seu catálogo."}
             </p>

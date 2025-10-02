@@ -57,7 +57,7 @@ export type SearchOptions = {
 import { cn } from "@/lib/utils";
 import { PublicSchema } from "@/types/database.types";
 import { get } from "lodash";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 import React, { FocusEvent, forwardRef, type JSX } from "react";
 import {
   FieldValues,
@@ -361,6 +361,7 @@ export function FooterFormBuilder({
   extraButtonsContainerClass,
   buttonsContainerClass,
   onSubmit,
+  removeButton,
 }: Pick<
   FormBuilderProps,
   | "submitLabel"
@@ -370,18 +371,28 @@ export function FooterFormBuilder({
   | "submitType"
   | "onSubmit"
   | "buttonsContainerClass"
->) {
+> & { removeButton?: React.ReactNode }) {
   const { formState, handleSubmit } = useFormContext();
 
   if (submitLabel)
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-xl p-4 sm:p-6 shadow-lg border border-slate-200 dark:border-slate-700 mt-6 sm:mt-8">
-        <div className="flex flex-col gap-3 sm:gap-4">
-          <div className={cn("flex", buttonsContainerClass)}>
+      <div className="sm:sticky sm:bottom-4 bg-white dark:bg-slate-900 rounded-xl p-4 sm:p-5 shadow-lg sm:shadow-xl border border-slate-200 dark:border-slate-700 mt-6 sm:mt-8 hover:shadow-2xl transition-shadow duration-300">
+        {/* Desktop layout */}
+        <div className="hidden sm:flex items-center justify-between gap-4">
+          {/* Remover button on the left */}
+          {removeButton && !formState.isSubmitting && (
+            <div className="flex-shrink-0">
+              {removeButton}
+            </div>
+          )}
+
+          {/* Cancelar and Atualizar on the right */}
+          <div className="flex items-center gap-3 flex-1 justify-end">
+            {extraButtons}
             <Button
               type={submitType || "submit"}
               className={cn(
-                "flex-1 h-12 sm:h-14 text-base sm:text-lg font-semibold bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105",
+                "h-9 px-4 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md transition-all duration-200 gap-2",
                 submitClass
               )}
               disabled={!!formState.isSubmitting || !formState.isValid}
@@ -389,16 +400,49 @@ export function FooterFormBuilder({
                 ? { onClick: handleSubmit(onSubmit) }
                 : {})}
             >
-              {!!formState.isSubmitting && (
-                <Loader2 className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+              {!!formState.isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="h-4 w-4" />
               )}
               {!!formState.isSubmitting ? "Salvando..." : submitLabel}
             </Button>
           </div>
+        </div>
 
+        {/* Mobile layout - vertical stack */}
+        <div className="flex sm:hidden flex-col gap-2">
+          {/* Atualizar first (primary action) */}
+          <Button
+            type={submitType || "submit"}
+            className={cn(
+              "w-full h-9 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow-md transition-all duration-200 gap-2",
+              submitClass
+            )}
+            disabled={!!formState.isSubmitting || !formState.isValid}
+            {...(submitType === "button"
+              ? { onClick: handleSubmit(onSubmit) }
+              : {})}
+          >
+            {!!formState.isSubmitting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Check className="h-4 w-4" />
+            )}
+            {!!formState.isSubmitting ? "Salvando..." : submitLabel}
+          </Button>
+
+          {/* Cancelar second */}
           {extraButtons && !formState.isSubmitting && (
-            <div className={cn("flex justify-center", extraButtonsContainerClass)}>
+            <div className="w-full">
               {extraButtons}
+            </div>
+          )}
+
+          {/* Remover last (destructive action) */}
+          {removeButton && !formState.isSubmitting && (
+            <div className="w-full">
+              {removeButton}
             </div>
           )}
         </div>

@@ -1,5 +1,88 @@
 # Changelog
 
+## [Unreleased] - 2025-10-02
+
+### ✨ Sistema de Filtros Avançados com FilterSheet
+
+#### **Novos Componentes e Hooks**
+- **📦 Hook `useFilters`**: Hook reutilizável para gerenciamento de estado de filtros
+  - Localização: `/src/hooks/use-filters.ts`
+  - Gerencia filtros de forma genérica e type-safe
+  - Conta automaticamente filtros ativos
+  - Função `clearFilters` para limpar todos os filtros
+
+- **🎯 Componente `FilterSheet`**: Sheet lateral com animação suave
+  - Localização: `/src/components/ui/filter-sheet.tsx`
+  - Desliza da direita (responsivo - bottom no mobile)
+  - Badge mostrando quantidade de filtros ativos
+  - Botões "Limpar" e "Aplicar" no footer
+  - Scroll suave para muitos filtros
+
+#### **🔄 Refatoração de 7 Páginas Administrativas**
+Todas as páginas de listagem administrativas foram padronizadas:
+
+- **Produtos** (`/admin/produtos`)
+  - Filtros: busca, grupo, armazenamento, produto pai, status
+  - Badge contador: Package (azul)
+
+- **Operadores** (`/admin/operadores`)
+  - Filtros: busca, status (ativos/inativos)
+  - Badge contador: UserCheck (cyan)
+
+- **Grupos** (`/admin/grupos`)
+  - Filtros: busca
+  - Badge contador: Layers (purple)
+
+- **Setores** (`/admin/setores`)
+  - Filtros: busca
+  - Badge contador: Users (indigo)
+
+- **Armazenamentos** (`/admin/armazenamentos`)
+  - Filtros: busca
+  - Badge contador: Warehouse (orange)
+
+- **SIFs** (`/admin/sifs`)
+  - Filtros: busca
+  - Badge contador: FileBox (teal)
+
+- **Etiquetas** (`/admin/etiquetas`)
+  - Filtros: busca, status (pendente/completo/erro)
+  - Mantidos: toggle grid/list, ordenação
+  - Badge contador: Package (blue)
+
+#### **🎨 Melhorias de Interface**
+- ✅ Removidos headers grandes com título/descrição/estatísticas
+- ✅ Interface minimalista - apenas botão Filtros alinhado à direita
+- ✅ Contador de resultados com ícone colorido específico
+- ✅ Badges de filtros ativos abaixo do contador
+- ✅ Mensagens vazias dinâmicas baseadas em filtros ativos
+- ✅ Cores específicas mantidas para cada módulo
+
+### 🎯 Melhorias de UX
+
+#### **Ficha Técnica**
+- **Botão Voltar**: Adicionado na topbar da página de listagem `/ficha-tecnica`
+  - Redireciona para `/operador`
+  - Consistente com outras páginas do sistema
+
+#### **Ícones do Menu Operações**
+- **Entrada de Insumos**: Truck 🚚 (caminhão)
+- **Produção**: UtensilsCrossed 🍴 (talheres cruzados)
+- **Ficha Técnica**: ChefHat 👨‍🍳 (chapéu de chef)
+- **Etiquetas**: Tag 🏷️ (etiqueta)
+- **Admin**: Shield 🛡️ (escudo)
+- Ícones sincronizados entre cards principais e menu lateral
+
+### 🚀 Benefícios Técnicos
+- Interface muito mais limpa e profissional
+- UX consistente em todas as páginas administrativas
+- Fácil adicionar novos filtros sem poluir a UI
+- Sistema 100% reutilizável para futuras listagens
+- Melhor experiência mobile com Sheet lateral fullscreen
+- Componentes totalmente type-safe com TypeScript
+
+---
+
 ## [0.3.5] - 2025-10-02
 
 ### 🎨 Redesign Completo das Páginas de Autenticação
