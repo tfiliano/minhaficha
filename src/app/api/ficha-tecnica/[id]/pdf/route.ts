@@ -1,6 +1,11 @@
 import { createClient } from "@/utils/supabase";
 import { NextRequest, NextResponse } from "next/server";
-import puppeteer from "puppeteer";
+import puppeteerCore from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
+
+// Configurações para Vercel
+export const maxDuration = 60; // 60 segundos
+export const dynamic = "force-dynamic";
 
 export async function GET(
   request: NextRequest,
@@ -85,9 +90,19 @@ export async function GET(
     });
 
     // Gerar PDF com Puppeteer
-    const browser = await puppeteer.launch({
-      headless: true,
-      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    // Detectar ambiente (Vercel/produção vs desenvolvimento)
+    const isProduction = process.env.VERCEL || process.env.NODE_ENV === "production";
+
+    const browser = await puppeteerCore.launch({
+      args: isProduction
+        ? chromium.args
+        : ["--no-sandbox", "--disable-setuid-sandbox"],
+      defaultViewport: chromium.defaultViewport,
+      executablePath: isProduction
+        ? await chromium.executablePath()
+        : process.env.PUPPETEER_EXECUTABLE_PATH ||
+          "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+      headless: chromium.headless,
     });
 
     const page = await browser.newPage();
