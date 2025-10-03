@@ -292,6 +292,7 @@ export type Database = {
         Row: {
           created_at: string | null
           custo_unitario: number | null
+          fator_correcao: number | null
           ficha_tecnica_id: string
           id: string
           observacoes: string | null
@@ -303,6 +304,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           custo_unitario?: number | null
+          fator_correcao?: number | null
           ficha_tecnica_id: string
           id?: string
           observacoes?: string | null
@@ -314,6 +316,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           custo_unitario?: number | null
+          fator_correcao?: number | null
           ficha_tecnica_id?: string
           id?: string
           observacoes?: string | null
@@ -675,6 +678,38 @@ export type Database = {
         }
         Relationships: []
       }
+      permissoes: {
+        Row: {
+          acao: Database["public"]["Enums"]["permission_action"]
+          created_at: string | null
+          descricao: string | null
+          id: string
+          recurso_id: string
+        }
+        Insert: {
+          acao: Database["public"]["Enums"]["permission_action"]
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          recurso_id: string
+        }
+        Update: {
+          acao?: Database["public"]["Enums"]["permission_action"]
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          recurso_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "permissoes_recurso_id_fkey"
+            columns: ["recurso_id"]
+            isOneToOne: false
+            referencedRelation: "recursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       producoes: {
         Row: {
           created_at: string
@@ -768,6 +803,7 @@ export type Database = {
           armazenamento_id: string | null
           ativo: boolean | null
           codigo: string
+          custo_unitario: number | null
           dias_validade: number | null
           estoque_kilo: number | null
           estoque_unidade: number | null
@@ -778,6 +814,7 @@ export type Database = {
           loja_id: string | null
           nome: string
           originado: string | null
+          preco_venda: number | null
           setor: string
           unidade: string
         }
@@ -786,6 +823,7 @@ export type Database = {
           armazenamento_id?: string | null
           ativo?: boolean | null
           codigo: string
+          custo_unitario?: number | null
           dias_validade?: number | null
           estoque_kilo?: number | null
           estoque_unidade?: number | null
@@ -796,6 +834,7 @@ export type Database = {
           loja_id?: string | null
           nome: string
           originado?: string | null
+          preco_venda?: number | null
           setor: string
           unidade: string
         }
@@ -804,6 +843,7 @@ export type Database = {
           armazenamento_id?: string | null
           ativo?: boolean | null
           codigo?: string
+          custo_unitario?: number | null
           dias_validade?: number | null
           estoque_kilo?: number | null
           estoque_unidade?: number | null
@@ -814,6 +854,7 @@ export type Database = {
           loja_id?: string | null
           nome?: string
           originado?: string | null
+          preco_venda?: number | null
           setor?: string
           unidade?: string
         }
@@ -967,6 +1008,72 @@ export type Database = {
             columns: ["fabricante_id"]
             isOneToOne: false
             referencedRelation: "fabricantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recursos: {
+        Row: {
+          ativo: boolean | null
+          created_at: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          slug: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          slug: string
+        }
+        Update: {
+          ativo?: boolean | null
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      role_permissoes: {
+        Row: {
+          created_at: string | null
+          id: string
+          loja_id: string | null
+          permissao_id: string
+          role: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          loja_id?: string | null
+          permissao_id: string
+          role: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          loja_id?: string | null
+          permissao_id?: string
+          role?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissoes_loja_id_fkey"
+            columns: ["loja_id"]
+            isOneToOne: false
+            referencedRelation: "lojas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_permissoes_permissao_id_fkey"
+            columns: ["permissao_id"]
+            isOneToOne: false
+            referencedRelation: "permissoes"
             referencedColumns: ["id"]
           },
         ]
@@ -1142,6 +1249,23 @@ export type Database = {
       }
     }
     Functions: {
+      check_user_permission: {
+        Args: {
+          p_acao: Database["public"]["Enums"]["permission_action"]
+          p_loja_id: string
+          p_recurso_slug: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      get_user_permissions: {
+        Args: { p_loja_id: string; p_user_id: string }
+        Returns: {
+          acao: string
+          descricao: string
+          recurso: string
+        }[]
+      }
       listar_setores: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1150,6 +1274,8 @@ export type Database = {
       }
     }
     Enums: {
+      permission_action: "read" | "create" | "update" | "delete"
+      user_type: "master" | "admin" | "manager" | "operator" | "user"
       USER_TYPE: "master" | "admin" | "manager" | "operator" | "user"
     }
     CompositeTypes: {
@@ -1278,6 +1404,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      permission_action: ["read", "create", "update", "delete"],
+      user_type: ["master", "admin", "manager", "operator", "user"],
       USER_TYPE: ["master", "admin", "manager", "operator", "user"],
     },
   },

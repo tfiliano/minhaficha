@@ -54,7 +54,8 @@ export async function GET(
           codigo,
           nome,
           unidade,
-          grupo
+          grupo,
+          custo_unitario
         )
       `)
       .eq("ficha_tecnica_id", fichaTecnica.id)
@@ -69,10 +70,18 @@ export async function GET(
 
     const fotoCapa = fotos?.find((f) => f.is_capa)?.url || fotos?.[0]?.url;
 
+    // Função para calcular o custo do ingrediente
+    // Fórmula: quantidade × fator_correcao × custo_unitario_produto
+    const calcularCustoIngrediente = (item: any): number => {
+      const quantidade = item.quantidade || 0;
+      const fatorCorrecao = item.fator_correcao || 1.0;
+      const custoUnitarioProduto = item.produto?.custo_unitario || 0;
+      return quantidade * fatorCorrecao * custoUnitarioProduto;
+    };
+
     // Calcular custos
     const custoTotal = (ingredientes || []).reduce((total, item) => {
-      const custo = (item.custo_unitario || 0) * item.quantidade;
-      return total + custo;
+      return total + calcularCustoIngrediente(item);
     }, 0);
 
     const custoPorPorcao = fichaTecnica.porcoes
@@ -152,16 +161,26 @@ function generatePDFHTML({
   custoTotal: number;
   custoPorPorcao: number;
 }) {
+  // Função para calcular o custo do ingrediente
+  const calcularCustoIngrediente = (item: any): number => {
+    const quantidade = item.quantidade || 0;
+    const fatorCorrecao = item.fator_correcao || 1.0;
+    const custoUnitarioProduto = item.produto?.custo_unitario || 0;
+    return quantidade * fatorCorrecao * custoUnitarioProduto;
+  };
+
   const ingredientesRows = ingredientes
     .map((item) => {
-      const valorTotal = (item.custo_unitario || 0) * item.quantidade;
+      const fatorCorrecao = item.fator_correcao || 1.0;
+      const custoUnitarioProduto = item.produto?.custo_unitario || 0;
+      const valorTotal = calcularCustoIngrediente(item);
       return `
         <tr>
           <td>${item.produto.nome}</td>
           <td class="text-center">${item.unidade}</td>
           <td class="text-center">${item.quantidade.toFixed(3)}</td>
-          <td class="text-center">1,000</td>
-          <td class="text-right">R$ ${(item.custo_unitario || 0).toFixed(2)}</td>
+          <td class="text-center">${fatorCorrecao.toFixed(3)}</td>
+          <td class="text-right">R$ ${custoUnitarioProduto.toFixed(2)}</td>
           <td class="text-right">R$ ${valorTotal.toFixed(2)}</td>
         </tr>
       `;

@@ -25,9 +25,12 @@ import {
   UtensilsCrossed,
   Tag,
   Truck,
-  Shield
+  Shield,
+  ShieldCheck,
+  PanelLeftClose,
+  PanelLeftOpen
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -39,6 +42,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const adminSubmenus = [
   { href: "/admin/produtos", label: "Produtos", icon: Box },
@@ -53,7 +57,8 @@ const adminSubmenus = [
   { href: "/admin/impressoras", label: "Impressoras", icon: PrinterIcon },
   { href: "/admin/templates/etiquetas", label: "Templates", icon: LayoutTemplate },
   { href: "/admin/impressao", label: "Fila de Impressão", icon: Printer },
-  { href: "/admin/reports", label: "Relatórios", icon: BarChart3 },
+  { href: "/admin/relatorios", label: "Relatórios", icon: BarChart3 },
+  { href: "/admin/permissoes", label: "Permissões", icon: ShieldCheck },
   { href: "/admin/configuracoes", label: "Configurações", icon: Cog },
 ];
 
@@ -63,7 +68,6 @@ const menuItems = [
   { href: "/operador?operacao=Etiquetas", label: "Gerar Etiqueta", icon: Tag },
   { href: "/operador?operacao=Entrada de Insumos", label: "Entrada de Insumos", icon: Truck },
   { href: "/ficha-tecnica", label: "Ficha Técnica", icon: ChefHat },
-  { href: "/admin/reports", label: "Relatórios", icon: BarChart3 },
   {
     href: "/admin",
     label: "Administração",
@@ -72,8 +76,8 @@ const menuItems = [
   },
 ];
 
-export function MobileMenu() {
-  const [open, setOpen] = useState(false);
+// Componente reutilizável do conteúdo do menu
+function MenuContent({ onLinkClick }: { onLinkClick?: () => void }) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const pathname = usePathname();
 
@@ -86,12 +90,178 @@ export function MobileMenu() {
   };
 
   return (
+    <nav className="mt-6 flex flex-col gap-1">
+      {menuItems.map((item) => {
+        const Icon = item.icon;
+        const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+        const isExpanded = expandedItems.includes(item.href);
+        const hasSubmenus = item.submenus && item.submenus.length > 0;
+
+        return (
+          <div key={item.href}>
+            <div className="flex items-center gap-0">
+              <Link
+                href={item.href}
+                onClick={onLinkClick}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-1",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <Icon className="h-5 w-5 flex-shrink-0" />
+                <span>{item.label}</span>
+              </Link>
+
+              {hasSubmenus && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-9 w-9 flex-shrink-0"
+                  onClick={() => toggleExpand(item.href)}
+                >
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+            </div>
+
+            {hasSubmenus && isExpanded && (
+              <div className="ml-4 mt-1 flex flex-col gap-1 border-l-2 border-border pl-2">
+                {item.submenus!.map((submenu) => {
+                  const SubIcon = submenu.icon;
+                  const isSubmenuActive = pathname === submenu.href || pathname?.startsWith(submenu.href + '/');
+
+                  return (
+                    <Link
+                      key={submenu.href}
+                      href={submenu.href}
+                      onClick={onLinkClick}
+                      className={cn(
+                        "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors",
+                        isSubmenuActive
+                          ? "bg-primary/10 text-primary"
+                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                      )}
+                    >
+                      <SubIcon className="h-4 w-4 flex-shrink-0" />
+                      <span>{submenu.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function MobileMenu() {
+  const [open, setOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const isMobile = useIsMobile();
+  const pathname = usePathname();
+
+  // Carregar estado do localStorage ao montar (padrão: expandido)
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebar-collapsed');
+    if (saved !== null) {
+      setIsCollapsed(saved === 'true');
+    } else {
+      // Se não tem preferência salva, começa expandido
+      setIsCollapsed(false);
+    }
+  }, []);
+
+  // Salvar estado no localStorage quando mudar
+  const toggleCollapse = () => {
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    localStorage.setItem('sidebar-collapsed', String(newState));
+    // Disparar evento customizado para atualizar o layout na mesma aba
+    window.dispatchEvent(new Event('sidebar-toggle'));
+  };
+
+  // Desktop: sidebar fixo com toggle
+  if (!isMobile) {
+    return (
+      <div
+        className={cn(
+          "fixed left-0 top-20 h-[calc(100vh-5rem)] bg-background border-r overflow-y-auto z-10 transition-all duration-300",
+          isCollapsed ? "w-16" : "w-64"
+        )}
+      >
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-4">
+            {!isCollapsed && (
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-primary rounded-lg">
+                  <Menu className="h-4 w-4 text-white" />
+                </div>
+                <h2 className="font-semibold text-sm">Menu</h2>
+              </div>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleCollapse}
+              className={cn("h-8 w-8", isCollapsed && "mx-auto")}
+              aria-label={isCollapsed ? "Expandir menu" : "Colapsar menu"}
+            >
+              {isCollapsed ? (
+                <PanelLeftOpen className="h-4 w-4" />
+              ) : (
+                <PanelLeftClose className="h-4 w-4" />
+              )}
+            </Button>
+          </div>
+
+          {!isCollapsed && <MenuContent />}
+
+          {/* Menu colapsado: apenas ícones */}
+          {isCollapsed && (
+            <nav className="flex flex-col gap-2">
+              {menuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      "flex items-center justify-center p-2 rounded-lg transition-colors",
+                      isActive
+                        ? "bg-primary text-primary-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    )}
+                    title={item.label}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </Link>
+                );
+              })}
+            </nav>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Mobile: Sheet (drawer)
+  return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9"
+          className="h-9 w-9 md:hidden"
           aria-label="Menu"
         >
           <Menu className="h-5 w-5" />
@@ -106,75 +276,7 @@ export function MobileMenu() {
             Menu
           </SheetTitle>
         </SheetHeader>
-        <nav className="mt-6 flex flex-col gap-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
-            const isExpanded = expandedItems.includes(item.href);
-            const hasSubmenus = item.submenus && item.submenus.length > 0;
-
-            return (
-              <div key={item.href}>
-                <div className="flex items-center gap-0">
-                  <Link
-                    href={item.href}
-                    onClick={() => setOpen(false)}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors flex-1",
-                      isActive
-                        ? "bg-primary text-primary-foreground"
-                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                    )}
-                  >
-                    <Icon className="h-5 w-5 flex-shrink-0" />
-                    <span>{item.label}</span>
-                  </Link>
-
-                  {hasSubmenus && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9 flex-shrink-0"
-                      onClick={() => toggleExpand(item.href)}
-                    >
-                      {isExpanded ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                    </Button>
-                  )}
-                </div>
-
-                {hasSubmenus && isExpanded && (
-                  <div className="ml-4 mt-1 flex flex-col gap-1 border-l-2 border-border pl-2">
-                    {item.submenus!.map((submenu) => {
-                      const SubIcon = submenu.icon;
-                      const isSubmenuActive = pathname === submenu.href || pathname?.startsWith(submenu.href + '/');
-
-                      return (
-                        <Link
-                          key={submenu.href}
-                          href={submenu.href}
-                          onClick={() => setOpen(false)}
-                          className={cn(
-                            "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors",
-                            isSubmenuActive
-                              ? "bg-primary/10 text-primary"
-                              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                          )}
-                        >
-                          <SubIcon className="h-4 w-4 flex-shrink-0" />
-                          <span>{submenu.label}</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </nav>
+        <MenuContent onLinkClick={() => setOpen(false)} />
       </SheetContent>
     </Sheet>
   );

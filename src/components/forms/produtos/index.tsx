@@ -111,6 +111,33 @@ const formBuilder = (
       ],
     },
     {
+      label: "Precificação",
+      rows: [
+        {
+          fields: [
+            {
+              name: "custo_unitario",
+              label: "Custo Unitário (R$)",
+              placeholder: "Ex: 10.50",
+              type: "number",
+              step: "0.01",
+              min: "0",
+              required: false,
+            },
+            {
+              name: "preco_venda",
+              label: "Preço de Venda (R$)",
+              placeholder: "Ex: 15.90",
+              type: "number",
+              step: "0.01",
+              min: "0",
+              required: false,
+            },
+          ],
+        },
+      ],
+    },
+    {
       label: "Classificação e Organização",
       rows: [
         {
@@ -281,6 +308,8 @@ function ProdutoForm({
         estoque_unidade: data.estoque_unidade === undefined ? null : data.estoque_unidade,
         estoque_kilo: data.estoque_kilo === undefined ? null : data.estoque_kilo,
         dias_validade: data.dias_validade === undefined ? null : data.dias_validade,
+        custo_unitario: data.custo_unitario === undefined ? null : data.custo_unitario,
+        preco_venda: data.preco_venda === undefined ? null : data.preco_venda,
         item_de_cardapio: data.item_de_cardapio ?? false,
         ativo: data.ativo ?? true,
         loja_id: data.loja_id ?? null,

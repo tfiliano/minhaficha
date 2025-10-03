@@ -2,12 +2,71 @@
 
 import { createClient } from "@/utils/supabase";
 
+// Função auxiliar para calcular o custo do ingrediente
+function calcularCustoIngrediente(item: any): number {
+  const quantidade = item.quantidade || 0;
+  const fatorCorrecao = item.fator_correcao || 1.0;
+  const custoUnitarioProduto = item.produto?.custo_unitario || 0;
+  return quantidade * fatorCorrecao * custoUnitarioProduto;
+}
+
+// Função para recalcular e atualizar o custo do produto de cardápio
+async function atualizarCustoProdutoCardapio(fichaTecnicaId: string) {
+  const supabase = await createClient();
+
+  try {
+    // 1. Buscar a ficha técnica para pegar o produto_cardapio_id e porcoes
+    const { data: fichaTecnica } = await supabase
+      .from("fichas_tecnicas")
+      .select("produto_cardapio_id, porcoes")
+      .eq("id", fichaTecnicaId)
+      .single();
+
+    if (!fichaTecnica || !fichaTecnica.porcoes) {
+      return; // Não atualiza se não tiver porções definidas
+    }
+
+    // 2. Buscar todos os ingredientes com os custos dos produtos
+    const { data: ingredientes } = await supabase
+      .from("fichas_tecnicas_itens")
+      .select(`
+        quantidade,
+        fator_correcao,
+        produto:produto_ingrediente_id (
+          custo_unitario
+        )
+      `)
+      .eq("ficha_tecnica_id", fichaTecnicaId);
+
+    if (!ingredientes) return;
+
+    // 3. Calcular custo total
+    const custoTotal = ingredientes.reduce((total, item) => {
+      return total + calcularCustoIngrediente(item);
+    }, 0);
+
+    // 4. Calcular custo por porção
+    const custoPorPorcao = custoTotal / fichaTecnica.porcoes;
+
+    // 5. Atualizar o custo_unitario do produto de cardápio
+    await supabase
+      .from("produtos")
+      .update({ custo_unitario: custoPorPorcao })
+      .eq("id", fichaTecnica.produto_cardapio_id);
+
+    console.log(`Custo atualizado: R$ ${custoPorPorcao.toFixed(2)} por porção`);
+  } catch (error) {
+    console.error("Erro ao atualizar custo do produto:", error);
+  }
+}
+
 export type FichaTecnicaItem = {
   id?: string;
   produto_ingrediente_id: string;
   quantidade: number;
   unidade: string;
   custo_unitario?: number;
+  fator_correcao?: number;
   ordem?: number;
   observacoes?: string;
 };
@@ -84,6 +143,11 @@ export async function upsertFichaTecnica(data: FichaTecnica) {
       return { success: false, error: result.error.message };
     }
 
+    // Atualizar custo do produto de cardápio quando as porções mudarem
+    if (result.data?.id && data.porcoes) {
+      await atualizarCustoProdutoCardapio(result.data.id);
+    }
+
     return { success: true, data: result.data };
   } catch (error) {
     console.error("Erro ao salvar ficha técnica:", error);
@@ -109,6 +173,7 @@ export async function addIngrediente(fichaTecnicaId: string, item: FichaTecnicaI
         quantidade: item.quantidade,
         unidade: item.unidade,
         custo_unitario: item.custo_unitario,
+        fator_correcao: item.fator_correcao ?? 1.0,
         ordem: item.ordem ?? 0,
         observacoes: item.observacoes,
       })
@@ -119,6 +184,9 @@ export async function addIngrediente(fichaTecnicaId: string, item: FichaTecnicaI
       console.error("Erro ao adicionar ingrediente:", error);
       return { success: false, error: error.message };
     }
+
+    // Atualizar custo do produto de cardápio
+    await atualizarCustoProdutoCardapio(fichaTecnicaId);
 
     return { success: true, data };
   } catch (error) {
@@ -149,6 +217,11 @@ export async function updateIngrediente(itemId: string, updates: Partial<FichaTe
       return { success: false, error: error.message };
     }
 
+    // Atualizar custo do produto de cardápio
+    if (data?.ficha_tecnica_id) {
+      await atualizarCustoProdutoCardapio(data.ficha_tecnica_id);
+    }
+
     return { success: true, data };
   } catch (error) {
     console.error("Erro ao atualizar ingrediente:", error);
@@ -166,6 +239,13 @@ export async function removeIngrediente(itemId: string) {
   const supabase = await createClient();
 
   try {
+    // Buscar o item antes de deletar para pegar o ficha_tecnica_id
+    const { data: item } = await supabase
+      .from("fichas_tecnicas_itens")
+      .select("ficha_tecnica_id")
+      .eq("id", itemId)
+      .single();
+
     const { error } = await supabase
       .from("fichas_tecnicas_itens")
       .delete()
@@ -174,6 +254,11 @@ export async function removeIngrediente(itemId: string) {
     if (error) {
       console.error("Erro ao remover ingrediente:", error);
       return { success: false, error: error.message };
+    }
+
+    // Atualizar custo do produto de cardápio
+    if (item?.ficha_tecnica_id) {
+      await atualizarCustoProdutoCardapio(item.ficha_tecnica_id);
     }
 
     return { success: true };

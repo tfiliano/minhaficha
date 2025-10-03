@@ -30,6 +30,7 @@ type Ingrediente = {
   quantidade: number;
   unidade: string;
   custo_unitario?: number;
+  fator_correcao?: number;
   observacoes?: string;
   produto: {
     id: string;
@@ -37,6 +38,7 @@ type Ingrediente = {
     nome: string;
     unidade: string;
     grupo: string;
+    custo_unitario?: number;
   };
 };
 
@@ -78,10 +80,18 @@ export function FichaTecnicaPDFPreview({ produto, fichaTecnica, ingredientes, fo
     router.back();
   };
 
+  // Função para calcular o custo do ingrediente
+  // Fórmula: quantidade × fator_correcao × custo_unitario_produto
+  const calcularCustoIngrediente = (item: Ingrediente): number => {
+    const quantidade = item.quantidade || 0;
+    const fatorCorrecao = item.fator_correcao || 1.0;
+    const custoUnitarioProduto = item.produto?.custo_unitario || 0;
+    return quantidade * fatorCorrecao * custoUnitarioProduto;
+  };
+
   // Calcular custos totais
   const custoTotal = ingredientes.reduce((total, item) => {
-    const custo = (item.custo_unitario || 0) * item.quantidade;
-    return total + custo;
+    return total + calcularCustoIngrediente(item);
   }, 0);
 
   const custoPorPorcao = fichaTecnica.porcoes ? custoTotal / fichaTecnica.porcoes : 0;
@@ -194,15 +204,17 @@ export function FichaTecnicaPDFPreview({ produto, fichaTecnica, ingredientes, fo
                   </thead>
                   <tbody>
                     {ingredientes.map((item, idx) => {
-                      const valorTotal = (item.custo_unitario || 0) * item.quantidade;
+                      const fatorCorrecao = item.fator_correcao || 1.0;
+                      const custoUnitarioProduto = item.produto?.custo_unitario || 0;
+                      const valorTotal = calcularCustoIngrediente(item);
                       return (
                         <tr key={item.id} className={idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}>
                           <td className="px-3 py-2 text-slate-700">{item.produto.nome}</td>
                           <td className="px-2 py-2 text-center text-slate-700">{item.unidade}</td>
                           <td className="px-2 py-2 text-center text-slate-700">{item.quantidade.toFixed(3)}</td>
-                          <td className="px-2 py-2 text-center text-slate-700">1,000</td>
+                          <td className="px-2 py-2 text-center text-slate-700">{fatorCorrecao.toFixed(3)}</td>
                           <td className="px-2 py-2 text-right text-slate-700">
-                            R$ {(item.custo_unitario || 0).toFixed(2)}
+                            R$ {custoUnitarioProduto.toFixed(2)}
                           </td>
                           <td className="px-2 py-2 text-right text-slate-700">R$ {valorTotal.toFixed(2)}</td>
                         </tr>

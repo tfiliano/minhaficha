@@ -13,6 +13,8 @@ export type ProdutoImportPreview = {
   'Nome do Grupo': string | null;
   'Nome do Armazenamento': string | null;
   'Nome do Produto Pai': string | null;
+  'Custo Unitário': number | null;
+  'Preço de Venda': number | null;
   'Estoque Unidade': number | null;
   'Estoque Kilo': number | null;
   'Dias Validade': number | null;
@@ -119,6 +121,8 @@ export async function previewImportFromExcel(formData: FormData): Promise<Import
         'Nome do Grupo': getGrupo(),
         'Nome do Armazenamento': getArmazenamento(),
         'Nome do Produto Pai': row['Nome do Produto Pai'] || row['Produto Pai'] || row['PRODUTO PAI'] || null,
+        'Custo Unitário': row['Custo Unitário'] || row['Custo Unitario'] || row['CUSTO UNITÁRIO'] || row['custo_unitario'] || null,
+        'Preço de Venda': row['Preço de Venda'] || row['Preco de Venda'] || row['PREÇO DE VENDA'] || row['preco_venda'] || null,
         'Estoque Unidade': row['Estoque Unidade'] || row['ESTOQUE UNIDADE'] || null,
         'Estoque Kilo': row['Estoque Kilo'] || row['ESTOQUE KILO'] || null,
         'Dias Validade': row['Dias Validade'] || row['DIAS VALIDADE'] || row['Validade'] || null,
@@ -257,6 +261,14 @@ export async function previewImportFromExcel(formData: FormData): Promise<Import
         }
 
         // Validações adicionais
+        if (item['Custo Unitário'] && item['Custo Unitário'] < 0) {
+          preview.conflicts.push('Custo unitário não pode ser negativo');
+        }
+
+        if (item['Preço de Venda'] && item['Preço de Venda'] < 0) {
+          preview.conflicts.push('Preço de venda não pode ser negativo');
+        }
+
         if (item['Estoque Unidade'] && item['Estoque Unidade'] < 0) {
           preview.conflicts.push('Estoque em unidades não pode ser negativo');
         }

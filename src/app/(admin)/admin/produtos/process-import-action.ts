@@ -196,6 +196,8 @@ export async function processImportFromPreview(
           unidade: item['Unidade'] || 'UN',
           armazenamento: armazenamentoNome,
           armazenamento_id: armazenamentoId,
+          custo_unitario: item['Custo Unitário'] || null,
+          preco_venda: item['Preço de Venda'] || null,
           estoque_unidade: item['Estoque Unidade'] || null,
           estoque_kilo: item['Estoque Kilo'] || null,
           dias_validade: item['Dias Validade'] || null,

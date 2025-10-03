@@ -2,6 +2,77 @@
 
 ## [Unreleased] - 2025-10-03
 
+### 📊 Sistema Unificado de Relatórios com Exportação Profissional
+
+#### **Floating Filter Button**
+- **🎯 Botão Flutuante de Filtros**: Interface moderna para acesso rápido aos filtros
+  - Posicionado no meio da tela, lado direito
+  - Badge com contador de filtros ativos
+  - Design outline com sombra e bordas arredondadas
+  - Sempre acessível durante scroll da página
+
+#### **Exportação Profissional de PDF**
+- **📄 PDF com Puppeteer**: Sistema completo de geração de PDFs profissionais
+  - Endpoint unificado: `/api/relatorios/pdf`
+  - **Header**: Nome da loja, título do relatório, data/hora
+  - **Footer**: Paginação (Página X de Y), https://minhaficha.app no centro, timestamp de geração
+  - **Dados**: Tabelas formatadas com colunas corretas para cada tipo de relatório
+  - Suporte a 4 tipos: Produção, Conversão, Insumos, Margem
+
+#### **Exportação Profissional de Excel**
+- **📊 Excel com ExcelJS**: Geração de planilhas formatadas
+  - Endpoint unificado: `/api/relatorios/excel`
+  - Header estilizado com fundo azul e texto branco
+  - Colunas com largura otimizada
+  - Formatação numérica (#,##0.00)
+  - Bordas e alinhamento profissional
+  - Nome de arquivo com timestamp
+
+#### **Botões de Exportação Centralizados**
+- **🔘 Export Buttons no Header**: Componente único para ambos os formatos
+  - Detecção automática da tab ativa via eventos customizados
+  - Botões Excel e PDF sempre visíveis no topo
+  - Estados de loading durante geração
+  - Filtros aplicados automaticamente via query params
+  - Removidos botões individuais de cada tab
+
+#### **Estruturas de Dados Corrigidas**
+- **✅ Mapeamento Correto**: Alinhamento entre tela e exports
+  - **Produção**: Código, Produto, Produto Pai, Data, Responsável, Quantidade, Peso, Tipo, Peso Médio
+  - **Conversão**: Produto, Produto Pai, Data, Responsável, Quantidade, Peso Bruto, Peso Líquido, Tipo, FC
+  - **Insumos**: Data, Produto, Peso Bruto, Fornecedor, NF, SIF, Temperatura, Lote, Validade, Responsável, Observações
+  - **Margem**: Grupo, Código, Descrição, Preço de Venda, Preço de Custo, Margem (%)
+  - Fallbacks (`|| '-'`) para prevenir undefined
+
+#### **Menu e Navegação**
+- **🗂️ Limpeza de Menu**: Removida duplicata "Relatórios" do menu principal
+  - Mantido apenas no submenu Administração
+  - Caminho atualizado para `/admin/relatorios`
+
+#### **Layout Responsivo Aprimorado**
+- **📱 Ficha Técnica com Sidebar Colapsável**: Layout `(app)` agora responde ao estado do sidebar
+  - Convertido para client component
+  - Gerenciamento de estado via localStorage e eventos customizados
+  - Margem dinâmica: `md:ml-64` (expandido) / `md:ml-16` (colapsado)
+  - Sincronização perfeita com layout `(admin)`
+
+#### **🛠️ Dependências**
+- Adicionado: `exceljs` para geração de planilhas
+
+#### **📦 Arquivos Criados/Modificados**
+- `/src/app/api/relatorios/pdf/route.ts` (criado)
+- `/src/app/api/relatorios/excel/route.ts` (criado)
+- `/src/app/(admin)/admin/relatorios/export-buttons.tsx` (criado)
+- `/src/app/(admin)/admin/relatorios/filtros-wrapper.tsx` (modificado - floating button)
+- `/src/app/(admin)/admin/relatorios/page-client.tsx` (modificado - event dispatch)
+- `/src/app/(app)/layout.tsx` (modificado - sidebar state)
+- `/src/components/layout/mobile-menu.tsx` (modificado - menu cleanup)
+- Removido: `/src/app/(admin)/admin/reports/` (pasta antiga)
+
+---
+
+## [Previous] - 2025-10-03
+
 ### 🎨 Sistema de Geração Profissional de PDFs para Fichas Técnicas
 
 #### **Nova Funcionalidade: Exportação de PDF com Puppeteer**

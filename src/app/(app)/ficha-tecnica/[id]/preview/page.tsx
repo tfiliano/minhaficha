@@ -47,7 +47,8 @@ export default async function FichaTecnicaPreviewPage(props: Props) {
         codigo,
         nome,
         unidade,
-        grupo
+        grupo,
+        custo_unitario
       )
     `)
     .eq("ficha_tecnica_id", fichaTecnica.id)

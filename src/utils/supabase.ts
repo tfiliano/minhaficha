@@ -23,6 +23,9 @@ export async function createClient() {
         "impressoras",
         "fichas_tecnicas_itens", // Não tem loja_id, herda pela FK
         "fichas_tecnicas_fotos", // Não tem loja_id, herda pela FK
+        "recursos", // Sistema de permissões (global)
+        "permissoes", // Sistema de permissões (global)
+        "role_permissoes", // Sistema de permissões (loja_id nullable)
       ];
 
       if (

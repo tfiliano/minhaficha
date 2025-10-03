@@ -2,6 +2,25 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
 
+// Mapeamento de rotas para recursos do sistema de permissões
+const ROUTE_TO_RESOURCE_MAP: Record<string, string> = {
+  "/admin/produtos": "produtos",
+  "/admin/etiquetas": "etiquetas",
+  "/admin/reports": "relatorios",
+  "/ficha-tecnica": "ficha-tecnica",
+  "/admin/operadores": "operadores",
+  "/admin/grupos": "grupos",
+  "/admin/setores": "setores",
+  "/admin/armazenamentos": "armazenamentos",
+  "/admin/fabricantes": "fabricantes",
+  "/admin/sifs": "sifs",
+  "/admin/impressoras": "impressoras",
+  "/admin/templates": "templates",
+  "/admin/configuracoes": "configuracoes",
+  "/operador": "producao",
+  "/admin/permissoes": "configuracoes", // Gerenciar permissões requer acesso a configurações
+};
+
 class SupabaseService {
   private supabase;
 
@@ -58,6 +77,30 @@ class SupabaseService {
       .maybeSingle();
     return { data, error };
   }
+
+  /**
+   * Verifica se o usuário tem permissão para acessar um recurso
+   */
+  async checkPermission(
+    userId: string,
+    lojaId: string,
+    recurso: string,
+    acao: string = "read"
+  ) {
+    const { data, error } = await this.supabase.rpc("check_user_permission", {
+      p_user_id: userId,
+      p_loja_id: lojaId,
+      p_recurso_slug: recurso,
+      p_acao: acao,
+    });
+
+    if (error) {
+      console.error("Erro ao verificar permissão:", error);
+      return false;
+    }
+
+    return data === true;
+  }
 }
 class AuthGuard {
   constructor(
@@ -101,7 +144,45 @@ class AuthGuard {
       }
     }
 
+    // Verificar permissões baseadas em recursos
+    const recurso = this.getResourceFromPath(this.request.nextUrl.pathname);
+    if (recurso) {
+      const hasPermission = await this.supabaseService.checkPermission(
+        user!.id,
+        lojaId,
+        recurso,
+        "read"
+      );
+
+      if (!hasPermission) {
+        // Usuário não tem permissão para acessar este recurso
+        const url = this.request.nextUrl.clone();
+        url.pathname = "/";
+        url.searchParams.set("error", "permission_denied");
+        return NextResponse.redirect(url);
+      }
+    }
+
     return NextResponse.next();
+  }
+
+  /**
+   * Extrai o recurso da rota baseado no mapeamento
+   */
+  private getResourceFromPath(pathname: string): string | null {
+    // Tentar match exato primeiro
+    if (ROUTE_TO_RESOURCE_MAP[pathname]) {
+      return ROUTE_TO_RESOURCE_MAP[pathname];
+    }
+
+    // Tentar match por prefixo (para rotas dinâmicas como /admin/produtos/[id])
+    for (const [route, resource] of Object.entries(ROUTE_TO_RESOURCE_MAP)) {
+      if (pathname.startsWith(route + "/") || pathname === route) {
+        return resource;
+      }
+    }
+
+    return null;
   }
 
   private isPublicRoute(): boolean {

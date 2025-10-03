@@ -92,10 +92,10 @@ export const adminMenuOptions = [
   // Analytics
   {
     label: "Relatórios",
-    href: "reports",
+    href: "relatorios",
     icon: "BarChart3",
     category: "analytics",
-    description: "Dados e estatísticas"
+    description: "Análises e dashboards"
   },
 ] as const;
 

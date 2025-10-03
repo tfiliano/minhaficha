@@ -39,6 +39,7 @@ type IngredienteItem = {
   quantidade: number;
   unidade: string;
   custo_unitario?: number;
+  fator_correcao?: number;
   observacoes?: string;
   produto?: {
     id: string;
@@ -46,8 +47,19 @@ type IngredienteItem = {
     nome: string;
     unidade: string;
     grupo: string;
+    custo_unitario?: number;
   };
 };
+
+// Função para calcular o custo do ingrediente
+// Fórmula: quantidade × fator_correcao × custo_unitario_produto
+function calcularCustoIngrediente(item: IngredienteItem): number {
+  const quantidade = item.quantidade || 0;
+  const fatorCorrecao = item.fator_correcao || 1.0;
+  const custoUnitarioProduto = item.produto?.custo_unitario || 0;
+
+  return quantidade * fatorCorrecao * custoUnitarioProduto;
+}
 
 type FichaTecnicaFormProps = {
   fichaTecnicaId: string;
@@ -81,33 +93,24 @@ export function FichaTecnicaForm({
   const [fotos, setFotos] = useState<FichaTecnicaFoto[]>(initialFotos);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editQuantidade, setEditQuantidade] = useState("");
+  const [editFatorCorrecao, setEditFatorCorrecao] = useState("");
   const [isAdding, setIsAdding] = useState(false);
   const [ingredienteToDelete, setIngredienteToDelete] = useState<string | null>(null);
 
-  const handleAddIngrediente = async (produto: Produto, quantidade: number) => {
+  const handleAddIngrediente = async (produto: Produto, quantidade: number, fatorCorrecao: number) => {
     setIsAdding(true);
     const result = await addIngrediente(fichaTecnicaId, {
       produto_ingrediente_id: produto.id,
       quantidade,
       unidade: produto.unidade,
+      fator_correcao: fatorCorrecao,
     });
 
     if (result.success && result.data) {
-      // Atualizar lista localmente
-      setIngredientes([
-        ...ingredientes,
-        {
-          ...result.data,
-          produto: {
-            id: produto.id,
-            codigo: produto.codigo,
-            nome: produto.nome,
-            unidade: produto.unidade,
-            grupo: produto.grupo,
-          },
-        },
-      ]);
-      toast.success("Ingrediente adicionado com sucesso!");
+      // Buscar o produto completo com custo_unitario para adicionar à lista
+      // Como não temos o custo no objeto 'produto' passado, vamos recarregar a página
+      // ou fazer uma nova busca. Por ora, vamos recarregar:
+      window.location.reload();
     } else {
       toast.error(result.error || "Erro ao adicionar ingrediente");
     }
@@ -119,9 +122,8 @@ export function FichaTecnicaForm({
 
     const result = await removeIngrediente(ingredienteToDelete);
     if (result.success) {
-      // Atualizar lista localmente
-      setIngredientes(ingredientes.filter((item) => item.id !== ingredienteToDelete));
       toast.success("Ingrediente removido com sucesso!");
+      window.location.reload();
     } else {
       toast.error(result.error || "Erro ao remover ingrediente");
     }
@@ -131,37 +133,44 @@ export function FichaTecnicaForm({
   const handleStartEdit = (item: IngredienteItem) => {
     setEditingId(item.id);
     setEditQuantidade(item.quantidade.toString());
+    setEditFatorCorrecao((item.fator_correcao || 1.0).toString());
   };
 
   const handleSaveEdit = async (itemId: string) => {
     const quantidade = parseFloat(editQuantidade);
+    const fatorCorrecao = parseFloat(editFatorCorrecao);
+
     if (quantidade <= 0) {
       toast.error("Quantidade deve ser maior que zero");
       return;
     }
 
-    const result = await updateIngrediente(itemId, { quantidade });
+    if (fatorCorrecao <= 0) {
+      toast.error("Fator de correção deve ser maior que zero");
+      return;
+    }
+
+    const result = await updateIngrediente(itemId, { quantidade, fator_correcao: fatorCorrecao });
     if (result.success) {
-      // Atualizar lista localmente
-      setIngredientes(
-        ingredientes.map((item) =>
-          item.id === itemId ? { ...item, quantidade } : item
-        )
-      );
-      setEditingId(null);
-      setEditQuantidade("");
-      toast.success("Quantidade atualizada!");
+      toast.success("Ingrediente atualizado!");
+      window.location.reload();
     } else {
-      toast.error(result.error || "Erro ao atualizar quantidade");
+      toast.error(result.error || "Erro ao atualizar ingrediente");
     }
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditQuantidade("");
+    setEditFatorCorrecao("");
   };
 
   const excludedIds = ingredientes.map((item) => item.produto_ingrediente_id);
+
+  // Calcular custo total da ficha técnica
+  const custoTotal = ingredientes.reduce((total, item) => {
+    return total + calcularCustoIngrediente(item);
+  }, 0);
 
   return (
     <div className="space-y-6">
@@ -190,6 +199,11 @@ export function FichaTecnicaForm({
                 </span>
                 <span className="sm:hidden ml-1">ingred.</span>
               </Badge>
+              {custoTotal > 0 && (
+                <Badge variant="default" className="text-xs whitespace-nowrap bg-green-600 hover:bg-green-700">
+                  R$ {custoTotal.toFixed(2)}
+                </Badge>
+              )}
               {fotos.length > 0 && (
                 <Badge variant="secondary" className="text-xs whitespace-nowrap">
                   {fotos.length} {fotos.length === 1 ? 'foto' : 'fotos'}
@@ -266,21 +280,47 @@ export function FichaTecnicaForm({
                     </div>
                     <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
                       {editingId === item.id ? (
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            step="0.001"
-                            value={editQuantidade}
-                            onChange={(e) => setEditQuantidade(e.target.value)}
-                            className="w-32 h-8"
-                            autoFocus
-                          />
-                          <span>{item.unidade}</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <div className="flex items-center gap-1">
+                            <Input
+                              type="number"
+                              step="0.001"
+                              value={editQuantidade}
+                              onChange={(e) => setEditQuantidade(e.target.value)}
+                              className="w-24 h-8"
+                              autoFocus
+                            />
+                            <span>{item.unidade}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs">F.C.</span>
+                            <Input
+                              type="number"
+                              step="0.001"
+                              value={editFatorCorrecao}
+                              onChange={(e) => setEditFatorCorrecao(e.target.value)}
+                              className="w-20 h-8"
+                            />
+                          </div>
                         </div>
                       ) : (
-                        <span>
-                          {item.quantidade} {item.unidade}
-                        </span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span>
+                            {item.quantidade} {item.unidade}
+                          </span>
+                          <span>•</span>
+                          <span className={item.fator_correcao && item.fator_correcao !== 1.0 ? "text-orange-600 dark:text-orange-400 font-medium" : ""}>
+                            F.C. {item.fator_correcao || 1.0}
+                          </span>
+                          {item.produto?.custo_unitario && (
+                            <>
+                              <span>•</span>
+                              <span className="text-green-600 dark:text-green-400 font-medium">
+                                R$ {calcularCustoIngrediente(item).toFixed(2)}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -339,6 +379,7 @@ export function FichaTecnicaForm({
             produtoCardapioId={produtoCardapio.id}
             modoPreparo={initialModoPreparo}
             tempoPreparoMinutos={initialTempoPreparoMinutos}
+            porcoes={initialPorcoes}
           />
         </TabsContent>
 

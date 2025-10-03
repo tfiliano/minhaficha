@@ -12,6 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { FilterSheet } from "@/components/ui/filter-sheet";
 import { useFilters } from "@/hooks/use-filters";
 import {
@@ -63,6 +65,10 @@ export function ProdutosView({ produtos }: ProdutosViewProps) {
   const [sortField, setSortField] = useState<SortField>("nome");
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
+  // Calcular valores máximos para os sliders
+  const maxPreco = Math.max(...produtos.map(p => p.preco_venda || 0), 1000);
+  const maxCusto = Math.max(...produtos.map(p => p.custo_unitario || 0), 500);
+
   const {
     filters: filtros,
     updateFilter,
@@ -74,6 +80,9 @@ export function ProdutosView({ produtos }: ProdutosViewProps) {
     armazenamento: "all",
     produtoPai: "all",
     ativo: "all",
+    itemCardapio: "all",
+    precoRange: [0, maxPreco],
+    custoRange: [0, maxCusto],
   });
 
   // Extrair grupos, armazenamentos e produtos pai únicos para filtros
@@ -106,7 +115,20 @@ export function ProdutosView({ produtos }: ProdutosViewProps) {
         (filtros.ativo === "true" && produto.ativo) ||
         (filtros.ativo === "false" && !produto.ativo);
 
-      return matchBusca && matchGrupo && matchArmazenamento && matchProdutoPai && matchAtivo;
+      const matchItemCardapio = filtros.itemCardapio === "all" ||
+        (filtros.itemCardapio === "true" && produto.item_de_cardapio) ||
+        (filtros.itemCardapio === "false" && !produto.item_de_cardapio);
+
+      const [precoMin, precoMax] = filtros.precoRange || [0, maxPreco];
+      const matchPreco = (produto.preco_venda || 0) >= precoMin &&
+                        (produto.preco_venda || 0) <= precoMax;
+
+      const [custoMin, custoMax] = filtros.custoRange || [0, maxCusto];
+      const matchCusto = (produto.custo_unitario || 0) >= custoMin &&
+                        (produto.custo_unitario || 0) <= custoMax;
+
+      return matchBusca && matchGrupo && matchArmazenamento && matchProdutoPai && matchAtivo &&
+             matchItemCardapio && matchPreco && matchCusto;
     })
     .sort((a, b) => {
       let aValue: string | number;
@@ -296,6 +318,82 @@ export function ProdutosView({ produtos }: ProdutosViewProps) {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Item de Cardápio</label>
+                    <div className="flex items-center gap-2">
+                      <span className={cn(
+                        "text-xs font-medium transition-colors",
+                        filtros.itemCardapio === "false" ? "text-slate-900 dark:text-white" : "text-slate-400"
+                      )}>
+                        Não
+                      </span>
+                      <Switch
+                        checked={filtros.itemCardapio === "true"}
+                        onCheckedChange={(checked) => {
+                          if (!checked && filtros.itemCardapio === "true") {
+                            updateFilter("itemCardapio", "false");
+                          } else if (checked) {
+                            updateFilter("itemCardapio", "true");
+                          } else {
+                            updateFilter("itemCardapio", "all");
+                          }
+                        }}
+                      />
+                      <span className={cn(
+                        "text-xs font-medium transition-colors",
+                        filtros.itemCardapio === "true" ? "text-slate-900 dark:text-white" : "text-slate-400"
+                      )}>
+                        Sim
+                      </span>
+                    </div>
+                  </div>
+                  {filtros.itemCardapio !== "all" && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => updateFilter("itemCardapio", "all")}
+                      className="h-7 text-xs w-full"
+                    >
+                      Limpar filtro
+                    </Button>
+                  )}
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Faixa de Preço</label>
+                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                      R$ {(filtros.precoRange?.[0] || 0).toFixed(2)} - R$ {(filtros.precoRange?.[1] || maxPreco).toFixed(2)}
+                    </span>
+                  </div>
+                  <Slider
+                    min={0}
+                    max={maxPreco}
+                    step={0.01}
+                    value={filtros.precoRange || [0, maxPreco]}
+                    onValueChange={(value) => updateFilter("precoRange", value)}
+                    className="mt-2"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Faixa de Custo</label>
+                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                      R$ {(filtros.custoRange?.[0] || 0).toFixed(2)} - R$ {(filtros.custoRange?.[1] || maxCusto).toFixed(2)}
+                    </span>
+                  </div>
+                  <Slider
+                    min={0}
+                    max={maxCusto}
+                    step={0.01}
+                    value={filtros.custoRange || [0, maxCusto]}
+                    onValueChange={(value) => updateFilter("custoRange", value)}
+                    className="mt-2"
+                  />
+                </div>
               </div>
             </FilterSheet>
       </div>
@@ -341,6 +439,24 @@ export function ProdutosView({ produtos }: ProdutosViewProps) {
                     <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
                       <Filter className="h-3 w-3 mr-1" />
                       {filtros.ativo === "true" ? "Ativos" : "Inativos"}
+                    </Badge>
+                  )}
+                  {filtros.itemCardapio !== "all" && (
+                    <Badge variant="secondary" className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+                      <Filter className="h-3 w-3 mr-1" />
+                      {filtros.itemCardapio === "true" ? "Cardápio" : "Não Cardápio"}
+                    </Badge>
+                  )}
+                  {filtros.precoRange && (filtros.precoRange[0] > 0 || filtros.precoRange[1] < maxPreco) && (
+                    <Badge variant="secondary" className="bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400">
+                      <Filter className="h-3 w-3 mr-1" />
+                      Preço: R$ {filtros.precoRange[0].toFixed(2)} - R$ {filtros.precoRange[1].toFixed(2)}
+                    </Badge>
+                  )}
+                  {filtros.custoRange && (filtros.custoRange[0] > 0 || filtros.custoRange[1] < maxCusto) && (
+                    <Badge variant="secondary" className="bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400">
+                      <Filter className="h-3 w-3 mr-1" />
+                      Custo: R$ {filtros.custoRange[0].toFixed(2)} - R$ {filtros.custoRange[1].toFixed(2)}
                     </Badge>
                   )}
                 </div>

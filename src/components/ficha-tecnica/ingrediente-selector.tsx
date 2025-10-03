@@ -18,7 +18,7 @@ type Produto = {
 };
 
 type IngredienteSelectorProps = {
-  onSelect: (produto: Produto, quantidade: number) => void;
+  onSelect: (produto: Produto, quantidade: number, fatorCorrecao: number) => void;
   excludeIds?: string[];
 };
 
@@ -28,6 +28,7 @@ export function IngredienteSelector({ onSelect, excludeIds = [] }: IngredienteSe
   const [isSearching, setIsSearching] = useState(false);
   const [selectedProduto, setSelectedProduto] = useState<Produto | null>(null);
   const [quantidade, setQuantidade] = useState<string>("");
+  const [fatorCorrecao, setFatorCorrecao] = useState<string>("1.0");
   const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
@@ -60,15 +61,18 @@ export function IngredienteSelector({ onSelect, excludeIds = [] }: IngredienteSe
 
   const handleAddIngrediente = () => {
     if (selectedProduto && quantidade && parseFloat(quantidade) > 0) {
-      onSelect(selectedProduto, parseFloat(quantidade));
+      const fc = fatorCorrecao ? parseFloat(fatorCorrecao) : 1.0;
+      onSelect(selectedProduto, parseFloat(quantidade), fc);
       setSelectedProduto(null);
       setQuantidade("");
+      setFatorCorrecao("1.0");
     }
   };
 
   const handleCancelSelection = () => {
     setSelectedProduto(null);
     setQuantidade("");
+    setFatorCorrecao("1.0");
   };
 
   return (
@@ -169,6 +173,22 @@ export function IngredienteSelector({ onSelect, excludeIds = [] }: IngredienteSe
                   placeholder={`Ex: 1, 0.5, 2.5 ${selectedProduto.unidade}`}
                   value={quantidade}
                   onChange={(e) => setQuantidade(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 block">
+                  <span className="hidden sm:inline">Fator de Correção</span>
+                  <span className="sm:hidden">F.C.</span>
+                </label>
+                <Input
+                  type="number"
+                  step="0.001"
+                  min="0"
+                  placeholder="Ex: 1.0, 1.15, 1.5"
+                  value={fatorCorrecao}
+                  onChange={(e) => setFatorCorrecao(e.target.value)}
                   className="w-full"
                 />
               </div>

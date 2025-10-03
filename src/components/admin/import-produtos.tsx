@@ -278,6 +278,8 @@ export function ImportProdutos() {
                   <li>• <strong>Nome do Grupo:</strong> Será criado se não existir</li>
                   <li>• <strong>Nome do Armazenamento:</strong> Será criado se não existir</li>
                   <li>• <strong>Nome do Produto Pai:</strong> Será criado se não existir</li>
+                  <li>• <strong>Custo Unitário:</strong> Opcional (valor em R$)</li>
+                  <li>• <strong>Preço de Venda:</strong> Opcional (valor em R$)</li>
                   <li>• <strong>Estoque Unidade/Kilo, Dias Validade:</strong> Opcionais</li>
                   <li>• <strong>Ativo:</strong> Padrão &quot;SIM&quot;</li>
                 </ul>

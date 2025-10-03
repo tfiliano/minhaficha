@@ -22,6 +22,8 @@ async function fetchProdutos() {
       unidade,
       ativo,
       originado,
+      custo_unitario,
+      preco_venda,
       grupos(nome),
       locais_armazenamento(armazenamento)
     `)
@@ -75,6 +77,8 @@ async function generateExcel2(data: any) {
     "Nome do Grupo": item["grupos"]?.nome || "",
     "Nome do Armazenamento": item["locais_armazenamento"]?.armazenamento || "",
     "Nome do Produto Pai": item["produto_pai"]?.nome || "",
+    "Custo Unitário": item["custo_unitario"] || "",
+    "Preço de Venda": item["preco_venda"] || "",
     "Estoque Unidade": item["estoque_unidade"] || "",
     "Estoque Kilo": item["estoque_kilo"] || "",
     "Dias Validade": item["dias_validade"] || "",
@@ -93,6 +97,8 @@ async function generateExcel2(data: any) {
     { wch: 20 }, // Nome do Grupo
     { wch: 20 }, // Nome do Armazenamento
     { wch: 25 }, // Nome do Produto Pai
+    { wch: 15 }, // Custo Unitário
+    { wch: 15 }, // Preço de Venda
     { wch: 15 }, // Estoque Unidade
     { wch: 15 }, // Estoque Kilo
     { wch: 15 }, // Dias Validade
