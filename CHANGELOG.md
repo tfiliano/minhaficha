@@ -1,6 +1,47 @@
 # Changelog
 
-## [Unreleased] - 2025-10-02
+## [Unreleased] - 2025-10-03
+
+### 🎨 Sistema de Geração Profissional de PDFs para Fichas Técnicas
+
+#### **Nova Funcionalidade: Exportação de PDF com Puppeteer**
+- **📄 Geração de PDF Profissional**: Sistema completo de geração de PDFs usando Puppeteer
+  - API Route: `/api/ficha-tecnica/[id]/pdf`
+  - HTML otimizado com design moderno e profissional
+  - Fonte Inter para tipografia elegante
+  - Layout responsivo em A4 com 2 páginas
+
+#### **🎯 Design Premium do PDF**
+- **Cabeçalho com gradiente verde**: Badge com código do produto
+- **Card de informações**: Grid com preparação, categoria e foto do prato
+- **Tabela moderna de ingredientes**:
+  - 6 colunas compactas (Ingrediente, UN, Qtd., F.C., Valor Unit., Valor Total)
+  - Badge mostrando quantidade de itens
+  - Linha de total destacada com fundo gradiente
+- **Modo de preparo**: Formatação rica respeitada (listas, negrito, itálico)
+- **Cards de estatísticas**: Rendimento, Custo Total e Custo/Porção
+
+#### **🔄 Melhorias no Sistema de Fichas Técnicas**
+- **Botão "Visualizar PDF"** em cada card da lista
+- **Preview em tela**: Design idêntico ao PDF gerado
+- **Botão de produtos sem ficha**: Mostra todos os produtos de cardápio que ainda não têm ficha técnica
+- **Otimização de fontes e espaçamentos**: Layout compacto e profissional
+
+#### **🛠️ Dependências**
+- Adicionado: `puppeteer@24.23.0` para geração de PDFs
+
+#### **📦 Arquivos Modificados**
+- `/src/app/api/ficha-tecnica/[id]/pdf/route.ts` (criado)
+- `/src/app/(app)/ficha-tecnica/[id]/preview/page.tsx` (criado)
+- `/src/components/ficha-tecnica/ficha-tecnica-pdf-preview.tsx` (criado)
+- `/src/components/ficha-tecnica/ficha-tecnica-list.tsx`
+- `/src/components/ficha-tecnica/produto-cardapio-selector.tsx`
+- `/src/app/(app)/ficha-tecnica/actions.ts`
+- `/src/app/(app)/ficha-tecnica/page.tsx`
+
+---
+
+## [Previous] - 2025-10-02
 
 ### ✨ Sistema de Filtros Avançados com FilterSheet
 

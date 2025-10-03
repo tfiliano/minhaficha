@@ -189,14 +189,21 @@ export async function removeIngrediente(itemId: string) {
 /**
  * Buscar produtos para usar como ingredientes
  */
-export async function searchProdutos(searchTerm: string) {
+export async function searchProdutos(searchTerm: string, onlyCardapio: boolean = false) {
   const supabase = await createClient();
 
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from("produtos")
       .select("id, codigo, nome, unidade, grupo")
-      .eq("ativo", true)
+      .eq("ativo", true);
+
+    // Filtrar apenas itens de cardápio se solicitado
+    if (onlyCardapio) {
+      query = query.eq("item_de_cardapio", true);
+    }
+
+    const { data, error } = await query
       .or(`nome.ilike.%${searchTerm}%,codigo.ilike.%${searchTerm}%`)
       .limit(20);
 
@@ -376,6 +383,51 @@ export async function updateFotoOrdem(fotoId: string, ordem: number) {
     return {
       success: false,
       error: error instanceof Error ? error.message : "Erro desconhecido"
+    };
+  }
+}
+
+/**
+ * Buscar produtos de cardápio que ainda não têm ficha técnica
+ */
+export async function getCardapioItemsSemFicha() {
+  const supabase = await createClient();
+
+  try {
+    // Primeiro, buscar todos os produto_cardapio_id que têm fichas
+    const { data: fichas } = await supabase
+      .from("fichas_tecnicas")
+      .select("produto_cardapio_id")
+      .eq("ativo", true);
+
+    const produtosComFichaIds = (fichas || []).map(f => f.produto_cardapio_id);
+
+    // Buscar todos os produtos de cardápio que NÃO estão na lista
+    let query = supabase
+      .from("produtos")
+      .select("id, codigo, nome, unidade, grupo")
+      .eq("ativo", true)
+      .eq("item_de_cardapio", true);
+
+    // Se há produtos com fichas, excluí-los da busca
+    if (produtosComFichaIds.length > 0) {
+      query = query.not("id", "in", `(${produtosComFichaIds.join(",")})`);
+    }
+
+    const { data, error } = await query.order("nome");
+
+    if (error) {
+      console.error("Erro ao buscar produtos sem ficha:", error);
+      return { success: false, error: error.message, data: [] };
+    }
+
+    return { success: true, data: data || [] };
+  } catch (error) {
+    console.error("Erro ao buscar produtos sem ficha:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Erro desconhecido",
+      data: []
     };
   }
 }

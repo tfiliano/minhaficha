@@ -21,8 +21,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChefHat, ListChecks, Image as ImageIcon, Filter, X, Plus } from "lucide-react";
+import { ChefHat, ListChecks, Image as ImageIcon, Filter, X, Plus, FileText } from "lucide-react";
 import Link from "next/link";
+import { ProdutoCardapioSelector } from "./produto-cardapio-selector";
+import { useRouter } from "next/navigation";
 
 type Produto = {
   id: string;
@@ -40,10 +42,18 @@ type FichaTecnicaListProps = {
 };
 
 export function FichaTecnicaList({ produtos }: FichaTecnicaListProps) {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [grupoFilter, setGrupoFilter] = useState<string>("todos");
   const [setorFilter, setSetorFilter] = useState<string>("todos");
   const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [selectorOpen, setSelectorOpen] = useState(false);
+
+  const handlePreviewPDF = (e: React.MouseEvent, produtoId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/ficha-tecnica/${produtoId}/preview`);
+  };
 
   // Extrair grupos e setores únicos
   const grupos = useMemo(() => {
@@ -103,11 +113,13 @@ export function FichaTecnicaList({ produtos }: FichaTecnicaListProps) {
       {/* Barra de Ações */}
       <div className="flex items-center">
         <div className="flex-1 flex justify-center">
-          <Button asChild variant="default" className="bg-orange-600 hover:bg-orange-700">
-            <Link href="/admin/produtos/add">
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar Item
-            </Link>
+          <Button
+            variant="default"
+            className="bg-orange-600 hover:bg-orange-700"
+            onClick={() => setSelectorOpen(true)}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Adicionar Item
           </Button>
         </div>
         <Sheet>
@@ -259,7 +271,7 @@ export function FichaTecnicaList({ produtos }: FichaTecnicaListProps) {
                     </div>
                   </div>
 
-                  {/* Badges de Status */}
+                  {/* Badges de Status e Botão Preview */}
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {produto.totalIngredientes > 0 ? (
                       <Badge variant="default" className="bg-green-600 text-[10px] px-1.5 py-0">
@@ -281,12 +293,29 @@ export function FichaTecnicaList({ produtos }: FichaTecnicaListProps) {
                       {produto.unidade}
                     </span>
                   </div>
+
+                  {/* Botão de Preview PDF */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full mt-2 h-7 text-xs border-orange-300 hover:bg-orange-50 dark:border-orange-700 dark:hover:bg-orange-900/10"
+                    onClick={(e) => handlePreviewPDF(e, produto.id)}
+                  >
+                    <FileText className="h-3 w-3 mr-1.5" />
+                    Visualizar PDF
+                  </Button>
                 </CardContent>
               </Card>
             </Link>
           ))}
         </div>
       )}
+
+      {/* Seletor de Produto de Cardápio */}
+      <ProdutoCardapioSelector
+        open={selectorOpen}
+        onOpenChange={setSelectorOpen}
+      />
     </div>
   );
 }

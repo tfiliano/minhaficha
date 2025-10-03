@@ -10,11 +10,52 @@ import { FichaTecnicaList } from "@/components/ficha-tecnica/ficha-tecnica-list"
 export default async function FichaTecnicaPage() {
   const supabase = await createClient();
 
-  // Buscar produtos que são itens de cardápio
+  // Buscar apenas produtos que são itens de cardápio E que têm ficha técnica
+  const { data: fichasTecnicas, error: fichasError } = await supabase
+    .from("fichas_tecnicas")
+    .select("produto_cardapio_id")
+    .eq("ativo", true);
+
+  if (fichasError) {
+    console.error("Erro ao buscar fichas técnicas:", fichasError);
+  }
+
+  // Obter IDs dos produtos que têm ficha técnica
+  const produtosComFichaIds = (fichasTecnicas || []).map(f => f.produto_cardapio_id);
+
+  // Se não há fichas técnicas, não buscar produtos
+  if (produtosComFichaIds.length === 0) {
+    return (
+      <AnimationTransitionPage>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+          <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
+            <div className="mb-6">
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <div className="rounded-full bg-amber-100 dark:bg-amber-900/30 p-6 mb-6">
+                    <AlertCircle className="h-12 w-12 text-amber-600 dark:text-amber-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+                    Nenhuma ficha técnica criada ainda
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400 text-center mb-6 max-w-md">
+                    Clique em &quot;Adicionar Item&quot; para selecionar um produto do cardápio e criar sua primeira ficha técnica.
+                  </p>
+                </CardContent>
+              </Card>
+              <FichaTecnicaList produtos={[]} />
+            </div>
+          </div>
+        </div>
+      </AnimationTransitionPage>
+    );
+  }
+
+  // Buscar produtos que têm ficha técnica
   const { data: produtosCardapio, error } = await supabase
     .from("produtos")
     .select("*")
-    .eq("item_de_cardapio", true)
+    .in("id", produtosComFichaIds)
     .eq("ativo", true)
     .order("nome");
 
@@ -67,37 +108,8 @@ export default async function FichaTecnicaPage() {
     <AnimationTransitionPage>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50 to-amber-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
         <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-4">
-
-          {/* Alerta se não há produtos de cardápio */}
-          {(!produtosCardapio || produtosCardapio.length === 0) && (
-            <div className="mb-6">
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-16">
-                  <div className="rounded-full bg-amber-100 dark:bg-amber-900/30 p-6 mb-6">
-                    <AlertCircle className="h-12 w-12 text-amber-600 dark:text-amber-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
-                    Nenhum item de cardápio encontrado
-                  </h3>
-                  <p className="text-slate-600 dark:text-slate-400 text-center mb-6 max-w-md">
-                    Para criar fichas técnicas, primeiro você precisa cadastrar produtos e marcá-los como &quot;Item de Cardápio&quot;
-                    no formulário de produtos.
-                  </p>
-                  <Button asChild>
-                    <Link href="/admin/produtos/add">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Cadastrar Produto
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-
           {/* Lista de Fichas Técnicas com Filtros */}
-          {produtosComDados && produtosComDados.length > 0 && (
-            <FichaTecnicaList produtos={produtosComDados} />
-          )}
+          <FichaTecnicaList produtos={produtosComDados} />
         </div>
       </div>
     </AnimationTransitionPage>
