@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ChefHat } from "lucide-react";
+import { getWhatsAppLink } from "@/config/contact";
 
 export function Navbar() {
   return (
@@ -23,9 +24,9 @@ export function Navbar() {
               Entrar
             </Button>
           </Link>
-          <Link href="/auth/login">
-            <Button size="sm" className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700">
-              Começar Grátis
+          <Link href={getWhatsAppLink("navbar")} target="_blank">
+            <Button size="sm" className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700">
+              WhatsApp
             </Button>
           </Link>
         </nav>

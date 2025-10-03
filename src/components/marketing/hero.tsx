@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { MessageCircle, CheckCircle2 } from "lucide-react";
+import { getWhatsAppLink } from "@/config/contact";
 
 export function Hero() {
   return (
@@ -54,10 +55,10 @@ export function Hero() {
 
         {/* CTAs */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-          <Link href="/auth/login">
-            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-lg px-8">
-              Começar Agora
-              <ArrowRight className="ml-2 h-5 w-5" />
+          <Link href={getWhatsAppLink("hero")} target="_blank">
+            <Button size="lg" className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-lg px-8">
+              <MessageCircle className="mr-2 h-5 w-5" />
+              Falar com Especialista
             </Button>
           </Link>
           <Link href="#features">
