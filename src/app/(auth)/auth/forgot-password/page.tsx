@@ -3,30 +3,30 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createBrowserClient } from "@/utils/supabase-browser";
-import { KeyRound, Mail } from "lucide-react";
+import { KeyRound, Mail, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { sendPasswordResetEmail, sendMagicLink } from "./actions";
 
 export default function Page() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const supabase = createBrowserClient();
+  const [mode, setMode] = useState<"reset" | "magic">("reset");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      });
+      const result = mode === "reset"
+        ? await sendPasswordResetEmail(email)
+        : await sendMagicLink(email);
 
-      if (error) {
+      if (!result.success) {
         toast.error("Erro ao enviar email", {
-          description: error.message,
+          description: result.error,
         });
         setIsLoading(false);
         return;
@@ -34,7 +34,9 @@ export default function Page() {
 
       setEmailSent(true);
       toast.success("Email enviado!", {
-        description: "Verifique sua caixa de entrada para redefinir sua senha.",
+        description: mode === "reset"
+          ? "Verifique sua caixa de entrada para redefinir sua senha."
+          : "Verifique sua caixa de entrada para acessar com o link mágico.",
       });
     } catch (error: any) {
       toast.error("Erro ao enviar email", {
@@ -68,12 +70,46 @@ export default function Page() {
       {/* Ícone */}
       <div className="flex flex-col items-center mb-8">
         <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl mb-4">
-          <KeyRound className="h-12 w-12 text-white" />
+          {mode === "reset" ? (
+            <KeyRound className="h-12 w-12 text-white" />
+          ) : (
+            <Sparkles className="h-12 w-12 text-white" />
+          )}
         </div>
-        <h1 className="text-2xl font-bold mb-2">Recuperar senha</h1>
+        <h1 className="text-2xl font-bold mb-2">
+          {mode === "reset" ? "Recuperar senha" : "Login sem senha"}
+        </h1>
         <p className="text-sm text-muted-foreground text-center">
-          Digite seu email para receber um link de recuperação
+          {mode === "reset"
+            ? "Digite seu email para receber um link de recuperação"
+            : "Digite seu email para receber um link mágico de acesso"}
         </p>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
+        <button
+          type="button"
+          onClick={() => setMode("reset")}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+            mode === "reset"
+              ? "bg-white dark:bg-slate-900 shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Redefinir senha
+        </button>
+        <button
+          type="button"
+          onClick={() => setMode("magic")}
+          className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all ${
+            mode === "magic"
+              ? "bg-white dark:bg-slate-900 shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          Link mágico
+        </button>
       </div>
 
       {/* Form */}
@@ -97,7 +133,11 @@ export default function Page() {
           className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold"
           disabled={isLoading}
         >
-          {isLoading ? "Enviando..." : "Enviar link de recuperação"}
+          {isLoading
+            ? "Enviando..."
+            : mode === "reset"
+            ? "Enviar link de recuperação"
+            : "Enviar link mágico"}
         </Button>
       </form>
 
