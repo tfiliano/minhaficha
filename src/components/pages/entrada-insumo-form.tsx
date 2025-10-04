@@ -82,7 +82,7 @@ export function EntradaInsumoForm({ produto }: { produto: any }) {
       if (response.error) throw response.error;
 
       toast.success("Entrada de insumo registrada com sucesso!");
-      router.replace("/");
+      router.replace("/home");
     } catch (error: any) {
       toast.error(error?.message || "Erro ao salvar entrada");
     } finally {

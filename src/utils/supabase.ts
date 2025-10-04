@@ -21,6 +21,7 @@ export async function createClient() {
         "lojas",
         "usuarios_masters",
         "impressoras",
+        "loja_convites", // Sistema de convites (já filtra manualmente)
         "fichas_tecnicas_itens", // Não tem loja_id, herda pela FK
         "fichas_tecnicas_fotos", // Não tem loja_id, herda pela FK
         "recursos", // Sistema de permissões (global)

@@ -21,7 +21,7 @@ export function BackButton() {
   if (!shouldShow) return <></>;
 
   const handleBack = () => {
-    if (pathname === "/admin") router.replace("/");
+    if (pathname === "/admin") router.replace("/home");
     else if (pathname === "/ficha-tecnica") router.replace("/operador");
     else router.back();
   };

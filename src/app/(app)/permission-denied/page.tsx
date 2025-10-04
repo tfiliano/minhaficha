@@ -10,7 +10,7 @@ export default function Forbidden() {
           Você não tem permissão para acessar esta página.
         </p>
         <Button asChild variant="link">
-          <Link href="/">Voltar para a página inicial</Link>
+          <Link href="/operador">Voltar para a página inicial</Link>
         </Button>
       </div>
     </div>

@@ -18,7 +18,7 @@ export function ButtonGarageSelect({ loja, tipo }: any) {
       successMessage: "Acesso permitido.",
     });
 
-    setTimeout(() => router.replace("/"), 500);
+    setTimeout(() => router.replace("/operador"), 500);
   };
 
   return (

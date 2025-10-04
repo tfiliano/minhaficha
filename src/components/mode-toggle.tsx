@@ -25,7 +25,7 @@ export function ModeToggle() {
         successMessage: "Saida com sucesso!",
         loadingMessage: "Saindo...",
       });
-      router.replace("/");
+      router.replace("/auth/login");
     } catch (error) {}
   };
 

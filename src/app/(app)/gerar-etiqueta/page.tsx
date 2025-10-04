@@ -21,7 +21,7 @@ export default async function GerarEtiquetaPage(props: Props) {
   const params = new URLSearchParams(searchParams);
 
   if (!params.get("produto")) {
-    return redirect("/");
+    return redirect("/home");
   }
   
   const supabase = await createClient();

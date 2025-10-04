@@ -513,7 +513,7 @@ export function GerarEtiquetaForm({ produto }: { produto: any }) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.replace("/")}
+            onClick={() => router.replace("/home")}
           >
             Cancelar
           </Button>

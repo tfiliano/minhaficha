@@ -81,16 +81,29 @@ function UsuarioForm({
               {
                 name: "type",
                 label: "Tipo",
-                placeholder: "Tipo",
+                placeholder: "Selecione o tipo de usuário",
                 type: "select",
+                required: true,
                 options: [
                   {
+                    value: "master",
+                    label: "Master - Acesso total ao sistema",
+                  },
+                  {
                     value: "admin",
-                    label: "Admin",
+                    label: "Admin - Acesso administrativo completo",
                   },
                   {
                     value: "manager",
-                    label: "Gerente",
+                    label: "Gerente - Gerenciamento de produtos e operações",
+                  },
+                  {
+                    value: "operator",
+                    label: "Operador - Operações de produção e entrada",
+                  },
+                  {
+                    value: "user",
+                    label: "Usuário - Apenas visualização",
                   },
                 ],
               },

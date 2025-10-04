@@ -11,6 +11,7 @@ import {
   MapPin,
   Shield,
   Users,
+  UserCog,
   Printer,
   Layout,
   Settings,
@@ -20,7 +21,12 @@ import {
   Truck,
   Factory,
   Tag,
-  UtensilsCrossed
+  UtensilsCrossed,
+  FileBox,
+  ClipboardList,
+  LayoutTemplate,
+  ShieldCheck,
+  Cog
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { MenuCategory } from "@/config/menu-options";
@@ -35,6 +41,7 @@ const iconMap = {
   MapPin,
   Shield,
   Users,
+  UserCog,
   Printer,
   Layout,
   Settings,
@@ -44,6 +51,11 @@ const iconMap = {
   Factory,
   Tag,
   UtensilsCrossed,
+  FileBox,
+  ClipboardList,
+  LayoutTemplate,
+  ShieldCheck,
+  Cog,
 } as const;
 
 const categoryStyles = {

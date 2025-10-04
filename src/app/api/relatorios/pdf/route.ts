@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
       footerTemplate: `
         <div style="font-size: 8px; width: 100%; padding: 0 10mm; display: flex; justify-content: space-between; align-items: center; color: #64748b;">
           <span>Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>
-          <span style="text-align: center; flex: 1;">https://minhaficha.app</span>
+          <span style="text-align: center; flex: 1;">Gerado com https://minhaficha.app</span>
           <span>Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
         </div>
       `,
@@ -134,7 +134,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Erro ao gerar PDF:", error);
     return NextResponse.json(
-      { error: "Erro ao gerar PDF" },
+      {
+        error: "Erro ao gerar PDF",
+        details: error instanceof Error ? error.message : String(error)
+      },
       { status: 500 }
     );
   }

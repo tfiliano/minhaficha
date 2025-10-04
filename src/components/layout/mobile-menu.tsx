@@ -9,6 +9,7 @@ import {
   BarChart3,
   Settings,
   Users,
+  UserCog,
   ChevronDown,
   ChevronRight,
   Box,
@@ -48,6 +49,7 @@ const adminSubmenus = [
   { href: "/admin/produtos", label: "Produtos", icon: Box },
   { href: "/ficha-tecnica", label: "Ficha Técnica", icon: ChefHat },
   { href: "/admin/operadores", label: "Operadores", icon: Users },
+  { href: "/admin/usuarios", label: "Usuários", icon: UserCog },
   { href: "/admin/grupos", label: "Grupos", icon: Tags },
   { href: "/admin/setores", label: "Setores", icon: MapPin },
   { href: "/admin/armazenamentos", label: "Armazenamentos", icon: Package },
@@ -63,7 +65,7 @@ const adminSubmenus = [
 ];
 
 const menuItems = [
-  { href: "/", label: "Início", icon: Home },
+  { href: "/home", label: "Início", icon: Home },
   { href: "/operador?operacao=Produção", label: "Produção", icon: UtensilsCrossed },
   { href: "/operador?operacao=Etiquetas", label: "Gerar Etiqueta", icon: Tag },
   { href: "/operador?operacao=Entrada de Insumos", label: "Entrada de Insumos", icon: Truck },

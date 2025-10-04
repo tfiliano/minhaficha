@@ -123,9 +123,18 @@ export async function GET(
       margin: {
         top: "10mm",
         right: "10mm",
-        bottom: "10mm",
+        bottom: "20mm",
         left: "10mm",
       },
+      displayHeaderFooter: true,
+      headerTemplate: '<div></div>',
+      footerTemplate: `
+        <div style="font-size: 8px; width: 100%; padding: 0 10mm; display: flex; justify-content: space-between; align-items: center; color: #64748b;">
+          <span>Gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</span>
+          <span style="text-align: center; flex: 1;">Gerado com https://minhaficha.app</span>
+          <span>Página <span class="pageNumber"></span> de <span class="totalPages"></span></span>
+        </div>
+      `,
     });
 
     await browser.close();

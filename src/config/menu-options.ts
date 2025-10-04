@@ -21,6 +21,13 @@ export const adminMenuOptions = [
     category: "primary",
     description: "Monitore impressões ativas"
   },
+  {
+    label: "Ficha Técnica",
+    href: "/ficha-tecnica",
+    icon: "ChefHat",
+    category: "primary",
+    description: "Receitas e custos"
+  },
 
   // Configurações - Setup do sistema
   {
@@ -68,6 +75,13 @@ export const adminMenuOptions = [
     description: "Usuários e permissões"
   },
   {
+    label: "Usuários",
+    href: "usuarios",
+    icon: "UserCog",
+    category: "system",
+    description: "Gerenciar usuários da loja"
+  },
+  {
     label: "Impressoras",
     href: "impressoras",
     icon: "Printer",
@@ -82,13 +96,20 @@ export const adminMenuOptions = [
     description: "Designer de layouts"
   },
   {
+    label: "Permissões",
+    href: "permissoes",
+    icon: "Shield",
+    category: "system",
+    description: "Controle de acesso"
+  },
+  {
     label: "Config. da Loja",
     href: "configuracoes",
     icon: "Settings",
     category: "system",
     description: "Configurações gerais"
   },
-  
+
   // Analytics
   {
     label: "Relatórios",

@@ -150,7 +150,7 @@ export function ProducaoForm({
       if (response.error) throw response.error;
 
       toast.success("Produção registrada com sucesso!");
-      router.replace("/");
+      router.replace("/home");
     } catch (error: any) {
       toast.error(error?.message || "Erro ao salvar produção");
     } finally {

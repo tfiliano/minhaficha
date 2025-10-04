@@ -22,7 +22,7 @@ export default async function Produtos(props: Props) {
     route = "/entrada-insumo";
 
   if (!params.get("operador")) {
-    return redirect("/");
+    return redirect("/home");
   }
   const supabase = await createClient();
   const { data: produtos } = await supabase

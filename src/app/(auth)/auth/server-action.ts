@@ -48,7 +48,7 @@ export async function login(formData: any) {
       httpOnly: false,
     });
 
-    return { success: true };
+    return { success: true, redirect: "/operador" };
   } catch (error: any) {
     return { error: error.message };
   }

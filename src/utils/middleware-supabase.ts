@@ -118,7 +118,21 @@ class AuthGuard {
 
   async validateUserAccess() {
     const user = await this.supabaseService.getUser();
-    if (!user && !this.isPublicRoute()) {
+
+    // Se usuário logado está acessando landing page, redireciona para /home
+    if (user && this.request.nextUrl.pathname === "/") {
+      const url = this.request.nextUrl.clone();
+      url.pathname = "/home";
+      return NextResponse.redirect(url);
+    }
+
+    // Se não tem usuário
+    if (!user) {
+      // Permite acesso a rotas públicas
+      if (this.isPublicRoute()) {
+        return NextResponse.next();
+      }
+      // Caso contrário, redireciona para login
       return this.redirectToLogin();
     }
 
@@ -157,7 +171,7 @@ class AuthGuard {
       if (!hasPermission) {
         // Usuário não tem permissão para acessar este recurso
         const url = this.request.nextUrl.clone();
-        url.pathname = "/";
+        url.pathname = "/operador";
         url.searchParams.set("error", "permission_denied");
         return NextResponse.redirect(url);
       }
@@ -191,7 +205,8 @@ class AuthGuard {
       this.request.nextUrl.pathname.startsWith("/login") ||
       this.request.nextUrl.pathname.startsWith("/auth") ||
       this.request.nextUrl.pathname.startsWith("/setup-master") ||
-      this.request.nextUrl.pathname.startsWith("/api/setup-master")
+      this.request.nextUrl.pathname.startsWith("/api/setup-master") ||
+      this.request.nextUrl.pathname.startsWith("/accept-invite") // Aceitar convites
     );
   }
 }

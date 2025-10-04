@@ -16,7 +16,7 @@ export default async function Setores(props: Props) {
   let route = "/produto";
 
   if (!params.get("operador")) {
-    return redirect("/");
+    return redirect("/home");
   }
 
   if (params.get("operacao") == "Etiquetas") route = "/selecionar-insumo";

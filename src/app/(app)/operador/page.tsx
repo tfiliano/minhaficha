@@ -16,7 +16,7 @@ export default async function Operadores(props: Props) {
   let route = "";
 
   if (!params.get("operacao")) {
-    return redirect("/");
+    return redirect("/home");
   }
 
   if (params.get("operacao") == "Produção") route = "/setor";

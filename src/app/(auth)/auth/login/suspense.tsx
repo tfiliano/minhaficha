@@ -34,7 +34,8 @@ export function PageClient() {
         successMessage: "Autenticado com sucesso!",
         loadingMessage: "Autenticando...",
       });
-      router.replace(params.get("nextUrl") || response?.redirect || "/");
+      const redirectTo = params.get("nextUrl") || response?.redirect || "/operador";
+      router.replace(redirectTo);
     } catch (error) {
       setIsLoading(false);
     }
