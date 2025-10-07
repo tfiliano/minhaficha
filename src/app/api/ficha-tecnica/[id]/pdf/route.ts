@@ -2,6 +2,8 @@ import { createClient } from "@/utils/supabase";
 import { NextRequest, NextResponse } from "next/server";
 import puppeteerCore from "puppeteer-core";
 import chromium from "@sparticuz/chromium";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 // Configurações para Vercel
 export const maxDuration = 60; // 60 segundos
