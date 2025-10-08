@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { useRouter, useSearchParams } from "@/hooks/use-router";
+import { useSearchParams } from "@/hooks/use-router";
 import { generateToastPromise } from "@/lib/toast";
 import { createBrowserClient } from "@/utils/supabase-browser";
 import { Lightbulb, Mail } from "lucide-react";
@@ -15,7 +15,6 @@ import { login } from "../server-action";
 
 export function PageClient() {
   const params = useSearchParams();
-  const router = useRouter();
   const supabase = createBrowserClient();
 
   const [email, setEmail] = useState("");
@@ -35,7 +34,9 @@ export function PageClient() {
         loadingMessage: "Autenticando...",
       });
       const redirectTo = params.get("nextUrl") || response?.redirect || "/operador";
-      router.replace(redirectTo);
+
+      // Usar window.location.href para forçar reload completo e garantir cookies
+      window.location.href = redirectTo;
     } catch (error) {
       setIsLoading(false);
     }

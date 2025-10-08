@@ -3,6 +3,7 @@
 import { createClient } from "@/utils/supabase";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export async function login(formData: any) {
   try {
@@ -40,13 +41,24 @@ export async function login(formData: any) {
       return { redirect: "/store-picker" };
     }
 
-    (await cookies()).set("minhaficha_loja_id", loja!.loja_id!, {
+    const cookieStore = await cookies();
+
+    cookieStore.set("minhaficha_loja_id", loja!.loja_id!, {
       httpOnly: false,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30, // 30 dias
     });
 
-    (await cookies()).set("minhaficha_loja_user_tipo", loja!.tipo!, {
+    cookieStore.set("minhaficha_loja_user_tipo", loja!.tipo!, {
       httpOnly: false,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30, // 30 dias
     });
+
+    // Revalidar para garantir que os cookies sejam reconhecidos
+    revalidatePath("/", "layout");
 
     return { success: true, redirect: "/operador" };
   } catch (error: any) {
@@ -55,20 +67,17 @@ export async function login(formData: any) {
 }
 
 export async function logout() {
-  try {
-    const supabase = await createClient();
+  const supabase = await createClient();
 
-    const { error } = await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
 
-    if (error) {
-      throw error;
-    }
-    (await cookies()).delete("minhaficha_loja_id");
-    (await cookies()).delete("minhaficha_loja_user_tipo");
-    return { success: true };
-  } catch (error: any) {
-    return { error: error.message };
+  if (error) {
+    throw error;
   }
+
+  const cookieStore = await cookies();
+  cookieStore.delete("minhaficha_loja_id");
+  cookieStore.delete("minhaficha_loja_user_tipo");
 
   redirect("/auth/login");
 }
