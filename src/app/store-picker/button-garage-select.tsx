@@ -1,15 +1,13 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useRouter } from "@/hooks/use-router";
 import { generateToastPromise } from "@/lib/toast";
 import { Store } from "lucide-react";
 import { actionSelectLoja } from "./select-store";
 
 export function ButtonGarageSelect({ loja, tipo }: any) {
-  const router = useRouter();
   const handleSelectGarage = async () => {
-    const response = await generateToastPromise<any, any>({
+    await generateToastPromise<any, any>({
       action: actionSelectLoja,
       actionData: {
         loja_id: loja.id,
@@ -18,7 +16,11 @@ export function ButtonGarageSelect({ loja, tipo }: any) {
       successMessage: "Acesso permitido.",
     });
 
-    setTimeout(() => router.replace("/operador"), 500);
+    // Pequeno delay para garantir que cookies sejam persistidos
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Forçar navegação completa
+    window.location.href = "/operador";
   };
 
   return (

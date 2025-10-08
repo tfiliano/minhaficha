@@ -3,6 +3,7 @@
 import { createClient } from "@/utils/supabase";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 export async function login(formData: any) {
   try {
@@ -27,7 +28,7 @@ export async function login(formData: any) {
         .eq("is_active", true);
 
       if (!error && userAdmin) {
-        return { redirect: "/dashboard" };
+        return { success: true, redirect: "/dashboard" };
       }
 
       await logout();
@@ -37,38 +38,49 @@ export async function login(formData: any) {
     let loja = lojas.length === 1 ? lojas[0] : null;
 
     if (lojas.length > 1) {
-      return { redirect: "/store-picker" };
+      return { success: true, redirect: "/store-picker" };
     }
 
-    (await cookies()).set("minhaficha_loja_id", loja!.loja_id!, {
-      httpOnly: false,
-    });
+    const cookieStore = await cookies();
 
-    (await cookies()).set("minhaficha_loja_user_tipo", loja!.tipo!, {
+    // Configuração dos cookies
+    const cookieOptions = {
       httpOnly: false,
+      sameSite: "lax" as const,
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30, // 30 dias
+    };
+
+    cookieStore.set("minhaficha_loja_id", loja!.loja_id!, cookieOptions);
+    cookieStore.set("minhaficha_loja_user_tipo", loja!.tipo!, cookieOptions);
+
+    // Revalidar para garantir que os cookies sejam reconhecidos
+    revalidatePath("/", "layout");
+
+    console.log("[LOGIN] Cookies setados:", {
+      loja_id: loja!.loja_id,
+      tipo: loja!.tipo,
     });
 
     return { success: true, redirect: "/operador" };
   } catch (error: any) {
+    console.error("[LOGIN] Erro:", error);
     return { error: error.message };
   }
 }
 
 export async function logout() {
-  try {
-    const supabase = await createClient();
+  const supabase = await createClient();
 
-    const { error } = await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
 
-    if (error) {
-      throw error;
-    }
-    (await cookies()).delete("minhaficha_loja_id");
-    (await cookies()).delete("minhaficha_loja_user_tipo");
-    return { success: true };
-  } catch (error: any) {
-    return { error: error.message };
+  if (error) {
+    throw error;
   }
+
+  const cookieStore = await cookies();
+  cookieStore.delete("minhaficha_loja_id");
+  cookieStore.delete("minhaficha_loja_user_tipo");
 
   redirect("/auth/login");
 }

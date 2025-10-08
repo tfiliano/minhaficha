@@ -118,9 +118,16 @@ class AuthGuard {
 
   async validateUserAccess() {
     const user = await this.supabaseService.getUser();
+    const pathname = this.request.nextUrl.pathname;
+
+    console.log("[MIDDLEWARE]", {
+      pathname,
+      hasUser: !!user,
+      userId: user?.id,
+    });
 
     // Se usuário logado está acessando landing page, redireciona para /home
-    if (user && this.request.nextUrl.pathname === "/") {
+    if (user && pathname === "/") {
       const url = this.request.nextUrl.clone();
       url.pathname = "/home";
       return NextResponse.redirect(url);
@@ -132,11 +139,12 @@ class AuthGuard {
       if (this.isPublicRoute()) {
         return NextResponse.next();
       }
+      console.log("[MIDDLEWARE] Sem usuário, redirecionando para login");
       // Caso contrário, redireciona para login
       return this.redirectToLogin();
     }
 
-    if (this.request.nextUrl.pathname.startsWith("/dashboard")) {
+    if (pathname.startsWith("/dashboard")) {
       if (!(await this.supabaseService.getDashboardAccess(user!.id)).data) {
         return this.redirectToLogin();
       }
@@ -145,10 +153,17 @@ class AuthGuard {
 
     const lojaId = (await cookies()).get("minhaficha_loja_id")?.value;
 
+    console.log("[MIDDLEWARE]", {
+      pathname,
+      lojaId,
+      userId: user.id,
+    });
+
     if (
       !lojaId ||
       !(await this.supabaseService.getLojaUsuario(user!.id, lojaId)).data
     ) {
+      console.log("[MIDDLEWARE] Sem loja_id ou usuário não pertence à loja");
       return this.redirectToLogin();
     }
 
